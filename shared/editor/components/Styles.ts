@@ -527,12 +527,12 @@ const textStyle = () => css`
 
 const style = (props: Props) => css`
 --font-size-p: var(--font-size-body);
---font-size-h1: 28px;
---font-size-h2: 22px;
---font-size-h3: 18px;
---font-size-h4: 16px;
---font-size-h5: 15px;
---font-size-h6: 15px;
+--font-size-h1: calc(var(--font-size-body) * 1.75);
+--font-size-h2: calc(var(--font-size-body) * 1.5);
+--font-size-h3: calc(var(--font-size-body) * 1.125);
+--font-size-h4: var(--font-size-body);
+--font-size-h5: calc(var(--font-size-body) * 0.9375);
+--font-size-h6: calc(var(--font-size-body) * 0.9375);
 
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -887,6 +887,33 @@ th .image .image-wrapper img {
     max-height: min(450px, 50vh);
     object-fit: cover;
     object-position: center;
+  }
+}
+
+.${EditorStyleHelper.tableGridStyle} {
+  th,
+  td {
+    border-left: 1px solid ${props.theme.divider};
+  }
+
+  tr > th:first-child,
+  tr > td:first-child {
+    border-left: 0;
+  }
+
+  th {
+    color: ${props.theme.textSecondary};
+    font-weight: 500;
+    font-size: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  td code,
+  th code {
+    background: ${props.theme.codeBackground};
+    padding: 2px 4px;
+    font-weight: 500;
   }
 }
 
@@ -1727,17 +1754,14 @@ code {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 
-  border-radius: 4px;
-  border: 1px solid ${props.theme.codeBorder};
+  border-radius: 3px;
+  border: 0;
   background: ${props.theme.codeBackground};
-  padding: 3px 4px;
+  padding: 2px 4px;
   color: ${props.theme.code};
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 90%;
-
-  &.inline {
-    color: ${props.theme.codeKeyword};
-  }
+  font-weight: 500;
+  font-size: calc(92% * var(--font-size-code-scale, 1));
 
   .${EditorStyleHelper.codeWord} {
     @media (min-width: ${breakpoints.tablet}px) {
@@ -1767,7 +1791,8 @@ mark {
 
 .${EditorStyleHelper.codeBlock} {
   position: relative;
-  font-size: 90%;
+  font-size: calc(90% * var(--font-size-code-scale, 1));
+
 
   &:hover + .${EditorStyleHelper.codeBlockToggle},
   &:focus-within + .${EditorStyleHelper.codeBlockToggle},
@@ -1962,6 +1987,74 @@ mark {
   }
 }
 
+.${EditorStyleHelper.codeBlockMeta} {
+  --copy-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5.6' y='5.6' width='8' height='8' rx='1.4'/%3E%3Cpath d='M10.4 5.6V3.8a1.4 1.4 0 0 0-1.4-1.4H3.8a1.4 1.4 0 0 0-1.4 1.4v5.2a1.4 1.4 0 0 0 1.4 1.4h1.8'/%3E%3C/svg%3E");
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: ${props.theme.codeBackground};
+
+  @media print {
+    display: none;
+  }
+}
+
+.${EditorStyleHelper.codeBlockLanguage} {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${props.theme.textSecondary};
+}
+
+.${EditorStyleHelper.codeBlockCopy} {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    flex: 0 0 12px;
+    background: currentColor;
+    -webkit-mask: var(--copy-glyph) center / contain no-repeat;
+    mask: var(--copy-glyph) center / contain no-repeat;
+  }
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  appearance: none !important;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-family: inherit;
+  color: ${props.theme.textTertiary};
+  cursor: var(--pointer);
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+
+.${EditorStyleHelper.codeBlock}:hover .${EditorStyleHelper.codeBlockCopy},
+.${EditorStyleHelper.codeBlock}:focus-within .${EditorStyleHelper.codeBlockCopy} {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .${EditorStyleHelper.codeBlockCopy} {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .${EditorStyleHelper.codeBlockCopy} {
+    transition: none;
+  }
+}
+
 .mermaid-diagram-wrapper {
   display: flex;
   align-items: center;
@@ -1999,8 +2092,8 @@ pre {
   line-height: 1.4em;
   position: relative;
   background: ${props.theme.codeBackground};
-  border-radius: 4px;
-  border: 1px solid ${props.theme.codeBorder};
+  border-radius: 8px;
+  border: 0;
   margin: .5em 0;
 
   -webkit-font-smoothing: initial;
@@ -2034,7 +2127,6 @@ table {
   margin-top: 1em;
   box-sizing: border-box;
   border: 1px solid ${props.theme.divider};
-  border-left: 0;
   border-spacing: 0;
 
   * {
@@ -2052,21 +2144,27 @@ table {
     position: relative;
     vertical-align: top;
     position: relative;
-    padding: 4px 8px;
+    padding: 9px 14px;
     text-align: start;
     font-weight: normal;
-    border-left: 1px solid ${props.theme.divider};
+    border-left: 0;
     border-top: 1px solid ${props.theme.divider};
   }
 
   th {
-    background: ${props.theme.background};
-    background-image: linear-gradient(
-      ${transparentize(0.75, props.theme.divider)},
-      ${transparentize(0.75, props.theme.divider)}
-    );
+    background: ${props.theme.codeBackground};
     color: ${props.theme.textSecondary};
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  td code,
+  th code {
+    background: none;
+    padding: 0;
+    font-weight: 400;
   }
 
   tr:first-child th,

@@ -70,6 +70,9 @@ export default class Table extends Node {
         layout: {
           default: null,
         },
+        style: {
+          default: null,
+        },
       },
       toDOM() {
         // Note: This is overridden by TableView

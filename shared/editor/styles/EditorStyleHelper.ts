@@ -45,6 +45,12 @@ export class EditorStyleHelper {
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
 
+  static readonly codeBlockMeta = "code-block-meta";
+
+  static readonly codeBlockLanguage = "code-block-language";
+
+  static readonly codeBlockCopy = "code-block-copy";
+
   // Diffs
 
   static readonly diffInsertion = "diff-insertion";
@@ -122,6 +128,9 @@ export class EditorStyleHelper {
 
   /** Scrollable area of table */
   static readonly tableScrollable = "table-scrollable";
+
+  /** Table rendered with rules on every column */
+  static readonly tableGridStyle = "table-grid-style";
 
   /** Full-width table layout */
   static readonly tableFullWidth = "table-full-width";

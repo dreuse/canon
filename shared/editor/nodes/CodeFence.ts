@@ -37,6 +37,7 @@ import Mermaid, {
   type MermaidState,
 } from "../extensions/Mermaid";
 import {
+  getLabelForLanguage,
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
@@ -172,7 +173,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   );
 
   get showLineNumbers(): boolean {
-    return this.options.userPreferences?.codeBlockLineNumbers ?? true;
+    return this.options.userPreferences?.codeBlockLineNumbers ?? false;
   }
 
   get name() {
@@ -233,12 +234,44 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           .filter(Boolean)
           .join(" ");
 
+        const language = node.attrs.language;
+
         return [
           "div",
           {
             class: classes,
-            "data-language": node.attrs.language,
+            "data-language": language,
           },
+          ...(language
+            ? [
+                [
+                  "div",
+                  {
+                    class: EditorStyleHelper.codeBlockMeta,
+                    contentEditable: "false",
+                  },
+                  ...(language === "none"
+                    ? []
+                    : [
+                        [
+                          "span",
+                          { class: EditorStyleHelper.codeBlockLanguage },
+                          getLabelForLanguage(language),
+                        ],
+                      ]),
+                  [
+                    "button",
+                    {
+                      class: EditorStyleHelper.codeBlockCopy,
+                      type: "button",
+                      contentEditable: "false",
+                      "aria-label": t("Copy"),
+                    },
+                    t("Copy"),
+                  ],
+                ],
+              ]
+            : []),
           ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
       },
@@ -522,6 +555,40 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           handleDOMEvents: {
             mousedown: (view: EditorView, event: MouseEvent) => {
               const target = event.target as HTMLElement;
+
+              const copyButton = target.closest(
+                `.${EditorStyleHelper.codeBlockCopy}`
+              );
+              if (copyButton) {
+                const codeBlockEl = copyButton.closest(
+                  `.${EditorStyleHelper.codeBlock}`
+                );
+                const codeEl = codeBlockEl?.querySelector("code");
+                if (!codeEl) {
+                  return false;
+                }
+
+                const pos = view.posAtDOM(codeEl, 0);
+                const $pos = view.state.doc.resolve(pos);
+                const parent = findParentNodeClosestToPos($pos, isCode);
+                if (!parent) {
+                  return false;
+                }
+
+                view.dispatch(
+                  view.state.tr
+                    .setSelection(
+                      TextSelection.create(view.state.doc, parent.pos + 1)
+                    )
+                    .setMeta("addToHistory", false)
+                );
+                this.editor.commands.copyToClipboard();
+
+                event.preventDefault();
+                event.stopPropagation();
+                return true;
+              }
+
               const button = target.closest(
                 `.${EditorStyleHelper.codeBlockToggle}`
               );

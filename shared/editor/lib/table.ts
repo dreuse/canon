@@ -2,11 +2,12 @@ import type { Attrs, Node, Schema } from "prosemirror-model";
 import type { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
-import type { TableLayout, NodeAttrMark } from "../types";
+import type { TableLayout, TableStyle, NodeAttrMark } from "../types";
 import { readableColor } from "polished";
 
 export interface TableAttrs {
   layout: TableLayout | null;
+  style: TableStyle | null;
 }
 
 export interface CellAttrs {

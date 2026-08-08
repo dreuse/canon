@@ -1,7 +1,7 @@
 import type { Node } from "prosemirror-model";
 import { TableView as ProsemirrorTableView } from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { TableLayout } from "../types";
+import { TableLayout, TableStyle } from "../types";
 import { HEADER_HEIGHT } from "../../constants";
 import { isBrowser } from "../../utils/browser";
 
@@ -79,6 +79,11 @@ export class TableView extends ProsemirrorTableView {
     this.dom.classList.toggle(
       EditorStyleHelper.tableFullWidth,
       node.attrs.layout === TableLayout.fullWidth
+    );
+
+    this.dom.classList.toggle(
+      EditorStyleHelper.tableGridStyle,
+      node.attrs.style === TableStyle.grid
     );
 
     const shadowLeft = !!(this.scrollable && this.scrollable.scrollLeft > 0);

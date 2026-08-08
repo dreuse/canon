@@ -27,6 +27,10 @@ export enum TableLayout {
   fullWidth = "full-width",
 }
 
+export enum TableStyle {
+  grid = "grid",
+}
+
 /** How a selection toolbar menu is presented. */
 export enum MenuType {
   /** A horizontal strip of buttons; nested options open behind a trigger. */

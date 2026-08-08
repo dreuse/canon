@@ -1,4 +1,4 @@
-import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
+import { EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import {
@@ -56,17 +56,6 @@ export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
     ?.editingId;
 
   return [
-    {
-      name: "copyToClipboard",
-      icon: <CopyIcon />,
-      label: readOnly
-        ? getLabelForLanguage(node.attrs.language ?? "none")
-        : undefined,
-      tooltip: t("Copy"),
-    },
-    {
-      name: "separator",
-    },
     {
       name: "edit_mermaid",
       icon: <EditIcon />,
