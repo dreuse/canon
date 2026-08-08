@@ -29,6 +29,7 @@ export enum TableLayout {
 
 export enum TableStyle {
   grid = "grid",
+  plain = "plain",
 }
 
 /** How a selection toolbar menu is presented. */

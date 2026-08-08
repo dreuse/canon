@@ -46,7 +46,7 @@ import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import type { TableLayout } from "../types";
+import { type TableLayout, TableStyle } from "../types";
 import Node from "./Node";
 import { TableView } from "./TableView";
 
@@ -71,7 +71,7 @@ export default class Table extends Node {
           default: null,
         },
         style: {
-          default: null,
+          default: TableStyle.grid,
         },
       },
       toDOM() {

@@ -21,6 +21,9 @@ export class EditorStyleHelper {
 
   static readonly headingPositionAnchor = "heading-position-anchor";
 
+  /** Sequential number rendered before each second-level heading */
+  static readonly headingChip = "heading-chip";
+
   // Comments
 
   static readonly comment = "comment-marker";

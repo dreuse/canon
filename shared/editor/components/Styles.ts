@@ -1048,6 +1048,19 @@ img.ProseMirror-separator {
   }
 }
 
+.${EditorStyleHelper.headingChip} {
+  display: inline-block;
+  margin-inline-end: 0.45em;
+  font-family: ${props.theme.fontFamilyMono};
+  font-size: 0.62em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: ${props.theme.textTertiary};
+  user-select: none;
+  vertical-align: 0.18em;
+}
+
 .${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
@@ -2153,7 +2166,7 @@ table {
 
   th {
     background: ${props.theme.codeBackground};
-    color: ${props.theme.textSecondary};
+    color: ${props.theme.textTertiaryOnTint};
     font-weight: 600;
     font-size: 11px;
     letter-spacing: .07em;

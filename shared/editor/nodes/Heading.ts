@@ -20,6 +20,10 @@ import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
+const SECTION_HEADING_LEVEL = 2;
+
+const SECTION_NUMBER_PAD = 2;
+
 export enum HeadingLevel {
   One = 1,
   Two,
@@ -210,9 +214,31 @@ export default class Heading extends Node<HeadingOptions> {
   get plugins() {
     const createWidgetDecorations = (doc: ProsemirrorNode): Decoration[] => {
       const decorations: Decoration[] = [];
+      let sectionCount = 0;
 
       doc.descendants((node, pos) => {
         if (node.type.name === "heading") {
+          if (node.attrs.level === SECTION_HEADING_LEVEL) {
+            sectionCount++;
+            const label = String(sectionCount).padStart(
+              SECTION_NUMBER_PAD,
+              "0"
+            );
+            const chip = document.createElement("span");
+            chip.innerText = label;
+            chip.contentEditable = "false";
+            chip.className = EditorStyleHelper.headingChip;
+
+            decorations.push(
+              Decoration.widget(pos + 1, chip, {
+                side: -2,
+                ignoreSelection: true,
+                relaxedSide: true,
+                key: `heading-chip-${label}`,
+              })
+            );
+          }
+
           // Create anchor button to copy a link to the heading
           const anchor = document.createElement("button");
           anchor.innerText = "#";

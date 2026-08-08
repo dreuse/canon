@@ -41,7 +41,7 @@ export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
       name: "setTableAttr",
       label: isGrid ? t("Plain") : t("Grid"),
       icon: <TableIcon />,
-      attrs: isGrid ? { style: null } : { style: TableStyle.grid },
+      attrs: isGrid ? { style: TableStyle.plain } : { style: TableStyle.grid },
     },
     {
       name: "distributeColumns",
