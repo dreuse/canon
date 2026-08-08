@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DraftsIcon } from "outline-icons";
+
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
@@ -9,6 +9,7 @@ import * as Scenes from "~/routes/scenes";
 import { draftsPath } from "~/utils/routeHelpers";
 import { useDropToUnpublish } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
+import { VoDraftsIcon } from "~/components/Icons/VobysIcons";
 
 export const DraftsLink = observer(() => {
   const { t } = useTranslation();
@@ -20,7 +21,7 @@ export const DraftsLink = observer(() => {
       <SidebarLink
         to={draftsPath()}
         onClickIntent={Scenes.Drafts.preload}
-        icon={<DraftsIcon />}
+        icon={<VoDraftsIcon />}
         label={
           <Flex align="center" justify="space-between">
             {t("Drafts")}

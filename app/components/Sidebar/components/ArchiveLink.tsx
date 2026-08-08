@@ -1,6 +1,6 @@
 import { isUndefined } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { ArchiveIcon } from "outline-icons";
+
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";
@@ -17,6 +17,7 @@ import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
+import { VoArchiveIcon } from "~/components/Icons/VobysIcons";
 
 function ArchiveLink() {
   const { collections } = useStores();
@@ -63,7 +64,7 @@ function ArchiveLink() {
           <SidebarLink
             to={archivePath()}
             onClickIntent={Scenes.Archive.preload}
-            icon={<ArchiveIcon open={isOverArchiveSection && isDragging} />}
+            icon={<VoArchiveIcon />}
             exact={false}
             label={t("Archive")}
             isActiveDrop={isOverArchiveSection && isDragging}

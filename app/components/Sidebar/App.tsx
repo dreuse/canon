@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+import { SidebarIcon } from "outline-icons";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   DragActiveProvider,
@@ -36,6 +36,7 @@ import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
+import { VoHomeIcon, VoSearchIcon } from "~/components/Icons/VobysIcons";
 
 function AppSidebar() {
   const { t } = useTranslation();
@@ -109,14 +110,14 @@ function AppSidebar() {
           <Section>
             <SidebarLink
               to={homePath()}
-              icon={<HomeIcon />}
+              icon={<VoHomeIcon />}
               exact={false}
               label={t("Home")}
               onClickIntent={Scenes.Home.preload}
             />
             <SidebarLink
               to={searchPath()}
-              icon={<SearchIcon />}
+              icon={<VoSearchIcon />}
               label={t("Search")}
               exact={false}
               onClick={handleSearchClick}

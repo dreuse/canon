@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { TrashIcon } from "outline-icons";
+
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -9,6 +9,7 @@ import * as Scenes from "~/routes/scenes";
 import { trashPath } from "~/utils/routeHelpers";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
+import { VoTrashIcon } from "~/components/Icons/VobysIcons";
 
 function TrashLink() {
   const { policies, dialogs, documents } = useStores();
@@ -50,7 +51,7 @@ function TrashLink() {
       <SidebarLink
         to={trashPath()}
         onClickIntent={Scenes.Trash.preload}
-        icon={<TrashIcon open={isDocumentDropping} />}
+        icon={<VoTrashIcon />}
         exact={false}
         label={t("Trash")}
         active={documents.active?.isDeleted}
