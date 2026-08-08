@@ -10,6 +10,7 @@ import {
   MonospaceFontFamilyStacks,
 } from "@shared/constants";
 import GlobalStyles from "@shared/styles/globals";
+import { resolveCodeTheme } from "@shared/styles/codeThemes";
 import { resolveAccent } from "@shared/styles/palettes";
 import {
   BodyFontFamily,
@@ -54,7 +55,14 @@ const Theme: React.FC = ({ children }: Props) => {
     }),
     [customThemeColors, isDark, bodyFontFamily, monospaceFontFamily]
   );
-  const theme = useBuildTheme(themeOverride);
+  const builtTheme = useBuildTheme(themeOverride);
+  const codeTheme = resolveCodeTheme(
+    auth.team?.getPreference(TeamPreference.CodeTheme)
+  );
+  const theme = React.useMemo(
+    () => (codeTheme ? { ...builtTheme, ...codeTheme } : builtTheme),
+    [builtTheme, codeTheme]
+  );
   const direction = isRTLLanguage(i18n.language) ? "rtl" : "ltr";
 
   React.useEffect(() => {
@@ -90,7 +98,7 @@ const Theme: React.FC = ({ children }: Props) => {
       <ThemeProvider theme={theme}>
         <>
           <GlobalStyles
-            fontSize={FontSizeValues[fontSize]}
+            fontSize={FontSizeValues[fontSize] * ui.fontScale}
             codeFontScale={CodeFontScaleValues[codeFontSize]}
             useCursorPointer={
               // Default to showing the cursor pointer if no user is logged in (public share)

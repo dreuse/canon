@@ -235,6 +235,13 @@ export enum CollectionPermission {
   Admin = "admin",
 }
 
+export enum CollectionIconStyle {
+  Pictogram = "pictogram",
+  Letter = "letter",
+  Dot = "dot",
+  None = "none",
+}
+
 export enum DocumentPermission {
   Read = "read",
   ReadWrite = "read_write",
@@ -503,6 +510,10 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** The collection new members are pointed at from Home. */
+  OnboardingCollectionId = "onboardingCollectionId",
+  /** The palette used for code blocks and inline code. */
+  CodeTheme = "codeTheme",
 }
 
 export type TeamPreferences = {
@@ -524,6 +535,8 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.OnboardingCollectionId]?: string | null;
+  [TeamPreference.CodeTheme]?: string | null;
 };
 
 export enum NavigationNodeType {

@@ -1,7 +1,7 @@
 import { isHexColor } from "class-validator";
 import { pickBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { TeamIcon } from "outline-icons";
+import { CloseIcon, TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -53,6 +53,10 @@ import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+
+const NO_ONBOARDING_COLLECTION = "none";
+
+const DEFAULT_CODE_THEME = "default";
 
 function Details() {
   const { dialogs, ui } = useStores();
@@ -139,6 +143,16 @@ function Details() {
   const [tocPosition, setTocPosition] = useState(
     team.getPreference(TeamPreference.TocPosition) as TOCPosition
   );
+
+  const [onboardingCollectionId, setOnboardingCollectionId] = useState(() => {
+    const stored = team.getPreference(TeamPreference.OnboardingCollectionId);
+    return typeof stored === "string" ? stored : null;
+  });
+
+  const [codeTheme, setCodeTheme] = useState(() => {
+    const stored = team.getPreference(TeamPreference.CodeTheme);
+    return typeof stored === "string" ? stored : DEFAULT_CODE_THEME;
+  });
 
   const tocPositionOptions: Option[] = React.useMemo(
     () =>
@@ -247,6 +261,22 @@ function Details() {
     [t]
   );
 
+  const codeThemeOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Match workspace theme"),
+          value: DEFAULT_CODE_THEME,
+        },
+        { type: "item", label: t("Paper"), value: "paper" },
+        { type: "item", label: t("Slate"), value: "slate" },
+        { type: "item", label: t("Midnight"), value: "midnight" },
+        { type: "item", label: t("Plum"), value: "plum" },
+      ] satisfies Option[],
+    [t]
+  );
+
   const codeFontSizeOptions: Option[] = React.useMemo(
     () =>
       [
@@ -278,12 +308,9 @@ function Details() {
     setBodyFontFamily(value as BodyFontFamily);
   }, []);
 
-  const handleMonospaceFontFamilyChange = React.useCallback(
-    (value: string) => {
-      setMonospaceFontFamily(value as MonospaceFontFamily);
-    },
-    []
-  );
+  const handleMonospaceFontFamilyChange = React.useCallback((value: string) => {
+    setMonospaceFontFamily(value as MonospaceFontFamily);
+  }, []);
 
   const handleFontSizeChange = React.useCallback((value: string) => {
     setFontSize(value as FontSize);
@@ -327,6 +354,8 @@ function Details() {
             monospaceFontFamily,
             fontSize,
             codeFontSize,
+            onboardingCollectionId,
+            codeTheme: codeTheme === DEFAULT_CODE_THEME ? null : codeTheme,
           },
         });
         toast.success(t("Settings saved"));
@@ -347,6 +376,8 @@ function Details() {
       monospaceFontFamily,
       fontSize,
       codeFontSize,
+      onboardingCollectionId,
+      codeTheme,
       illegibleAccents,
       t,
     ]
@@ -388,6 +419,16 @@ function Details() {
   const onSelectCollection = React.useCallback((value: string) => {
     const selectedValue = value === "home" ? null : value;
     setDefaultCollectionId(selectedValue);
+  }, []);
+
+  const onSelectOnboardingCollection = React.useCallback((value: string) => {
+    setOnboardingCollectionId(
+      value === NO_ONBOARDING_COLLECTION ? null : value
+    );
+  }, []);
+
+  const handleCodeThemeChange = React.useCallback((value: string) => {
+    setCodeTheme(value);
   }, []);
 
   const handleSeamlessEditChange = React.useCallback(
@@ -597,6 +638,21 @@ function Details() {
               labelHidden
             />
           </SettingRow>
+          <SettingRow
+            label={t("Code theme")}
+            name={TeamPreference.CodeTheme}
+            description={t(
+              "The palette used to highlight code blocks and inline code."
+            )}
+          >
+            <InputSelect
+              options={codeThemeOptions}
+              value={codeTheme}
+              onChange={handleCodeThemeChange}
+              label={t("Code theme")}
+              labelHidden
+            />
+          </SettingRow>
           {(team.avatarUrl || team.description) && (
             <SettingRow
               name={TeamPreference.PublicBranding}
@@ -674,6 +730,22 @@ function Details() {
             <DefaultCollectionInputSelect
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
+            />
+          </SettingRow>
+          <SettingRow
+            label={t("Start here collection")}
+            name={TeamPreference.OnboardingCollectionId}
+            description={t("The path new members see on Home.")}
+          >
+            <DefaultCollectionInputSelect
+              label={t("Start here collection")}
+              onSelectCollection={onSelectOnboardingCollection}
+              defaultCollectionId={onboardingCollectionId}
+              leadingOption={{
+                label: t("None"),
+                value: NO_ONBOARDING_COLLECTION,
+                icon: <CloseIcon />,
+              }}
             />
           </SettingRow>
           <SettingRow

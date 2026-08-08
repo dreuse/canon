@@ -9,6 +9,7 @@ import {
   TOCPosition,
   UserRole,
 } from "@shared/types";
+import { codeThemes } from "@shared/styles/codeThemes";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -75,7 +76,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         bodyFontFamily: z.enum(BodyFontFamily).optional(),
         monospaceFontFamily: z.enum(MonospaceFontFamily).optional(),
         fontSize: z.enum(FontSize).optional(),
-    codeFontSize: z.enum(CodeFontSize).optional(),
+        codeFontSize: z.enum(CodeFontSize).optional(),
         /** Side to display the document's table of contents in relation to the main content. */
         tocPosition: z.enum(TOCPosition).optional(),
         emailDisplay: z.enum(EmailDisplay).optional(),
@@ -85,6 +86,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         mcp: z.boolean().optional(),
         /** List of disabled embed provider titles. */
         disabledEmbeds: z.array(z.string()).optional(),
+        /** The collection new members are pointed at from Home. */
+        onboardingCollectionId: z.uuid().nullish(),
+        /** The palette used for code blocks and inline code. */
+        codeTheme: z.enum(Object.keys(codeThemes)).nullish(),
       })
       .optional(),
   }),

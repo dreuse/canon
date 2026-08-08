@@ -18,12 +18,18 @@ import useStores from "~/hooks/useStores";
 type DefaultCollectionInputSelectProps = {
   onSelectCollection: (collection: string) => void;
   defaultCollectionId: string | null;
+  /** Accessible label for the select, hidden visually. */
+  label?: string;
+  /** The option offered ahead of the collections, defaults to Home. */
+  leadingOption?: { label: string; value: string; icon: React.ReactElement };
 };
 
 const DefaultCollectionInputSelect = observer(
   ({
     onSelectCollection,
     defaultCollectionId,
+    label,
+    leadingOption,
   }: DefaultCollectionInputSelectProps) => {
     const { t } = useTranslation();
     const { collections, ui } = useStores();
@@ -56,6 +62,12 @@ const DefaultCollectionInputSelect = observer(
     }
 
     const isDark = ui.resolvedTheme === "dark";
+
+    const firstOption = leadingOption ?? {
+      label: t("Home"),
+      value: "home",
+      icon: <HomeIcon />,
+    };
 
     // Eagerly resolve collection icon properties within this observer context
     // to avoid MobX warnings when Radix Select clones elements for the trigger.
@@ -108,19 +120,21 @@ const DefaultCollectionInputSelect = observer(
       [
         {
           type: "item",
-          label: t("Home"),
-          value: "home",
-          icon: <HomeIcon />,
+          label: firstOption.label,
+          value: firstOption.value,
+          icon: firstOption.icon,
         },
       ] satisfies Option[]
     );
 
+    const selectedValue = defaultCollectionId ?? firstOption.value;
+
     return (
       <InputSelect
         options={options}
-        value={defaultCollectionId ?? "home"}
+        value={selectedValue}
         onChange={onSelectCollection}
-        label={t("Start view")}
+        label={label ?? t("Start view")}
         labelHidden
         short
       />
