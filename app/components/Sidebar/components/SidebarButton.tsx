@@ -63,6 +63,8 @@ const SidebarButton = observer(
 
 const StyledMoreIcon = styled(MoreIcon)`
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 `;
 
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
@@ -76,6 +78,10 @@ const Title = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: ${s("text")};
 `;
 
 const Content = styled(HStack)`

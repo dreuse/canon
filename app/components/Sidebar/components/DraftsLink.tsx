@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
@@ -40,4 +41,5 @@ export const DraftsLink = observer(() => {
 
 const Drafts = styled(Text)`
   margin: 0 4px;
+  color: ${s("textTertiaryOnTint")};
 `;

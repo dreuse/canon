@@ -3,13 +3,14 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { ellipsis, hover, s } from "@shared/styles";
+import { ellipsis, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
+import { DEPTH_STEP } from "./Folder";
 import type { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
 import type { ActionFactory, ActionWithChildren } from "~/types";
@@ -118,7 +119,7 @@ function SidebarLink(
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingInlineStart: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
+      paddingInlineStart: `${(depth || 0) * DEPTH_STEP + (icon ? 16 : 12)}px`,
       paddingInlineEnd: unreadBadge ? "32px" : undefined,
       fontWeight: rank ? rankWeight[rank] : DEFAULT_WEIGHT,
     }),
@@ -135,10 +136,10 @@ function SidebarLink(
   const activeStyle = React.useMemo(
     () => ({
       color: theme.text,
-      background: theme.sidebarActiveBackground,
       ...style,
+      fontWeight: (rank ? rankWeight[rank] : DEFAULT_WEIGHT) + 100,
     }),
-    [theme.text, theme.sidebarActiveBackground, style]
+    [theme.text, style, rank]
   );
 
   const handleClick = React.useCallback(
@@ -162,7 +163,7 @@ function SidebarLink(
     [onDisclosureClick, hasDisclosure]
   );
 
-  const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
+  const DisclosureComponent = icon ? InlineDisclosure : Disclosure;
 
   const innerContent = (
     <>
@@ -235,7 +236,10 @@ function SidebarLink(
 
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
-  margin-inline-start: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: 6px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
@@ -249,7 +253,7 @@ const Count = styled.span`
   font-size: 11.5px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
-  color: ${s("textTertiary")};
+  color: ${s("textTertiaryOnTint")};
   transition: opacity 100ms ease;
 
   @media (prefers-reduced-motion: reduce) {
@@ -282,7 +286,27 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   height: 24px;
   background: var(--background);
 
+  @media (max-width: 768px), (hover: none) {
+    visibility: visible;
+    top: 0;
+    height: 100%;
+    align-items: center;
+
+    button,
+    a,
+    [role="button"] {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    svg {
+      opacity: 0.75;
+    }
+  }
+
   svg {
+    width: 16px;
+    height: 16px;
     color: ${s("textSecondary")};
     fill: currentColor;
     opacity: 0.5;
@@ -297,12 +321,12 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   }
 `;
 
-const HiddenDisclosure = styled(Disclosure)`
+const InlineDisclosure = styled(Disclosure)`
   position: inherit;
   inset-inline-start: initial;
-  display: none;
+  display: block;
   margin-inline-start: -2px;
-  margin-inline-end: 6px;
+  margin-inline-end: 0;
 `;
 
 const Link = styled(NavLink)<{
@@ -310,10 +334,16 @@ const Link = styled(NavLink)<{
   $isDraft?: boolean;
   $disabled?: boolean;
 }>`
+  --background: transparent;
+
   &:hover,
   &:active,
   &:has([data-state="open"]) {
     --background: ${s("sidebarHoverBackground")};
+  }
+
+  &[aria-current="page"] {
+    --background: ${s("sidebarActiveBackground")};
   }
 
   &[aria-current="page"] ${Actions} {
@@ -326,12 +356,23 @@ const Link = styled(NavLink)<{
   position: relative;
   text-overflow: ellipsis;
   font-weight: 475;
-  padding: ${isMobile() ? 12 : 6}px 16px;
-  border-radius: 4px;
-  min-height: 30px;
+  padding: ${isMobile() ? 12 : 5}px 16px;
+  border-radius: 0;
+  min-height: 28px;
   user-select: none;
   white-space: nowrap;
-  background: var(--background);
+  background: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: 8px;
+    border-radius: 7px;
+    background: var(--background);
+    pointer-events: none;
+    z-index: -1;
+  }
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
@@ -366,28 +407,19 @@ const Link = styled(NavLink)<{
     transition: fill 50ms;
   }
 
-  &: ${hover},
-  &:has([data-state="open"]) {
-    ${HiddenDisclosure} {
-      display: block;
-    }
-    ${HiddenDisclosure} + ${IconWrapper} {
-      visibility: hidden;
-      opacity: 0;
-      width: 0;
-    }
-  }
-
   ${breakpoint("tablet")`
     padding-block: 3px;
-    padding-inline: 12px 8px;
+    padding-inline: 12px 16px;
     font-size: 14px;
   `}
 
   @media (hover: hover) {
-    &:hover ${Actions},
-    &:active ${Actions},
-    &:has([data-state="open"]) ${Actions} {
+    &:hover
+      ${Actions},
+      &:active
+      ${Actions},
+      &:has([data-state="open"])
+      ${Actions} {
       visibility: visible;
 
       svg {
@@ -401,8 +433,7 @@ const Link = styled(NavLink)<{
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
 
-    &:hover ${Count},
-    &:has([data-state="open"]) ${Count} {
+    &:hover ${Count}, &:has([data-state="open"]) ${Count} {
       opacity: 0;
     }
   }

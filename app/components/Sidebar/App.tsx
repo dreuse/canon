@@ -1,15 +1,17 @@
 import { observer } from "mobx-react";
 import { SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   DragActiveProvider,
   SidebarScrollProvider,
 } from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
+import InputSearchPage from "~/components/InputSearchPage";
 import Scrollable from "~/components/Scrollable";
+import { createCollection } from "~/actions/definitions/collections";
 import { navigateToImport } from "~/actions/definitions/navigation";
 import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -18,7 +20,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
 import * as Scenes from "~/routes/scenes";
-import { homePath, searchPath } from "~/utils/routeHelpers";
+import { homePath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
@@ -28,7 +30,9 @@ import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
+import RecentDocuments from "./components/RecentDocuments";
 import Section from "./components/Section";
+import SidebarAction from "./components/SidebarAction";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
@@ -36,7 +40,7 @@ import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
-import { VoHomeIcon, VoSearchIcon } from "~/components/Icons/VobysIcons";
+import { VoHomeIcon } from "~/components/Icons/VobysIcons";
 
 function AppSidebar() {
   const { t } = useTranslation();
@@ -44,16 +48,7 @@ function AppSidebar() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
-  const history = useHistory();
   const isMobile = useMobile();
-
-  const handleSearchClick = useCallback(() => {
-    const basePath = searchPath();
-    const { pathname, search } = history.location;
-    if (pathname.startsWith(basePath) && (search || pathname !== basePath)) {
-      history.push(basePath);
-    }
-  }, [history]);
 
   useEffect(() => {
     void collections.fetchAll();
@@ -90,7 +85,7 @@ function AppSidebar() {
               >
                 <ToggleButton
                   position="bottom"
-                  image={<SidebarIcon />}
+                  image={<SidebarIcon size={16} />}
                   aria-label={
                     ui.sidebarCollapsed
                       ? t("Expand sidebar")
@@ -107,6 +102,14 @@ function AppSidebar() {
           </SidebarButton>
         </TeamMenu>
         <Overflow>
+          <SearchField>
+            <InputSearchPage
+              source="sidebar"
+              label={t("Search documents")}
+              labelHidden
+              placeholder={`${t("Search docs")}…`}
+            />
+          </SearchField>
           <Section>
             <SidebarLink
               to={homePath()}
@@ -114,14 +117,6 @@ function AppSidebar() {
               exact={false}
               label={t("Home")}
               onClickIntent={Scenes.Home.preload}
-            />
-            <SidebarLink
-              to={searchPath()}
-              icon={<VoSearchIcon />}
-              label={t("Search")}
-              exact={false}
-              onClick={handleSearchClick}
-              onClickIntent={Scenes.Search.preload}
             />
             {can.createDocument && <DraftsLink />}
           </Section>
@@ -133,6 +128,9 @@ function AppSidebar() {
             </Section>
             <Section>
               <SharedWithMe />
+            </Section>
+            <Section>
+              <RecentDocuments />
             </Section>
             <Section>
               <Collections />
@@ -155,6 +153,11 @@ function AppSidebar() {
             </Section>
           </SidebarScrollProvider>
         </Scrollable>
+        {can.createCollection && (
+          <Footer>
+            <SidebarAction action={createCollection} depth={0} />
+          </Footer>
+        )}
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>
@@ -164,6 +167,16 @@ function AppSidebar() {
 const Overflow = styled.div`
   overflow: hidden;
   flex-shrink: 0;
+`;
+
+const SearchField = styled.div`
+  padding: 0 12px 8px;
+`;
+
+const Footer = styled.div`
+  flex-shrink: 0;
+  padding-top: 4px;
+  border-top: 1px solid ${s("divider")};
 `;
 
 export default observer(AppSidebar);

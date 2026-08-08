@@ -20,7 +20,7 @@ const strokeWidthFor = (size: number) => {
 };
 
 export const VobysIcon = ({
-  size = 20,
+  size = 16,
   color = "currentColor",
   children,
   ...rest

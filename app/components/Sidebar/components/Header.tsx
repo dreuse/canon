@@ -41,7 +41,7 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
       <H3>
         <Button onClick={handleClick} disabled={!id}>
           {title}
-          {id && <Disclosure $expanded={expanded} size={20} />}
+          {id && <Disclosure $expanded={expanded} size={16} />}
         </Button>
       </H3>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
@@ -68,12 +68,13 @@ const Fade = styled.span`
 const Button = styled.button`
   display: inline-flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
+  text-transform: uppercase;
   user-select: none;
-  color: ${s("sidebarText")};
+  color: ${s("textTertiaryOnTint")};
   position: relative;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.07em;
   margin: 0;
   padding-block: 4px;
   padding-inline: 12px 2px;
