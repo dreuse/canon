@@ -72,6 +72,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   const defaultSrc: string[] = ["'self'"];
   const scriptSrc: string[] = [];
   const styleSrc: string[] = ["'self'", "'unsafe-inline'"];
+  const fontSrc: string[] = ["'self'", "data:"];
   const objectSrc: string[] = [env.URL, "'self'"];
 
   if (env.isCloudHosted) {
@@ -84,6 +85,8 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   if (!env.isProduction) {
     scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
     scriptSrc.push("localhost:3001");
+    fontSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
+    fontSrc.push("localhost:3001");
   } else {
     scriptSrc.push(env.URL);
   }
@@ -96,6 +99,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   if (env.CDN_URL) {
     scriptSrc.push(env.CDN_URL);
     styleSrc.push(env.CDN_URL);
+    fontSrc.push(env.CDN_URL);
     defaultSrc.push(env.CDN_URL);
   }
 
@@ -124,6 +128,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
           baseUri: ["'none'"],
           defaultSrc,
           styleSrc: uniq([...styleSrc, ...(ctx.state.cspStyleSrc as string[])]),
+          fontSrc: uniq([...fontSrc, `${ctx.host}/static/`]),
           scriptSrc: uniq([
             ...scriptSrc,
             // Allow the service worker to importScripts the workbox runtime,
