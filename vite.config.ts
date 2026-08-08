@@ -156,6 +156,14 @@ export default () =>
         "~": path.resolve(__dirname, "./app"),
         "@shared": path.resolve(__dirname, "./shared"),
       },
+      dedupe: ["yjs"],
+    },
+    optimizeDeps: {
+      // The editor is lazy-loaded, so y-prosemirror is not seen by the initial
+      // dependency scan. Without this it gets pre-bundled in a later pass
+      // against its own copy of Yjs, and the duplicate YXmlElement class breaks
+      // the instanceof checks in y-prosemirror.
+      include: ["yjs", "y-prosemirror", "y-indexeddb", "@hocuspocus/provider"],
     },
     build: {
       outDir: "./build/app",
