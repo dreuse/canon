@@ -33,6 +33,7 @@ type Props = {
   publish?: boolean;
   /** The ID of the collection to publish the document to */
   collectionId?: string | null;
+  verifiedAt?: Date | null;
 };
 
 /**
@@ -59,6 +60,7 @@ export default async function documentUpdater(
     publish,
     collectionId,
     done,
+    verifiedAt,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
@@ -79,6 +81,10 @@ export default async function documentUpdater(
   }
   if (templateId) {
     document.templateId = templateId;
+  }
+  if (verifiedAt !== undefined) {
+    document.verifiedAt = verifiedAt;
+    document.verifiedById = verifiedAt ? user.id : null;
   }
   if (fullWidth !== undefined) {
     document.fullWidth = fullWidth;

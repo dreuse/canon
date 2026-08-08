@@ -207,6 +207,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
       .optional(),
     sharing: z.boolean().optional(),
     commenting: z.boolean().nullish(),
+    reviewIntervalDays: z.number().int().positive().nullish(),
     templateManagement: z
       .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
       .optional(),

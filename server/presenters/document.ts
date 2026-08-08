@@ -109,6 +109,8 @@ async function presentDocument(
     res.parentDocumentId = document.parentDocumentId;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
+    res.verifiedAt = document.verifiedAt;
+    res.verifiedById = document.verifiedById;
     res.collaboratorIds = document.collaboratorIds ?? [];
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;

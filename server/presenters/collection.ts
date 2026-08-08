@@ -62,6 +62,7 @@ export default async function presentCollection(
     res.index = collection.index;
     res.sharing = collection.sharing;
     res.commenting = collection.commenting;
+    res.reviewIntervalDays = collection.reviewIntervalDays;
     res.templateManagement = collection.templateManagement;
     res.permission = collection.permission;
     res.deletedAt = collection.deletedAt;

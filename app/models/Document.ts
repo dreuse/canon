@@ -16,6 +16,7 @@ import {
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
+import { Day } from "@shared/utils/time";
 import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { Properties } from "~/types";
@@ -196,6 +197,12 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @observable
   publishedAt: string | undefined;
+
+  @observable
+  verifiedAt: string | undefined;
+
+  @observable
+  verifiedById: string | undefined;
 
   @observable
   popularityScore: number;
@@ -389,6 +396,29 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get isDraft(): boolean {
     return !this.publishedAt;
+  }
+
+  @computed
+  get verifiedBy(): User | undefined {
+    return this.verifiedById
+      ? this.store.rootStore.users.get(this.verifiedById)
+      : undefined;
+  }
+
+  @computed
+  get isStale(): boolean {
+    const reviewIntervalDays = this.collection?.reviewIntervalDays;
+    if (!reviewIntervalDays) {
+      return false;
+    }
+
+    const referenceDate = this.verifiedAt ?? this.publishedAt;
+    if (!referenceDate) {
+      return false;
+    }
+
+    const ageMs = Date.now() - new Date(referenceDate).getTime();
+    return ageMs > reviewIntervalDays * Day.ms;
   }
 
   get hasEmptyTitle(): boolean {

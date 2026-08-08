@@ -312,6 +312,11 @@ class Collection extends ParanoidModel<
   @Column(DataType.BOOLEAN)
   commenting: boolean | null;
 
+  @AllowNull(true)
+  @Default(null)
+  @Column(DataType.INTEGER)
+  reviewIntervalDays: number | null;
+
   @AllowNull
   @Column(DataType.JSONB)
   sourceMetadata: SourceMetadata | null;

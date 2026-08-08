@@ -613,6 +613,7 @@ router.post(
       sort,
       sharing,
       commenting,
+      reviewIntervalDays,
       templateManagement,
     } = ctx.input.body;
 
@@ -692,6 +693,10 @@ router.post(
 
     if (commenting !== undefined) {
       collection.commenting = commenting;
+    }
+
+    if (reviewIntervalDays !== undefined) {
+      collection.reviewIntervalDays = reviewIntervalDays;
     }
 
     if (templateManagement !== undefined) {

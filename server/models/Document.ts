@@ -424,6 +424,10 @@ class Document extends ArchivableModel<
   @Column(DataType.DATE)
   publishedAt: Date | null;
 
+  @IsDate
+  @Column(DataType.DATE)
+  verifiedAt: Date | null;
+
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[];
@@ -675,6 +679,13 @@ class Document extends ArchivableModel<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;
+
+  @BelongsTo(() => User, "verifiedById")
+  verifiedBy: User | null;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  verifiedById: string | null;
 
   @ForeignKey(() => Template)
   @Column(DataType.UUID)

@@ -1,10 +1,13 @@
 import { differenceInDays } from "date-fns";
 import { TrashIcon, ArchiveIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
+import styled from "styled-components";
+import { s } from "@shared/styles";
 import type Document from "~/models/Document";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Notice from "~/components/Notice";
 import Time from "~/components/Time";
+import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
   document: Document;
@@ -26,6 +29,13 @@ function Days(props: { dateTime: string }) {
 
 export default function Notices({ document }: Props) {
   const { t } = useTranslation();
+  const can = usePolicy(document);
+
+  function handleMarkVerified() {
+    void document.save({ verifiedAt: new Date().toISOString() });
+  }
+
+  const freshnessReferenceDate = document.verifiedAt ?? document.publishedAt;
 
   function permanentlyDeletedDescription() {
     if (!document.permanentlyDeletedAt) {
@@ -71,6 +81,82 @@ export default function Notices({ document }: Props) {
           <Time dateTime={document.deletedAt} addSuffix />
         </Notice>
       )}
+      {!document.archivedAt && !document.deletedAt && document.isStale && (
+        <FreshnessBanner role="status">
+          <span>
+            {t("This document may be out of date.")}{" "}
+            {freshnessReferenceDate && (
+              <>
+                {document.verifiedAt
+                  ? t("Last verified")
+                  : t("Published")}{" "}
+                <Time dateTime={freshnessReferenceDate} addSuffix />
+                {"."}
+              </>
+            )}
+          </span>
+          {can.update && (
+            <FreshnessAction
+              type="button"
+              disabled={document.isSaving}
+              onClick={handleMarkVerified}
+            >
+              {t("Mark verified")}
+            </FreshnessAction>
+          )}
+        </FreshnessBanner>
+      )}
+      {!document.archivedAt &&
+        !document.deletedAt &&
+        !document.isStale &&
+        document.verifiedAt && (
+          <FreshMeta>
+            {t("Verified by {{userName}}", {
+              userName: document.verifiedBy?.name ?? t("Unknown"),
+            })}
+            &nbsp;
+            <Time dateTime={document.verifiedAt} addSuffix />
+          </FreshMeta>
+        )}
     </ErrorBoundary>
   );
 }
+
+const FreshnessBanner = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-block: 0 2em;
+  padding: 11px 13px;
+  border: 1px solid ${s("staleBorder")};
+  border-radius: 8px;
+  background: ${s("staleBackground")};
+  color: ${s("staleText")};
+  font-size: 13px;
+  line-height: 1.45;
+`;
+
+const FreshnessAction = styled.button`
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+`;
+
+const FreshMeta = styled.div`
+  margin-block: 0 2em;
+  color: ${s("freshText")};
+  font-size: 13px;
+  font-weight: 500;
+`;

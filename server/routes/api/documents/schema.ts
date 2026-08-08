@@ -305,6 +305,8 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
+
+    verifiedAt: z.coerce.date().nullish(),
   }),
 })
   .refine(
