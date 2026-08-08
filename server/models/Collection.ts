@@ -50,7 +50,11 @@ import type {
   SourceMetadata,
   NavigationNode,
 } from "@shared/types";
-import { CollectionPermission, NavigationNodeType } from "@shared/types";
+import {
+  CollectionIconStyle,
+  CollectionPermission,
+  NavigationNodeType,
+} from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
@@ -316,6 +320,10 @@ class Collection extends ParanoidModel<
   @Default(null)
   @Column(DataType.INTEGER)
   reviewIntervalDays: number | null;
+
+  @Default(CollectionIconStyle.Pictogram)
+  @Column(DataType.STRING)
+  iconStyle: CollectionIconStyle;
 
   @AllowNull
   @Column(DataType.JSONB)

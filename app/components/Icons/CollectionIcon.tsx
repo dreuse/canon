@@ -1,8 +1,11 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
+import styled from "styled-components";
 import Icon from "@shared/components/Icon";
+import LetterIcon from "@shared/components/LetterIcon";
 import { colorPalette } from "@shared/constants";
+import { CollectionIconStyle } from "@shared/types";
 import type Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 
@@ -26,6 +29,26 @@ function ResolvedCollectionIcon({
   className,
 }: Props) {
   const { ui } = useStores();
+  const identityColor =
+    inputColor ?? collection.color ?? colorPalette[0] ?? undefined;
+
+  if (collection.iconStyle === CollectionIconStyle.None) {
+    return null;
+  }
+
+  if (collection.iconStyle === CollectionIconStyle.Dot) {
+    return (
+      <Dot $color={identityColor} $size={size ?? 24} className={className} />
+    );
+  }
+
+  if (collection.iconStyle === CollectionIconStyle.Letter) {
+    return (
+      <LetterIcon size={size} color={identityColor} className={className}>
+        {collection.initial}
+      </LetterIcon>
+    );
+  }
 
   if (!collection.icon || collection.icon === "collection") {
     // If the chosen icon color is very dark then we invert it in dark mode
@@ -63,5 +86,21 @@ function ResolvedCollectionIcon({
     />
   );
 }
+
+const Dot = styled.span<{ $color: string; $size: number }>`
+  display: inline-flex;
+  flex: 0 0 ${(props) => props.$size}px;
+  width: ${(props) => props.$size}px;
+  height: ${(props) => props.$size}px;
+
+  &::before {
+    content: "";
+    margin: auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: ${(props) => props.$color};
+  }
+`;
 
 export default observer(ResolvedCollectionIcon);

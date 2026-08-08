@@ -5,8 +5,10 @@ import { Controller, useForm } from "react-hook-form";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
+import LetterIcon from "@shared/components/LetterIcon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { s } from "@shared/styles";
+import { CollectionIconStyle, CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/constants";
@@ -26,6 +28,7 @@ import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { HStack } from "../primitives/HStack";
 import { useDialogContext } from "~/components/DialogContext";
+import IconColorPicker from "~/components/IconPicker/components/IconColorPicker";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -37,6 +40,7 @@ export type FormData = {
   permission: CollectionPermission | undefined;
   commenting?: boolean | null;
   templateManagement: CollectionPermission;
+  iconStyle: CollectionIconStyle;
 };
 
 const useIconColor = (collection?: Collection) => {
@@ -74,6 +78,32 @@ export const CollectionForm = observer(function CollectionForm_({
   const dialog = useDialogContext();
 
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
+
+  const iconStyleOptions = useMemo<Option[]>(
+    () => [
+      {
+        type: "item",
+        label: t("Icon"),
+        value: CollectionIconStyle.Pictogram,
+      },
+      {
+        type: "item",
+        label: t("Letter"),
+        value: CollectionIconStyle.Letter,
+      },
+      {
+        type: "item",
+        label: t("Colour dot"),
+        value: CollectionIconStyle.Dot,
+      },
+      {
+        type: "item",
+        label: t("Nothing"),
+        value: CollectionIconStyle.None,
+      },
+    ],
+    [t]
+  );
 
   const templateManagementOptions = useMemo<Option[]>(
     () => [
@@ -118,6 +148,7 @@ export const CollectionForm = observer(function CollectionForm_({
       commenting: collection?.commenting ?? true,
       templateManagement:
         collection?.templateManagement ?? CollectionPermission.Admin,
+      iconStyle: collection?.iconStyle ?? CollectionIconStyle.Pictogram,
       color: iconColor,
     },
   });
@@ -162,6 +193,47 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const options = (
     <>
+      <Controller
+        control={control}
+        name="iconStyle"
+        render={({ field }) => (
+          <>
+            <InputSelect
+              value={field.value}
+              onChange={(value: string) => {
+                field.onChange(value as CollectionIconStyle);
+              }}
+              options={iconStyleOptions}
+              label={t("Show as")}
+            />
+            <Text
+              type="secondary"
+              size="small"
+              as="p"
+              style={{ paddingTop: 4 }}
+            >
+              {t("How this collection is identified in the sidebar and lists.")}
+            </Text>
+          </>
+        )}
+      />
+
+      {(values.iconStyle === CollectionIconStyle.Letter ||
+        values.iconStyle === CollectionIconStyle.Dot) && (
+        <ColorField>
+          <Text as="label" size="medium" weight="bold">
+            {t("Colour")}
+          </Text>
+          <ColorRow>
+            <IconColorPicker
+              width={0}
+              activeColor={values.color ?? iconColor}
+              onSelect={(color) => setValue("color", color)}
+            />
+          </ColorRow>
+        </ColorField>
+      )}
+
       <Controller
         control={control}
         name="templateManagement"
@@ -241,16 +313,28 @@ export const CollectionForm = observer(function CollectionForm_({
             maxLength: CollectionValidation.maxNameLength,
           })}
           prefix={
-            <Suspense fallback={fallbackIcon}>
-              <StyledIconPicker
-                icon={values.icon}
-                color={values.color ?? iconColor}
-                initial={initial}
-                popoverPosition="right"
-                onOpen={setHasOpenedIconPicker}
-                onChange={handleIconChange}
-              />
-            </Suspense>
+            values.iconStyle === CollectionIconStyle.Pictogram ? (
+              <Suspense fallback={fallbackIcon}>
+                <StyledIconPicker
+                  icon={values.icon}
+                  color={values.color ?? iconColor}
+                  initial={initial}
+                  popoverPosition="right"
+                  onOpen={setHasOpenedIconPicker}
+                  onChange={handleIconChange}
+                />
+              </Suspense>
+            ) : values.iconStyle === CollectionIconStyle.None ? undefined : (
+              <IdentityPreview>
+                {values.iconStyle === CollectionIconStyle.Letter ? (
+                  <LetterIcon size={24} color={values.color ?? iconColor}>
+                    {initial}
+                  </LetterIcon>
+                ) : (
+                  <PreviewDot $color={values.color ?? iconColor} />
+                )}
+              </IdentityPreview>
+            )
           }
           autoComplete="off"
           autoFocus
@@ -312,4 +396,31 @@ export const CollectionForm = observer(function CollectionForm_({
 const StyledIconPicker = styled(IconPicker.Component)`
   margin-left: 4px;
   margin-right: 4px;
+`;
+
+const IdentityPreview = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  margin-right: 4px;
+`;
+
+const PreviewDot = styled.span<{ $color: string }>`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+`;
+
+const ColorField = styled.div`
+  margin-top: 16px;
+`;
+
+const ColorRow = styled.div`
+  margin-top: 4px;
+  border: 1px solid ${s("inputBorder")};
+  border-radius: 4px;
 `;

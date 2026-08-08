@@ -48,6 +48,7 @@ export default async function presentCollection(
       !asData || options.includeText ? collection.description : undefined,
     sort: collection.sort,
     icon: collection.icon,
+    iconStyle: collection.iconStyle,
     color: collection.color,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,

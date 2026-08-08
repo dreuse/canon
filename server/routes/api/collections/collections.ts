@@ -614,6 +614,7 @@ router.post(
       sharing,
       commenting,
       reviewIntervalDays,
+      iconStyle,
       templateManagement,
     } = ctx.input.body;
 
@@ -697,6 +698,10 @@ router.post(
 
     if (reviewIntervalDays !== undefined) {
       collection.reviewIntervalDays = reviewIntervalDays;
+    }
+
+    if (iconStyle !== undefined) {
+      collection.iconStyle = iconStyle;
     }
 
     if (templateManagement !== undefined) {

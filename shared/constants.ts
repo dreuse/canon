@@ -11,10 +11,7 @@ import {
   FontSize,
   CodeFontSize,
 } from "./types";
-import {
-  DEFAULT_FONT_FAMILY,
-  DEFAULT_FONT_FAMILY_MONO,
-} from "./styles/theme";
+import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_FAMILY_MONO } from "./styles/theme";
 
 export const MAX_AVATAR_DISPLAY = 6;
 

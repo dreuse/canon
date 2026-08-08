@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
+  type CollectionIconStyle,
   type CollectionPermission,
   type FileOperationFormat,
   type NavigationNode,
@@ -82,6 +83,10 @@ export default class Collection extends ParanoidModel {
   @Field
   @observable
   reviewIntervalDays?: number | null;
+
+  @Field
+  @observable
+  iconStyle: CollectionIconStyle;
 
   /** The child documents of the collection. */
   @observable

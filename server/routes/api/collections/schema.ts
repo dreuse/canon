@@ -1,6 +1,7 @@
 import { isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
 import {
+  CollectionIconStyle,
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
@@ -208,6 +209,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     sharing: z.boolean().optional(),
     commenting: z.boolean().nullish(),
     reviewIntervalDays: z.number().int().positive().nullish(),
+    iconStyle: z.enum(CollectionIconStyle).optional(),
     templateManagement: z
       .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
       .optional(),

@@ -6,14 +6,17 @@ import Squircle from "./Squircle";
 type Props = {
   /** The width and height of the icon, including standard padding. */
   size?: number;
+  /** The fill color of the squircle. */
+  color?: string;
+  className?: string;
   children: React.ReactNode;
 };
 
 /**
  * A squircle shaped icon with a letter inside, used for collections.
  */
-const LetterIcon = ({ children, size = 24, ...rest }: Props) => (
-  <LetterIconWrapper $size={size}>
+const LetterIcon = ({ children, size = 24, className, ...rest }: Props) => (
+  <LetterIconWrapper $size={size} className={className}>
     <Squircle size={Math.round(size * 0.66)} {...rest}>
       {children ?? "?"}
     </Squircle>
