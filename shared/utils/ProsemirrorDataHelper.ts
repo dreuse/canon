@@ -21,6 +21,21 @@ export class ProsemirrorDataHelper {
     };
   }
 
+  static toPlainText(data: ProsemirrorData): string {
+    const parts: string[] = [];
+
+    const walk = (node: ProsemirrorData) => {
+      if (node.text) {
+        parts.push(node.text);
+      }
+      node.content?.forEach(walk);
+    };
+
+    walk(data);
+
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  }
+
   /**
    * Returns true if the data looks like an empty document.
    *

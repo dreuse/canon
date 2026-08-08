@@ -94,7 +94,7 @@ function Contents() {
 
   return (
     <StickyWrapper>
-      <Heading>{t("Contents")}</Heading>
+      <Heading>{t("On this page")}</Heading>
       <List>
         {headings
           .filter((heading) => heading.level < 4)
@@ -144,31 +144,36 @@ const StickyWrapper = styled.div`
 `;
 
 const Heading = styled.h3`
-  font-size: 13px;
+  font-size: 10.5px;
   font-weight: 600;
   color: ${s("textTertiary")};
-  letter-spacing: 0.03em;
-  margin-top: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-block: 10px;
 `;
 
 const ListItem = styled.li<{ level: number; active?: boolean }>`
-  margin-left: ${(props) => (props.level - 1) * 10}px;
-  margin-bottom: 8px;
-  line-height: 1.3;
+  margin: 0;
+  padding-block: 5px;
+  padding-inline-start: ${(props) => (props.level - 1) * 11 + 11}px;
+  border-inline-start: 2px solid
+    ${(props) => (props.active ? "currentColor" : props.theme.divider)};
+  line-height: 1.4;
   word-break: break-word;
+  color: ${(props) => (props.active ? props.theme.text : props.theme.textTertiary)};
 
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};
-    color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
+    color: inherit;
   }
 `;
 
 const Link = styled.a`
-  color: ${s("text")};
+  color: inherit;
   font-size: 14px;
 
   &:hover {
-    color: ${s("accent")};
+    color: ${s("text")};
   }
 `;
 

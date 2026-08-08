@@ -64,6 +64,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
     <Meta
       document={document as Document}
       revision={revision}
+      showOwner={!revision}
       onClick={to ? handleClickMeta : undefined}
       $rtl={rtl}
       {...rest}

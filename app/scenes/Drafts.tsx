@@ -4,6 +4,7 @@ import queryString from "query-string";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
 import { Action } from "~/components/Actions";
@@ -13,7 +14,6 @@ import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import DateFilter from "./Search/components/DateFilter";
@@ -47,12 +47,12 @@ function Drafts() {
     dateFilter,
     collectionId,
   };
+  const drafts = documents.drafts(options);
 
   return (
     <Scene
       icon={<DraftsIcon />}
       title={t("Drafts")}
-      left={<InputSearchPage source="drafts" label={t("Search documents")} />}
       actions={
         <Action>
           <NewDocumentMenu />
@@ -60,8 +60,12 @@ function Drafts() {
       }
     >
       <Heading>{t("Drafts")}</Heading>
-      <Subheading sticky>
-        {t("Documents")}
+      <Caption>
+        {t("{{ count }} drafts", { count: drafts.length })} &middot;{" "}
+        {t("only you can see these")}
+      </Caption>
+      <Controls>
+        <InputSearchPage source="drafts" label={t("Search documents")} />
         <Filters>
           <CollectionFilter
             collectionId={collectionId}
@@ -80,7 +84,7 @@ function Drafts() {
             }
           />
         </Filters>
-      </Subheading>
+      </Controls>
 
       <PaginatedDocumentList
         empty={
@@ -91,22 +95,33 @@ function Drafts() {
           </Empty>
         }
         fetch={documents.fetchDrafts}
-        documents={documents.drafts(options)}
+        documents={drafts}
         options={options}
         showParentDocuments
         showCollection
+        showDraft={false}
       />
     </Scene>
   );
 }
 
+const Caption = styled.p`
+  margin: -12px 0 20px;
+  color: ${s("textTertiary")};
+  font-size: 14px;
+`;
+
+const Controls = styled(Flex)`
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+`;
+
 const Filters = styled(Flex)`
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding: 0 0 6px;
   gap: 4px;
 
   &:hover {

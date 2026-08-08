@@ -13,6 +13,7 @@ import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Document from "~/models/Document";
 import Badge from "~/components/Badge";
 import { useModelSelection } from "~/components/ModelSelectionContext";
@@ -47,6 +48,8 @@ type Props = {
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
+
+const SUMMARY_BLOCKS = 3;
 
 function replaceResultMarks(tag: string) {
   // don't use SEARCH_RESULT_REGEX directly here as it causes an infinite loop
@@ -90,6 +93,11 @@ function DocumentListItem(
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived;
+
+  const excerpt =
+    context === undefined
+      ? ProsemirrorDataHelper.toPlainText(document.getSummary(SUMMARY_BLOCKS))
+      : "";
 
   // Multi-select is only offered for documents the user can update.
   const can = usePolicy(document.id);
@@ -243,6 +251,7 @@ function DocumentListItem(
                   processResult={replaceResultMarks}
                 />
               )}
+              {excerpt && <Excerpt>{excerpt}</Excerpt>}
               <DocumentMeta
                 document={document}
                 showCollection={showCollection}
@@ -319,9 +328,25 @@ const Content = styled.div`
   min-width: 0;
 `;
 
+const Excerpt = styled.p`
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: ${s("textTertiary")};
+
+  ${breakpoint("tablet")`
+    -webkit-line-clamp: 1;
+  `}
+`;
+
 const Actions = styled(EventBoundary)`
-  display: none;
+  display: flex;
   align-items: center;
+  align-self: flex-start;
   margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
@@ -332,9 +357,12 @@ const Actions = styled(EventBoundary)`
     background: ${s("sidebarControlHoverBackground")};
   }
 
-  ${breakpoint("tablet")`
-    display: flex;
-  `};
+  @media (hover: none) {
+    ${NudeButton} {
+      width: 44px;
+      height: 44px;
+    }
+  }
 `;
 
 const DocumentLink = styled(Link)<{
@@ -344,15 +372,20 @@ const DocumentLink = styled(Link)<{
   $selectable?: boolean;
 }>`
   display: flex;
-  align-items: center;
-  margin: 10px -8px;
-  padding: 6px 8px;
-  border-radius: 8px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 15px 8px;
+  border-radius: 0;
+  border-bottom: 1px solid ${s("divider")};
   max-height: 50vh;
   width: calc(100vw - 8px);
   cursor: var(--pointer);
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
+
+  &:last-child {
+    border-bottom: 0;
+  }
 
   &:focus-visible {
     outline: none;
@@ -364,6 +397,12 @@ const DocumentLink = styled(Link)<{
 
   ${Actions} {
     opacity: 0;
+  }
+
+  @media (hover: none) {
+    ${Actions} {
+      opacity: 1;
+    }
   }
 
   ${AnimatedStar} {
@@ -436,8 +475,8 @@ const Heading = styled.span<{ rtl?: boolean }>`
   color: ${s("text")};
   font-family: ${s("fontFamily")};
   font-weight: 500;
-  font-size: 18px;
-  line-height: 1.2;
+  font-size: 15px;
+  line-height: 1.35;
   gap: 4px;
 `;
 

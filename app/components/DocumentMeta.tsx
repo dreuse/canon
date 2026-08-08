@@ -21,6 +21,8 @@ type Props = {
   children?: React.ReactNode;
   /** Show the collection that the document belongs to. */
   showCollection?: boolean;
+  /** Show who created the document, ahead of the update line. */
+  showOwner?: boolean;
   /** Show the published time, even when the document has since been updated. */
   showPublished?: boolean;
   /** Show when the current user last viewed the document. */
@@ -42,6 +44,7 @@ type Props = {
 const DocumentMeta: React.FC<Props> = ({
   showPublished,
   showCollection,
+  showOwner,
   showLastViewed,
   showParentDocuments,
   document,
@@ -189,6 +192,13 @@ const DocumentMeta: React.FC<Props> = ({
 
   return (
     <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
+      {showOwner && document.createdBy && (
+        <span>
+          {t("Owned by")}&nbsp;
+          <Strong>{document.createdBy.name}</Strong>
+          <Separator />
+        </span>
+      )}
       {onClick ? (
         <MetaButton onClick={onClick}>{content}</MetaButton>
       ) : to ? (
@@ -204,6 +214,12 @@ const DocumentMeta: React.FC<Props> = ({
           <Strong>
             <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
           </Strong>
+        </span>
+      )}
+      {showCollection && !collection && isDraft && (
+        <span>
+          &nbsp;{t("in")}&nbsp;
+          <Unfiled>{t("Unfiled")}</Unfiled>
         </span>
       )}
       {showParentDocuments && nestedDocumentsCount > 0 && (
@@ -254,6 +270,10 @@ export const Separator = styled.span`
 
 const Strong = styled.strong`
   font-weight: 550;
+`;
+
+const Unfiled = styled.span`
+  font-style: italic;
 `;
 
 const Container = styled(Flex)<{ $rtl?: boolean }>`

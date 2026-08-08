@@ -69,7 +69,7 @@ class UiStore {
   progressBarVisible = false;
 
   @observable
-  tocVisible: boolean | undefined;
+  tocVisible: boolean | undefined = true;
 
   @observable
   mobileSidebarVisible = false;
@@ -170,7 +170,7 @@ class UiStore {
       minWidth,
       maxWidth
     );
-    this.tocVisible = data.tocVisible;
+    this.tocVisible = data.tocVisible ?? true;
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
 
@@ -211,7 +211,7 @@ class UiStore {
         this.theme = newData.theme;
         this.languagePromptDismissed = newData.languagePromptDismissed;
         this.sidebarCollapsed = !!newData.sidebarCollapsed;
-        this.tocVisible = newData.tocVisible;
+        this.tocVisible = newData.tocVisible ?? true;
       }
     });
   }

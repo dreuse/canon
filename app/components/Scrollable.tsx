@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
+import { transparentize } from "polished";
 import styled, { css } from "styled-components";
 import { hideScrollbars } from "@shared/styles";
 
@@ -168,6 +169,45 @@ const Wrapper = styled.div<{
     return "none";
   }};
   transition: box-shadow 100ms ease-in-out;
+
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition:
+    box-shadow 100ms ease-in-out,
+    scrollbar-color 150ms ease-in-out;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: transparent;
+    transition: background 150ms ease-in-out;
+  }
+
+  &:hover,
+  &:focus-within {
+    scrollbar-color: ${(props) => transparentize(0.55, props.theme.text)}
+      transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: ${(props) => transparentize(0.55, props.theme.text)};
+    }
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => transparentize(0.3, props.theme.text)};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   ${(props) => props.$hiddenScrollbars && hideScrollbars()}
 `;

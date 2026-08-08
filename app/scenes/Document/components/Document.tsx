@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Prompt, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
@@ -39,6 +39,8 @@ import Notices from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 import SharedHeader from "./SharedHeader";
+
+const PROSE_MEASURE = "70ch";
 
 type LocationState = {
   title?: string;
@@ -349,6 +351,7 @@ function DocumentScene({
           <Main
             fullWidth={document.fullWidth}
             tocPosition={tocPos}
+            showContents={showContents}
             style={fullWidthTransformOffsetStyle}
           >
             <React.Suspense
@@ -436,6 +439,7 @@ function DocumentScene({
 type MainProps = {
   fullWidth: boolean;
   tocPosition: TOCPosition | false;
+  showContents: boolean;
 };
 
 const Main = styled.div<MainProps>`
@@ -443,6 +447,14 @@ const Main = styled.div<MainProps>`
 
   ${breakpoint("tablet")`
     display: grid;
+    transform: translateX(${({
+      fullWidth,
+      tocPosition,
+      showContents,
+    }: MainProps) =>
+      !fullWidth && showContents && tocPosition === TOCPosition.Right
+        ? `-${EditorStyleHelper.tocWidth / 2}px`
+        : "0"});
     grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
       fullWidth
         ? tocPosition === TOCPosition.Left
@@ -527,6 +539,17 @@ const EditorContainer = styled.div<EditorContainerProps>`
           : "1 / -1"
         : 2};
   `};
+
+  ${({ docFullWidth }: EditorContainerProps) =>
+    docFullWidth &&
+    css`
+      .ProseMirror > p,
+      .ProseMirror > ul,
+      .ProseMirror > ol,
+      .ProseMirror > blockquote {
+        max-width: ${PROSE_MEASURE};
+      }
+    `}
 `;
 
 const Background = styled(Container)`
