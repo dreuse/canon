@@ -31,7 +31,6 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
 import type Document from "~/models/Document";
@@ -41,6 +40,7 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import { ChangesNavigation } from "./ChangesNavigation";
 import ObservingBanner from "./ObservingBanner";
 import { SearchHighlightChip } from "./SearchHighlightChip";
+import FontSizeControl from "./FontSizeControl";
 import ShareButton from "./ShareButton";
 
 type Props = {
@@ -180,10 +180,12 @@ function DocumentHeader({
       hasSidebar
       left={
         isMobile ? (
-          <TableOfContentsMenu />
+          <MobileBreadcrumb>
+            <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
+          </MobileBreadcrumb>
         ) : (
-          <DocumentBreadcrumb document={document}>
-            {toc}{" "}
+          <DocumentBreadcrumb document={document} showCurrent>
+            {toc} <FontSizeControl />{" "}
             <StarAction>
               <Star document={document} color={theme.textSecondary} />
             </StarAction>
@@ -208,6 +210,11 @@ function DocumentHeader({
         <>
           <ObservingBanner />
           <SearchHighlightChip />
+          {isMobile && (
+            <Action>
+              <TableOfContentsMenu />
+            </Action>
+          )}
           {!isDeleted && !isRevision && can.listViews && (
             <Collaborators
               document={document}
@@ -251,15 +258,6 @@ function DocumentHeader({
             user?.separateEditMode &&
             !isRevision &&
             editAction}
-          {can.update &&
-            can.createChildDocument &&
-            !isRevision &&
-            !isCompact &&
-            !isMobile && (
-              <Action>
-                <NewChildDocumentMenu document={document} />
-              </Action>
-            )}
           {revision && (
             <>
               <Action>
@@ -322,6 +320,17 @@ const TocButton = styled(Button)`
     box-shadow: none;
     transition: none;
   }
+`;
+
+const MobileBreadcrumb = styled.span`
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: ${s("textSecondary")};
 `;
 
 const StarAction = styled.span`

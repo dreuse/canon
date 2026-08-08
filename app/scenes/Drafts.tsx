@@ -9,14 +9,16 @@ import type { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
+import FilterOptions from "~/components/FilterOptions";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import InputSearchPage from "~/components/InputSearchPage";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import DateFilter from "./Search/components/DateFilter";
+
+const DEFAULT_SORT = "updatedAt-desc";
 
 function Drafts() {
   const { t } = useTranslation();
@@ -26,10 +28,19 @@ function Drafts() {
   const params = new URLSearchParams(location.search);
   const collectionId = params.get("collectionId") || undefined;
   const dateFilter = (params.get("dateFilter") || undefined) as TDateFilter;
+  const sortKey = params.get("sort") || DEFAULT_SORT;
+
+  const sortOptions = [
+    { key: "updatedAt-desc", label: t("Recently updated") },
+    { key: "updatedAt-asc", label: t("Least recently updated") },
+    { key: "createdAt-desc", label: t("Newest") },
+    { key: "title-asc", label: t("A–Z") },
+  ];
 
   const handleFilterChange = (search: {
     dateFilter?: string | null | undefined;
     collectionId?: string | null | undefined;
+    sort?: string | null | undefined;
   }) => {
     history.replace({
       pathname: location.pathname,
@@ -43,9 +54,15 @@ function Drafts() {
   };
 
   const isFiltered = collectionId || dateFilter;
+  const [sort, sortDirection] = sortKey.split("-") as [
+    "updatedAt" | "createdAt" | "title",
+    "asc" | "desc",
+  ];
   const options = {
     dateFilter,
     collectionId,
+    sort,
+    sortDirection,
   };
   const drafts = documents.drafts(options);
 
@@ -64,27 +81,32 @@ function Drafts() {
         {t("{{ count }} drafts", { count: drafts.length })} &middot;{" "}
         {t("only you can see these")}
       </Caption>
-      <Controls>
-        <InputSearchPage source="drafts" label={t("Search documents")} />
-        <Filters>
-          <CollectionFilter
-            collectionId={collectionId}
-            onSelect={(collectionId) =>
-              handleFilterChange({
-                collectionId,
-              })
-            }
-          />
-          <DateFilter
-            dateFilter={dateFilter}
-            onSelect={(dateFilter) =>
-              handleFilterChange({
-                dateFilter,
-              })
-            }
-          />
-        </Filters>
-      </Controls>
+      <Filters>
+        <CollectionFilter
+          collectionId={collectionId}
+          onSelect={(collectionId) =>
+            handleFilterChange({
+              collectionId,
+            })
+          }
+        />
+        <DateFilter
+          dateFilter={dateFilter}
+          onSelect={(dateFilter) =>
+            handleFilterChange({
+              dateFilter,
+            })
+          }
+        />
+        <Spacer />
+        <FilterOptions
+          options={sortOptions}
+          selectedKeys={[sortKey]}
+          defaultLabel={t("Recently updated")}
+          showIcons={false}
+          onSelect={(key) => handleFilterChange({ sort: key })}
+        />
+      </Filters>
 
       <PaginatedDocumentList
         empty={
@@ -111,15 +133,9 @@ const Caption = styled.p`
   font-size: 14px;
 `;
 
-const Controls = styled(Flex)`
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 4px;
-  flex-wrap: wrap;
-`;
-
 const Filters = styled(Flex)`
+  align-items: center;
+  margin-bottom: 4px;
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
   gap: 4px;
@@ -127,6 +143,10 @@ const Filters = styled(Flex)`
   &:hover {
     opacity: 1;
   }
+`;
+
+const Spacer = styled.span`
+  flex: 1;
 `;
 
 export default observer(Drafts);

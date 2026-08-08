@@ -83,10 +83,15 @@ type Props = {
    * ancestors are shown. If less than or equal to 0, no items are shown.
    */
   maxDepth?: number;
+  /**
+   * Whether to append the document itself as a final, non-linking crumb. Off by
+   * default so list contexts do not repeat the title they already render.
+   */
+  showCurrent?: boolean;
 };
 
 function DocumentBreadcrumb(
-  { document, children, onlyText, maxDepth }: Props,
+  { document, children, onlyText, maxDepth, showCurrent }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
@@ -177,6 +182,32 @@ function DocumentBreadcrumb(
       });
     });
 
+    const currentTitle = document.title || t("Untitled");
+    const currentActions = showCurrent
+      ? [
+          createInternalLinkAction({
+            name: (
+              <DocumentName
+                documentId={document.id}
+                collection={collection}
+                title={currentTitle}
+                icon={
+                  document.icon ? (
+                    <Icon
+                      value={document.icon}
+                      color={document.color ?? undefined}
+                      initial={currentTitle.charAt(0).toUpperCase()}
+                    />
+                  ) : undefined
+                }
+              />
+            ),
+            section: ActiveDocumentSection,
+            to: "",
+          }),
+        ]
+      : [];
+
     // Depth is counted back from the document's parent, so keep the ancestors
     // nearest the document.
     return [
@@ -184,8 +215,18 @@ function DocumentBreadcrumb(
       ...(depth !== undefined
         ? ancestorActions.slice(-depth)
         : ancestorActions),
+      ...currentActions,
     ];
-  }, [t, document, collection, can.readDocument, sidebarContext, path, depth]);
+  }, [
+    t,
+    document,
+    collection,
+    can.readDocument,
+    sidebarContext,
+    path,
+    depth,
+    showCurrent,
+  ]);
 
   if (!collections.isLoaded) {
     return null;

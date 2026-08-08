@@ -37,6 +37,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
+  const contributorCount = (document as Document).collaboratorIds?.length ?? 0;
   const viewsLoadedOnMount = useRef(totalViewers > 0);
   const can = usePolicy(document);
 
@@ -80,16 +81,25 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
           </MetaButton>
         </>
       )}
-      {totalViewers && can.listViews && !(document as Document).isDraft ? (
+      {contributorCount > 1 && (
+        <Wrapper>
+          <Separator />
+          <MetaButton action={openDocumentInsights}>
+            {t("{{ count }} contributors", { count: contributorCount })}
+          </MetaButton>
+        </Wrapper>
+      )}
+      {totalViewers &&
+      !onlyYou &&
+      can.listViews &&
+      !(document as Document).isDraft ? (
         <Wrapper>
           <Separator />
           <MetaButton action={openDocumentInsights}>
             {t("Viewed by")}{" "}
-            {onlyYou
-              ? t("only you")
-              : `${totalViewers} ${
-                  totalViewers === 1 ? t("person") : t("people")
-                }`}
+            {`${totalViewers} ${
+              totalViewers === 1 ? t("person") : t("people")
+            }`}
           </MetaButton>
         </Wrapper>
       ) : null}

@@ -4,11 +4,10 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
-import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -83,8 +82,10 @@ const DocumentMeta: React.FC<Props> = ({
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
   const userName = updatedBy.name;
   let content;
+  let metaDate = updatedAt;
 
   if (revision) {
+    metaDate = revision.createdAt;
     content = (
       <span>
         {revision.createdBy?.id === user.id
@@ -94,6 +95,7 @@ const DocumentMeta: React.FC<Props> = ({
       </span>
     );
   } else if (deletedAt) {
+    metaDate = deletedAt;
     content = (
       <span>
         {lastUpdatedByCurrentUser
@@ -103,6 +105,7 @@ const DocumentMeta: React.FC<Props> = ({
       </span>
     );
   } else if (archivedAt) {
+    metaDate = archivedAt;
     content = (
       <span>
         {lastUpdatedByCurrentUser
@@ -116,6 +119,7 @@ const DocumentMeta: React.FC<Props> = ({
     document.sourceMetadata?.importedAt &&
     document.sourceMetadata.importedAt >= updatedAt
   ) {
+    metaDate = createdAt;
     content = (
       <span>
         {document.sourceMetadata.createdByName
@@ -136,6 +140,7 @@ const DocumentMeta: React.FC<Props> = ({
       </span>
     );
   } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
+    metaDate = publishedAt;
     content = (
       <span>
         {lastUpdatedByCurrentUser
@@ -199,7 +204,15 @@ const DocumentMeta: React.FC<Props> = ({
           <Separator />
         </span>
       )}
-      {onClick ? (
+      {showCollection ? (
+        <>
+          <Chip $unfiled={!collection}>
+            {collection ? collection.name : t("Unfiled")}
+          </Chip>
+          <Separator />
+          <Time dateTime={metaDate} addSuffix />
+        </>
+      ) : onClick ? (
         <MetaButton onClick={onClick}>{content}</MetaButton>
       ) : to ? (
         <Link to={to} replace={replace}>
@@ -207,20 +220,6 @@ const DocumentMeta: React.FC<Props> = ({
         </Link>
       ) : (
         content
-      )}
-      {showCollection && collection && (
-        <span>
-          &nbsp;{t("in")}&nbsp;
-          <Strong>
-            <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
-          </Strong>
-        </span>
-      )}
-      {showCollection && !collection && isDraft && (
-        <span>
-          &nbsp;{t("in")}&nbsp;
-          <Unfiled>{t("Unfiled")}</Unfiled>
-        </span>
       )}
       {showParentDocuments && nestedDocumentsCount > 0 && (
         <span>
@@ -272,8 +271,25 @@ const Strong = styled.strong`
   font-weight: 550;
 `;
 
-const Unfiled = styled.span`
-  font-style: italic;
+const Chip = styled.span<{ $unfiled?: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: ${s("backgroundSecondary")};
+  color: ${s("textSecondary")};
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+
+  ${(props) =>
+    props.$unfiled &&
+    css`
+      background: transparent;
+      box-shadow: inset 0 0 0 1px ${props.theme.backgroundSecondary};
+      font-style: italic;
+    `}
 `;
 
 const Container = styled(Flex)<{ $rtl?: boolean }>`

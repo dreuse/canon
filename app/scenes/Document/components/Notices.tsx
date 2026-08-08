@@ -1,4 +1,5 @@
 import { differenceInDays } from "date-fns";
+import { observer } from "mobx-react";
 import { TrashIcon, ArchiveIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -27,7 +28,7 @@ function Days(props: { dateTime: string }) {
   );
 }
 
-export default function Notices({ document }: Props) {
+function Notices({ document }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(document);
 
@@ -87,9 +88,7 @@ export default function Notices({ document }: Props) {
             {t("This document may be out of date.")}{" "}
             {freshnessReferenceDate && (
               <>
-                {document.verifiedAt
-                  ? t("Last verified")
-                  : t("Published")}{" "}
+                {document.verifiedAt ? t("Last verified") : t("Published")}{" "}
                 <Time dateTime={freshnessReferenceDate} addSuffix />
                 {"."}
               </>
@@ -160,3 +159,5 @@ const FreshMeta = styled.div`
   font-size: 13px;
   font-weight: 500;
 `;
+
+export default observer(Notices);

@@ -13,7 +13,9 @@ describe("Document model", () => {
         {
           id: "document-no-interval",
           collectionId: collection.id,
-          publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 365).toISOString(),
+          publishedAt: new Date(
+            Date.now() - 1000 * 60 * 60 * 24 * 365
+          ).toISOString(),
         },
         stores.documents
       );
@@ -31,7 +33,9 @@ describe("Document model", () => {
         {
           id: "document-recent",
           collectionId: collection.id,
-          publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+          publishedAt: new Date(
+            Date.now() - 1000 * 60 * 60 * 24 * 10
+          ).toISOString(),
         },
         stores.documents
       );
@@ -49,7 +53,9 @@ describe("Document model", () => {
         {
           id: "document-published-old",
           collectionId: collection.id,
-          publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString(),
+          publishedAt: new Date(
+            Date.now() - 1000 * 60 * 60 * 24 * 45
+          ).toISOString(),
         },
         stores.documents
       );
@@ -67,8 +73,12 @@ describe("Document model", () => {
         {
           id: "document-verified",
           collectionId: collection.id,
-          publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 365).toISOString(),
-          verifiedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+          publishedAt: new Date(
+            Date.now() - 1000 * 60 * 60 * 24 * 365
+          ).toISOString(),
+          verifiedAt: new Date(
+            Date.now() - 1000 * 60 * 60 * 24 * 5
+          ).toISOString(),
         },
         stores.documents
       );

@@ -160,7 +160,8 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
     ${(props) => (props.active ? "currentColor" : props.theme.divider)};
   line-height: 1.4;
   word-break: break-word;
-  color: ${(props) => (props.active ? props.theme.text : props.theme.textTertiary)};
+  color: ${(props) =>
+    props.active ? props.theme.text : props.theme.textTertiary};
 
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};

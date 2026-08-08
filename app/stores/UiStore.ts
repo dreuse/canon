@@ -15,6 +15,12 @@ import type RootStore from "./RootStore";
 
 const UI_STORE = "UI_STORE";
 
+/** Reader font scale bounds. 1 is the workspace default size. */
+export const FONT_SCALE_DEFAULT = 1;
+export const FONT_SCALE_MIN = 0.875;
+export const FONT_SCALE_MAX = 1.5;
+export const FONT_SCALE_STEP = 0.125;
+
 export enum Theme {
   Light = "light",
   Dark = "dark",
@@ -40,6 +46,7 @@ type PersistedData = Pick<
   | "sidebarRightWidth"
   | "sidebarCollapsed"
   | "tocVisible"
+  | "fontScale"
 >;
 
 class UiStore {
@@ -70,6 +77,10 @@ class UiStore {
 
   @observable
   tocVisible: boolean | undefined = true;
+
+  /** Reader-controlled multiplier applied on top of the workspace font size. */
+  @observable
+  fontScale: number = FONT_SCALE_DEFAULT;
 
   @observable
   mobileSidebarVisible = false;
@@ -171,6 +182,11 @@ class UiStore {
       maxWidth
     );
     this.tocVisible = data.tocVisible ?? true;
+    this.fontScale = clamp(
+      data.fontScale || FONT_SCALE_DEFAULT,
+      FONT_SCALE_MIN,
+      FONT_SCALE_MAX
+    );
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
 
@@ -312,6 +328,27 @@ class UiStore {
         this.persist();
       });
     });
+  };
+
+  /**
+   * Set the reader font scale, clamped to the supported range.
+   *
+   * @param scale the multiplier to apply to the workspace font size.
+   */
+  @action
+  setFontScale = (scale: number) => {
+    this.fontScale = clamp(scale, FONT_SCALE_MIN, FONT_SCALE_MAX);
+    this.persist();
+  };
+
+  /**
+   * Step the reader font scale up or down by one increment.
+   *
+   * @param direction 1 to increase the size, -1 to decrease it.
+   */
+  @action
+  adjustFontScale = (direction: 1 | -1) => {
+    this.setFontScale(this.fontScale + direction * FONT_SCALE_STEP);
   };
 
   /**
@@ -541,6 +578,7 @@ class UiStore {
   get asJson(): PersistedData {
     return {
       tocVisible: this.tocVisible,
+      fontScale: this.fontScale,
       sidebarCollapsed: this.sidebarCollapsed,
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,

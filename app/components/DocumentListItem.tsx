@@ -6,8 +6,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { Link } from "react-router-dom";
-import { CheckmarkIcon, DocumentIcon } from "outline-icons";
+import { Link, useHistory } from "react-router-dom";
+import { CheckmarkIcon, DocumentIcon, EditIcon } from "outline-icons";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
@@ -29,7 +29,7 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { documentPath } from "~/utils/routeHelpers";
+import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
 import { useDragDocument } from "./Sidebar/hooks/useDragAndDrop";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -64,6 +64,7 @@ function DocumentListItem(
   const user = useCurrentUser();
   const theme = useTheme();
   const { userMemberships, groupMemberships } = useStores();
+  const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMobile = useMobile();
@@ -121,6 +122,10 @@ function DocumentListItem(
       return;
     }
     rovingTabIndex.onClick?.(event);
+  };
+
+  const handleEditClick = () => {
+    history.push(documentEditPath(document));
   };
 
   // Suppress the browser's text selection when shift-clicking to select a range.
@@ -241,7 +246,6 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
-                {canStar && !isMobile && <StarButton document={document} />}
               </Heading>
 
               {!queryIsInTitle && (
@@ -262,6 +266,16 @@ function DocumentListItem(
             </Content>
           </Flex>
           <Actions>
+            {canStar && !isMobile && <StarButton document={document} />}
+            {can.update && (
+              <NudeButton
+                aria-label={t("Edit")}
+                tooltip={{ content: t("Edit"), delay: 500 }}
+                onClick={handleEditClick}
+              >
+                <EditIcon size={18} />
+              </NudeButton>
+            )}
             <DocumentMenu
               document={document}
               onOpen={handleMenuOpen}
@@ -347,10 +361,20 @@ const Actions = styled(EventBoundary)`
   display: flex;
   align-items: center;
   align-self: flex-start;
+  gap: 2px;
   margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
   color: ${s("textSecondary")};
+
+  ${NudeButton} {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   ${NudeButton}:${hover},
   ${NudeButton}[aria-expanded= "true"] {
@@ -395,18 +419,23 @@ const DocumentLink = styled(Link)<{
     width: auto;
   `};
 
-  ${Actions} {
+  ${Actions} > * {
     opacity: 0;
+    transition: opacity 100ms ease;
   }
+
+  ${(props) =>
+    props.$isStarred &&
+    css`
+      ${Actions} > *:has(${AnimatedStar}) {
+        opacity: 1;
+      }
+    `}
 
   @media (hover: none) {
-    ${Actions} {
+    ${Actions} > * {
       opacity: 1;
     }
-  }
-
-  ${AnimatedStar} {
-    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
   &:${hover},
@@ -415,16 +444,8 @@ const DocumentLink = styled(Link)<{
   &:focus-within {
     background: ${s("listItemHoverBackground")};
 
-    ${Actions} {
+    ${Actions} > * {
       opacity: 1;
-    }
-
-    ${AnimatedStar} {
-      opacity: 0.5;
-
-      &:${hover} {
-        opacity: 1;
-      }
     }
   }
 
@@ -455,12 +476,8 @@ const DocumentLink = styled(Link)<{
     css`
       background: ${s("listItemHoverBackground")};
 
-      ${Actions} {
+      ${Actions} > * {
         opacity: 1;
-      }
-
-      ${AnimatedStar} {
-        opacity: 0.5;
       }
     `}
 `;

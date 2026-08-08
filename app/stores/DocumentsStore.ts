@@ -249,10 +249,16 @@ export default class DocumentsStore extends Store<Document> {
     options: PaginationParams & {
       dateFilter?: DateFilter;
       collectionId?: string;
+      sort?: "updatedAt" | "createdAt" | "title";
+      sortDirection?: "asc" | "desc";
     } = {}
   ): Document[] => {
+    const sort = options.sort ?? "updatedAt";
+    const direction = options.sortDirection ?? "desc";
     let drafts = filter(
-      orderBy(this.all, "updatedAt", "desc"),
+      sort === "title"
+        ? naturalSort(this.all, "title", { direction })
+        : orderBy(this.all, sort, direction),
       (doc) => !doc.publishedAt
     );
 
