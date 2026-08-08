@@ -10,8 +10,8 @@ const NotificationIcon = () => {
   const count = notifications.approximateUnreadCount;
 
   return (
-    <Relative style={{ height: 24 }}>
-      <SubscribeIcon />
+    <Relative style={{ height: 16 }}>
+      <SubscribeIcon size={16} />
       {count > 0 && <Badge />}
     </Relative>
   );

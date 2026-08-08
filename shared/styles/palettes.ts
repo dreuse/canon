@@ -15,7 +15,7 @@ export type Palette = {
   accentDark: string;
 };
 
-const LUMINANCE_MIDPOINT = 0.4;
+const LUMINANCE_MIDPOINT = 0.179;
 
 const DARK_ACCENT_TEXT = "#08090C";
 

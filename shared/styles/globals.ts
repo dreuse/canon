@@ -130,9 +130,8 @@ export default createGlobalStyle<Props>`
   }
 
   :focus-visible {
-    outline-color: ${s("accent")};
-    outline-offset: -1px;
-    outline-width: initial;
+    outline: 2px solid ${s("accent")};
+    outline-offset: 2px;
   }
 
   :root {

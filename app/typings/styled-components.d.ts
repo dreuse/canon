@@ -136,6 +136,7 @@ declare module "styled-components" {
     cursor: string;
     textSecondary: string;
     textTertiary: string;
+    textTertiaryOnTint: string;
     textDiffInserted: string;
     textDiffInsertedBackground: string;
     textDiffDeleted: string;

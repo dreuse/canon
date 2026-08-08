@@ -142,10 +142,6 @@ const Breadcrumbs = styled("div")`
   align-items: center;
   padding-inline: 0 8px;
   display: flex;
-
-  ${breakpoint("tablet")`
-    min-width: auto;
-  `};
 `;
 
 const Actions = styled(Flex)`

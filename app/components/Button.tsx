@@ -29,6 +29,11 @@ const RealButton = styled(ActionButton)<RealProps>`
   font-weight: 500;
   height: 32px;
   text-decoration: none;
+
+  @media (max-width: 768px), (hover: none) {
+    height: 44px;
+  }
+
   flex-shrink: 0;
   cursor: var(--pointer);
   user-select: none;

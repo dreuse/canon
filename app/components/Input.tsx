@@ -1,7 +1,7 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -23,6 +23,10 @@ export const NativeTextarea = styled.textarea<{
   outline: none;
   background: none;
   color: ${s("text")};
+
+  &:focus-visible {
+    outline: none;
+  }
 
   ${(props) => props.$autoSize && `field-sizing: content;`}
   ${(props) => props.$minHeight && `min-height: ${props.$minHeight};`}
@@ -49,6 +53,10 @@ export const NativeInput = styled.input<{
   height: 30px;
   min-width: 0;
   font-size: 15px;
+
+  &:focus-visible {
+    outline: none;
+  }
 
   ${ellipsis()}
   ${undraggableOnDesktop()}
@@ -96,6 +104,10 @@ export const Wrapper = styled.div<{
 const IconWrapper = styled.span`
   position: relative;
   inset-inline-start: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 24px;
   height: 24px;
 `;
@@ -124,6 +136,14 @@ export const Outline = styled(Flex)<{
   align-items: center;
   overflow: hidden;
   background: ${s("background")};
+
+  ${(props) =>
+    props.$focused &&
+    css`
+      outline: 2px solid ${props.theme.accent};
+      outline-offset: -1px;
+      border-color: transparent;
+    `}
 
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;

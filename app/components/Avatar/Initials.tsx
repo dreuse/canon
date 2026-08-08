@@ -17,7 +17,7 @@ const Initials = styled(Flex)<{
   height: 100%;
   color: ${(props) =>
     getLuminance(props.color ?? props.theme.textTertiary) > 0.5
-      ? s("black50")
+      ? s("black75")
       : s("white75")};
   background-color: ${(props) => props.color ?? props.theme.textTertiary};
   width: ${(props) => props.size}px;

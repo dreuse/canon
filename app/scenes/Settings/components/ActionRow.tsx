@@ -17,6 +17,7 @@ export const ActionRow = styled(HStack).attrs({
   margin-inline-start: -12px;
 
   background: ${s("background")};
+  color: ${s("textTertiaryOnTint")};
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);

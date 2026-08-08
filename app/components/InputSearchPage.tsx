@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -7,11 +6,12 @@ import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
+import { VoSearchIcon } from "~/components/Icons/VobysIcons";
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import { searchPath } from "~/utils/routeHelpers";
-import Input from "./Input";
+import Input, { Outline } from "./Input";
 
 type Props = {
   /** A string representing where the search started, for tracking. */
@@ -96,8 +96,9 @@ function InputSearchPage({
       onChange={onChange}
       onKeyDown={handleKeyDown}
       icon={
-        <SearchIcon
-          color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
+        <VoSearchIcon
+          size={16}
+          color={isFocused ? theme.textSecondary : theme.textTertiary}
         />
       }
       label={label}
@@ -116,8 +117,12 @@ function InputSearchPage({
   );
 }
 
-const InputMaxWidth = styled(Input).attrs({ round: true })`
+const InputMaxWidth = styled(Input)`
   max-width: min(calc(30vw + 20px), 100%);
+
+  ${Outline} {
+    border-radius: 8px;
+  }
 
   /* On mobile the input grows to fill the header, so add a gap before the
    * adjacent action button (e.g. "New doc"). */
@@ -130,7 +135,7 @@ const Shortcut = styled.span<{ $visible: boolean }>`
   flex-shrink: 0;
   font-size: 13px;
   font-feature-settings: "cv08", "zero";
-  color: ${s("textTertiary")};
+  color: ${s("textTertiaryOnTint")};
   padding-inline: 0 10px;
   pointer-events: none;
   opacity: ${(props) => (props.$visible ? 1 : 0)};
