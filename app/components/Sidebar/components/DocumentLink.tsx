@@ -25,16 +25,19 @@ import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import * as Scenes from "~/routes/scenes";
 import { documentEditPath } from "~/utils/routeHelpers";
+import Text from "~/components/Text";
 import {
   useDragDocument,
   useDropToReorderDocument,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
+import { useTruncatedNodes } from "../hooks/useTruncatedNodes";
 import { useIsDragActive, useSidebarScrollElement } from "./DragActiveContext";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
+import SidebarLink from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
 
@@ -61,6 +64,7 @@ const ROOT_MARGIN = "300px 0px";
 
 const DocumentLink = observer(function DocumentLink(props: Props) {
   const { node, collection, activeDocument } = props;
+  const { t } = useTranslation();
   const { documents } = useStores();
   const expansion = useSidebarExpansion();
   const expanded = expansion.isExpanded(node.id);
@@ -128,6 +132,11 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   const isOnScreen = useOnScreen(placeholderRef, observerOptions);
   const isDragActive = useIsDragActive();
   const [mounted, setMounted] = React.useState(false);
+  const {
+    visible: visibleChildren,
+    remaining: remainingChildren,
+    showMore: showMoreChildren,
+  } = useTruncatedNodes(nodeChildren, expanded);
 
   // Flip mount state during render (not in an effect) so the first paint
   // already contains the row content when the placeholder is on screen,
@@ -165,8 +174,8 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
           <DocumentLinkInner {...props} hasChildren={nodeChildren.length > 0} />
         ) : null}
       </div>
-      <Folder expanded={expanded}>
-        {nodeChildren.map((childNode, childIndex) => (
+      <Folder expanded={expanded} depth={props.depth + 1}>
+        {visibleChildren?.map((childNode, childIndex) => (
           <DocumentLink
             key={childNode.id}
             collection={collection}
@@ -180,6 +189,20 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
             parentId={node.id}
           />
         ))}
+        {remainingChildren > 0 && (
+          <SidebarLink
+            label={
+              <Text type="tertiary" size="small">
+                {t(`{{ remaining }} more`, {
+                  remaining: remainingChildren,
+                  count: remainingChildren,
+                })}
+              </Text>
+            }
+            onClick={showMoreChildren}
+            depth={props.depth + 1}
+          />
+        )}
       </Folder>
     </>
   );

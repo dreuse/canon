@@ -255,6 +255,7 @@ function DocumentRow({
       // @ts-expect-error react-router type is wrong, string component is fine.
       component={isEditing ? "div" : undefined}
       depth={depth}
+      rank={hasChildren ? "section" : "document"}
       to={to}
       expanded={hasChildren && !isDragging ? expanded : undefined}
       onDisclosureClick={onDisclosureClick}

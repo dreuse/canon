@@ -209,6 +209,8 @@ function CollectionRow({
       // @ts-expect-error react-router type is wrong, string component is fine.
       component={isEditing ? "div" : undefined}
       depth={depth}
+      rank="collection"
+      count={collection.documentCount}
       to={to}
       onClick={onClick}
       onClickIntent={onClickIntent}

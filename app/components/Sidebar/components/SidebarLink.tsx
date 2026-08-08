@@ -53,6 +53,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   isDraft?: boolean;
   /** Nesting depth level for indentation (0-based) */
   depth?: number;
+  rank?: NavRank;
+  count?: number;
   /** Whether to truncate the label text (default: true, causes overflow: hidden) */
   ellipsis?: boolean;
   /** Whether to automatically scroll this link into view if needed */
@@ -60,6 +62,16 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren | ActionFactory;
 };
+
+export type NavRank = "collection" | "section" | "document";
+
+const rankWeight: Record<NavRank, number> = {
+  collection: 600,
+  section: 500,
+  document: 400,
+};
+
+const DEFAULT_WEIGHT = 475;
 
 const activeDropStyle = {
   fontWeight: 600,
@@ -87,6 +99,8 @@ function SidebarLink(
     exact,
     href,
     depth,
+    rank,
+    count,
     className,
     expanded,
     onDisclosureClick,
@@ -106,8 +120,9 @@ function SidebarLink(
     () => ({
       paddingInlineStart: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
       paddingInlineEnd: unreadBadge ? "32px" : undefined,
+      fontWeight: rank ? rankWeight[rank] : DEFAULT_WEIGHT,
     }),
-    [depth, icon, unreadBadge]
+    [depth, icon, unreadBadge, rank]
   );
 
   const unreadStyle = React.useMemo(
@@ -163,6 +178,7 @@ function SidebarLink(
           )}
           {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
           <Label $ellipsis={ellipsis}>{label}</Label>
+          {count !== undefined && count > 0 && <Count>{count}</Count>}
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
@@ -224,6 +240,21 @@ export const IconWrapper = styled.span`
   overflow: hidden;
   flex-shrink: 0;
   transition: opacity 200ms ease-in-out;
+`;
+
+const Count = styled.span`
+  flex-shrink: 0;
+  align-self: center;
+  margin-inline-start: 8px;
+  font-size: 11.5px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: ${s("textTertiary")};
+  transition: opacity 100ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `;
 
 const Content = styled.span`
@@ -368,6 +399,11 @@ const Link = styled(NavLink)<{
     &:has([data-state="open"]) {
       color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
+    }
+
+    &:hover ${Count},
+    &:has([data-state="open"]) ${Count} {
+      opacity: 0;
     }
   }
 

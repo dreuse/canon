@@ -79,6 +79,10 @@ export default class Collection extends ParanoidModel {
   @observable
   commenting?: boolean | null;
 
+  @Field
+  @observable
+  reviewIntervalDays?: number | null;
+
   /** The child documents of the collection. */
   @observable
   documents?: NavigationNode[];
@@ -183,6 +187,11 @@ export default class Collection extends ParanoidModel {
     }
 
     return childrenByDocumentId;
+  }
+
+  @computed
+  get documentCount(): number | undefined {
+    return this.documents ? this.childrenByDocumentId.size : undefined;
   }
 
   /** The initial letter of the collection name as a string. */
