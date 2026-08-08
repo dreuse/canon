@@ -27,11 +27,11 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
 
   background: none;
   color: ${(props) =>
-    props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
+    props.disabled ? props.theme.textTertiary : props.theme.text};
 
   margin: 0;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 12px;
 
   ${(props) => props.disabled && "pointer-events: none;"}
@@ -46,21 +46,15 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   }
 
   ${(props) =>
+    props.$dangerous && !props.disabled && `color: ${props.theme.danger};`}
+
+  ${(props) =>
     props.$active &&
     !props.disabled &&
     `
-    color: ${props.theme.accentText};
-    background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
-    outline-color: ${
-      props.$dangerous ? props.theme.danger : props.theme.accent
-    };
+    background: ${props.theme.menuItemSelected};
     box-shadow: none;
     cursor: var(--pointer);
-
-    svg:not([data-fixed-color]) {
-      color: ${props.theme.accentText};
-      fill: ${props.theme.accentText};
-    }
   `}
 
   ${(props) =>
@@ -69,18 +63,9 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
       &[data-highlighted],
       &[data-state="open"],
       &:focus-visible {
-        color: ${props.theme.accentText};
-        background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
-        outline-color: ${
-          props.$dangerous ? props.theme.danger : props.theme.accent
-        };
+        background: ${props.theme.menuItemSelected};
         box-shadow: none;
         cursor: var(--pointer);
-
-        svg:not([data-fixed-color]) {
-          color: ${props.theme.accentText};
-          fill: ${props.theme.accentText};
-        }
       }
   `}
 
@@ -202,7 +187,7 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
 
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 6px;
+  border-radius: 10px;
   // Vertical spacing comes from spacers rather than padding so that the bottom
   // fade, which is confined to the content box, can reach the menu's edge.
   padding: 0 6px;
