@@ -1,11 +1,15 @@
 import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
 import { breakpoints, depths, s } from ".";
+import { FontSizeValues, CodeFontScaleValues } from "../constants";
 import { EditorStyleHelper } from "../editor/styles/EditorStyleHelper";
+import { FontSize, CodeFontSize } from "../types";
 
 type Props = {
   staticHTML?: boolean;
   useCursorPointer?: boolean;
+  fontSize?: number;
+  codeFontScale?: number;
 };
 
 export default createGlobalStyle<Props>`
@@ -17,7 +21,10 @@ export default createGlobalStyle<Props>`
 
   html {
     --line-height-body: 1.5;
-    --font-size-body: 16px;
+    --font-size-body: ${(props) =>
+      props.fontSize ?? FontSizeValues[FontSize.Default]}px;
+    --font-size-code-scale: ${(props) =>
+      props.codeFontScale ?? CodeFontScaleValues[CodeFontSize.Default]};
   }
 
   html,

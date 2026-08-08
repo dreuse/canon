@@ -3,8 +3,22 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ThemeProvider } from "styled-components";
+import {
+  BodyFontFamilyStacks,
+  FontSizeValues,
+  CodeFontScaleValues,
+  MonospaceFontFamilyStacks,
+} from "@shared/constants";
 import GlobalStyles from "@shared/styles/globals";
-import { TeamPreference, UserPreference } from "@shared/types";
+import { resolveAccent } from "@shared/styles/palettes";
+import {
+  BodyFontFamily,
+  FontSize,
+  CodeFontSize,
+  MonospaceFontFamily,
+  TeamPreference,
+  UserPreference,
+} from "@shared/types";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
@@ -16,11 +30,31 @@ type Props = {
 const Theme: React.FC = ({ children }: Props) => {
   const { auth, ui } = useStores();
   const { i18n } = useTranslation();
-  const theme = useBuildTheme(
+  const bodyFontFamily =
+    auth.team?.getPreference(TeamPreference.BodyFontFamily) ||
+    BodyFontFamily.Default;
+  const monospaceFontFamily =
+    auth.team?.getPreference(TeamPreference.MonospaceFontFamily) ||
+    MonospaceFontFamily.FiraCode;
+  const fontSize =
+    auth.team?.getPreference(TeamPreference.FontSize) || FontSize.Default;
+  const codeFontSize =
+    auth.team?.getPreference(TeamPreference.CodeFontSize) ||
+    CodeFontSize.Default;
+  const customThemeColors =
     auth.team?.getPreference(TeamPreference.CustomTheme) ||
-      auth.config?.customTheme ||
-      undefined
+    auth.config?.customTheme ||
+    undefined;
+  const isDark = ui.resolvedTheme === "dark";
+  const themeOverride = React.useMemo(
+    () => ({
+      ...resolveAccent(customThemeColors, isDark),
+      fontFamily: BodyFontFamilyStacks[bodyFontFamily],
+      fontFamilyMono: MonospaceFontFamilyStacks[monospaceFontFamily],
+    }),
+    [customThemeColors, isDark, bodyFontFamily, monospaceFontFamily]
   );
+  const theme = useBuildTheme(themeOverride);
   const direction = isRTLLanguage(i18n.language) ? "rtl" : "ltr";
 
   React.useEffect(() => {
@@ -56,6 +90,8 @@ const Theme: React.FC = ({ children }: Props) => {
       <ThemeProvider theme={theme}>
         <>
           <GlobalStyles
+            fontSize={FontSizeValues[fontSize]}
+            codeFontScale={CodeFontScaleValues[codeFontSize]}
             useCursorPointer={
               // Default to showing the cursor pointer if no user is logged in (public share)
               auth.user?.getPreference(UserPreference.UseCursorPointer) ?? true

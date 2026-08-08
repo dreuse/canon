@@ -58,17 +58,21 @@ const spacing = {
   sidebarResizeMinWidth: sidebarMinWidth + sidebarPadding,
 };
 
-const buildBaseTheme = (input: Partial<Colors>) => {
+export type ThemeOverride = Partial<Colors> &
+  Partial<Pick<DefaultTheme, "fontFamily" | "fontFamilyMono">>;
+
+export const DEFAULT_FONT_FAMILY =
+  "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Oxygen, sans-serif";
+export const DEFAULT_FONT_FAMILY_MONO =
+  "'Fira Code', 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace";
+
+const buildBaseTheme = (input: ThemeOverride) => {
   const colors = {
     ...defaultColors,
     ...input,
   };
 
   return {
-    fontFamily:
-      "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Oxygen, sans-serif",
-    fontFamilyMono:
-      "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace",
     fontFamilyEmoji:
       "Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Segoe UI, Twemoji Mozilla, Noto Color Emoji, Android Emoji",
     fontWeightRegular: 400,
@@ -114,10 +118,12 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     breakpoints,
     ...colors,
     ...spacing,
+    fontFamily: input.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fontFamilyMono: input.fontFamilyMono ?? DEFAULT_FONT_FAMILY_MONO,
   };
 };
 
-export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
+export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
   const colors = buildBaseTheme(input);
 
   return {
@@ -180,10 +186,14 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
     progressBarBackground: colors.slateLight,
     scrollbarBackground: colors.smoke,
     scrollbarThumb: darken(0.15, colors.smokeDark),
+    staleBackground: "#fdf6e7",
+    staleBorder: "#f2e0b5",
+    staleText: "#7c5510",
+    freshText: "#0f7b52",
   };
 };
 
-export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
+export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
   const colors = buildBaseTheme(input);
 
   return {
@@ -270,10 +280,14 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     progressBarBackground: colors.slate,
     scrollbarBackground: colors.black,
     scrollbarThumb: colors.lightBlack,
+    staleBackground: "#2b2314",
+    staleBorder: "#4a3c1c",
+    staleText: "#e0b969",
+    freshText: "#4fc08d",
   };
 };
 
-export const buildPitchBlackTheme = (input: Partial<Colors>) => {
+export const buildPitchBlackTheme = (input: ThemeOverride) => {
   const colors = buildDarkTheme(input);
 
   return {

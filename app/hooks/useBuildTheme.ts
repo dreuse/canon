@@ -5,7 +5,7 @@ import {
   buildLightTheme,
   buildPitchBlackTheme,
 } from "@shared/styles/theme";
-import type { CustomTheme } from "@shared/types";
+import type { ThemeOverride } from "@shared/styles/theme";
 import { Theme } from "~/stores/UiStore";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "./useStores";
@@ -20,7 +20,7 @@ import useQuery from "./useQuery";
  * @returns The theme to use
  */
 export default function useBuildTheme(
-  customTheme: Partial<CustomTheme> = {},
+  customTheme: ThemeOverride = {},
   overrideTheme?: Theme
 ) {
   const { ui } = useStores();

@@ -1,5 +1,20 @@
 // oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
+import "@fontsource/fira-code/latin-400.css";
+import "@fontsource/fira-code/latin-500.css";
+import "@fontsource/jetbrains-mono/latin-400.css";
+import "@fontsource/jetbrains-mono/latin-500.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/source-serif-4/latin-400.css";
+import "@fontsource/source-serif-4/latin-500.css";
+import "@fontsource/source-serif-4/latin-600.css";
+import "@fontsource/lora/latin-400.css";
+import "@fontsource/lora/latin-500.css";
+import "@fontsource/lora/latin-600.css";
 import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";

@@ -2241,6 +2241,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/fira-code@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/fira-code@npm:5.3.0"
+  checksum: 10c0/402416a8a645b4f7e5be72f223626a68c0a60fd836d5f7e8b840a07ed83637663abe70e8d05f88602225248df90bbd733807dab1e819aab65557e9fbdafed8d4
+  languageName: node
+  linkType: hard
+
+"@fontsource/ibm-plex-mono@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/ibm-plex-mono@npm:5.3.0"
+  checksum: 10c0/4aaf5a3c9efc7c32de4fa46ff3187ac63720904beab825f331ac01800038899761da23270f09d3fb5cff22f7cdc366904834854e2107229ad60833bba71c223d
+  languageName: node
+  linkType: hard
+
+"@fontsource/ibm-plex-sans@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/ibm-plex-sans@npm:5.3.0"
+  checksum: 10c0/8e4c7a849e8167c8de1905282a62ff312a4266e364e3c436fa6d89d650bbb30b3386157ae31af3783e00f85fa64fd7e26bee7ca232db7d22fdc082f6b531edb5
+  languageName: node
+  linkType: hard
+
+"@fontsource/jetbrains-mono@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/jetbrains-mono@npm:5.3.0"
+  checksum: 10c0/1351b2350e893f5da39559ed90ff0e5e60bcc876b1f40531ad081ad4bf2f3cda3fa9e8940364aef5a7430ae3140685c9cd4819c36d8ad62bcd3fa37e3cc66b1d
+  languageName: node
+  linkType: hard
+
+"@fontsource/lora@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/lora@npm:5.3.0"
+  checksum: 10c0/f9cab55344176c975504fc5fb9d9fe73d86addb71b42118242e95ae37927508692f0daee45ab05379bc3c33dd7081bebcd3454175bf7792aed0a3f86c060e5f5
+  languageName: node
+  linkType: hard
+
+"@fontsource/source-serif-4@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/source-serif-4@npm:5.3.0"
+  checksum: 10c0/186d5bdb8bfd81dd2a532abd8b24a6f534c23493905d0dad084b3c375156491923ccc9ef5df4db2869f705d7a5e7ece8f5ce7c7196e767e36bc9b91783a6b421
+  languageName: node
+  linkType: hard
+
 "@fortawesome/fontawesome-common-types@npm:7.3.1":
   version: 7.3.1
   resolution: "@fortawesome/fontawesome-common-types@npm:7.3.1"
@@ -15502,6 +15544,12 @@ __metadata:
     "@faker-js/faker": "npm:^8.4.1"
     "@fast-csv/parse": "npm:^5.0.7"
     "@firecrawl/pdf-inspector": "npm:^1.11.2"
+    "@fontsource/fira-code": "npm:^5.3.0"
+    "@fontsource/ibm-plex-mono": "npm:^5.3.0"
+    "@fontsource/ibm-plex-sans": "npm:^5.3.0"
+    "@fontsource/jetbrains-mono": "npm:^5.3.0"
+    "@fontsource/lora": "npm:^5.3.0"
+    "@fontsource/source-serif-4": "npm:^5.3.0"
     "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
     "@fortawesome/free-brands-svg-icons": "npm:^7.3.1"
     "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"

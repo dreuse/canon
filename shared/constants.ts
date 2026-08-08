@@ -6,7 +6,15 @@ import {
   EmailDisplay,
   CommentingAccess,
   NotificationBadgeType,
+  BodyFontFamily,
+  MonospaceFontFamily,
+  FontSize,
+  CodeFontSize,
 } from "./types";
+import {
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_FAMILY_MONO,
+} from "./styles/theme";
 
 export const MAX_AVATAR_DISPLAY = 6;
 
@@ -86,17 +94,60 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.PublicBranding]: false,
   [TeamPreference.Commenting]: CommentingAccess.Members,
   [TeamPreference.CustomTheme]: undefined,
-  [TeamPreference.TocPosition]: TOCPosition.Left,
+  [TeamPreference.BodyFontFamily]: BodyFontFamily.Default,
+  [TeamPreference.MonospaceFontFamily]: MonospaceFontFamily.FiraCode,
+  [TeamPreference.FontSize]: FontSize.Default,
+  [TeamPreference.CodeFontSize]: CodeFontSize.Default,
+  [TeamPreference.TocPosition]: TOCPosition.Right,
   [TeamPreference.PreventDocumentEmbedding]: false,
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
 };
 
+const SYSTEM_SANS_FALLBACK =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+const SYSTEM_SERIF_FALLBACK =
+  "Georgia, Cambria, 'Times New Roman', Times, serif";
+
+export const BodyFontFamilyStacks: Record<BodyFontFamily, string> = {
+  [BodyFontFamily.Default]: DEFAULT_FONT_FAMILY,
+  [BodyFontFamily.IBMPlexSans]: `'IBM Plex Sans', ${SYSTEM_SANS_FALLBACK}`,
+  [BodyFontFamily.SourceSerif]: `'Source Serif 4', ${SYSTEM_SERIF_FALLBACK}`,
+  [BodyFontFamily.Lora]: `Lora, ${SYSTEM_SERIF_FALLBACK}`,
+  [BodyFontFamily.Serif]: SYSTEM_SERIF_FALLBACK,
+  [BodyFontFamily.Monospace]: DEFAULT_FONT_FAMILY_MONO,
+};
+
+const SYSTEM_MONO_FALLBACK =
+  "ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier, monospace";
+
+export const MonospaceFontFamilyStacks: Record<MonospaceFontFamily, string> = {
+  [MonospaceFontFamily.FiraCode]: DEFAULT_FONT_FAMILY_MONO,
+  [MonospaceFontFamily.JetBrainsMono]: `'JetBrains Mono', ${SYSTEM_MONO_FALLBACK}`,
+  [MonospaceFontFamily.IBMPlexMono]: `'IBM Plex Mono', ${SYSTEM_MONO_FALLBACK}`,
+  [MonospaceFontFamily.System]: SYSTEM_MONO_FALLBACK,
+};
+
+export const CodeFontScaleValues: Record<CodeFontSize, number> = {
+  [CodeFontSize.Small]: 0.9,
+  [CodeFontSize.Default]: 1,
+  [CodeFontSize.Large]: 1.1,
+  [CodeFontSize.ExtraLarge]: 1.2,
+};
+
+export const FontSizeValues: Record<FontSize, number> = {
+  [FontSize.Small]: 15,
+  [FontSize.Default]: 16,
+  [FontSize.Large]: 17,
+  [FontSize.ExtraLarge]: 18,
+};
+
 export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.RememberLastPath]: true,
   [UserPreference.UseCursorPointer]: true,
-  [UserPreference.CodeBlockLineNumers]: true,
+  [UserPreference.CodeBlockLineNumers]: false,
   [UserPreference.CommentsInGutter]: true,
   [UserPreference.SortCommentsByOrderInDocument]: true,
   [UserPreference.EnableSmartText]: true,

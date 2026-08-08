@@ -1,7 +1,11 @@
 import { z } from "zod";
 import {
+  BodyFontFamily,
   CommentingAccess,
   EmailDisplay,
+  FontSize,
+  CodeFontSize,
+  MonospaceFontFamily,
   TOCPosition,
   UserRole,
 } from "@shared/types";
@@ -64,8 +68,14 @@ export const TeamsUpdateSchema = BaseSchema.extend({
           .object({
             accent: z.string().min(4).max(7).regex(/^#/).optional(),
             accentText: z.string().min(4).max(7).regex(/^#/).optional(),
+            accentDark: z.string().min(4).max(7).regex(/^#/).optional(),
+            accentTextDark: z.string().min(4).max(7).regex(/^#/).optional(),
           })
           .optional(),
+        bodyFontFamily: z.enum(BodyFontFamily).optional(),
+        monospaceFontFamily: z.enum(MonospaceFontFamily).optional(),
+        fontSize: z.enum(FontSize).optional(),
+    codeFontSize: z.enum(CodeFontSize).optional(),
         /** Side to display the document's table of contents in relation to the main content. */
         tocPosition: z.enum(TOCPosition).optional(),
         emailDisplay: z.enum(EmailDisplay).optional(),
