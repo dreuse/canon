@@ -6,7 +6,7 @@
   </picture>
 </p>
 <p align="center">
-  <i>A fast, collaborative knowledge base for your team, built with React and Node.js.</i>
+  <i>Your team's canonical record — fast, collaborative, and yours to host.</i>
 </p>
 <p align="center">
   <a href="http://www.typescriptlang.org" rel="nofollow"><img src="https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg" alt="TypeScript"></a>
