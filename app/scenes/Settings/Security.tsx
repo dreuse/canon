@@ -4,25 +4,29 @@ import { ShieldIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
+import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
-import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { settingsPath } from "~/utils/routeHelpers";
+import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
 
+import { SettingsTitle } from "./components/SettingsTitle";
 function Security() {
   const { dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const history = useHistory();
 
   const [data, setData] = useState({
     sharing: team.sharing,
@@ -242,15 +246,14 @@ function Security() {
 
   return (
     <Scene title={t("Security")} icon={<ShieldIcon />}>
-      <Heading>{t("Security")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Security")}>
         <Trans>
           Settings that impact the access, security, and content of your
           workspace.
         </Trans>
-      </Text>
+      </SettingsTitle>
 
-      <Heading as="h2">{t("Invites")}</Heading>
+      <SettingGroup>{t("Invites")}</SettingGroup>
       <SettingRow
         label={t("Allow users to send invites")}
         name={TeamPreference.MembersCanInvite}
@@ -298,7 +301,7 @@ function Security() {
         </SettingRow>
       )}
 
-      <Heading as="h2">{t("Authentication")}</Heading>
+      <SettingGroup>{t("Authentication")}</SettingGroup>
       <SettingRow
         label={t("Passkeys")}
         name="passkeysEnabled"
@@ -312,8 +315,33 @@ function Security() {
           onChange={handlePasskeysEnabledChange}
         />
       </SettingRow>
+      <SettingRow
+        name="signinMethods"
+        label={t("Sign-in methods")}
+        description={t(
+          "Which providers members can use to sign in, and the domains allowed to join."
+        )}
+      >
+        <Button
+          neutral
+          onClick={() => history.push(settingsPath("authentication"))}
+        >
+          {t("Open")}
+        </Button>
+      </SettingRow>
+      <SettingRow
+        name="ai"
+        label={t("AI")}
+        description={t(
+          "Answers, guidance and the MCP server for this workspace."
+        )}
+      >
+        <Button neutral onClick={() => history.push(settingsPath("features"))}>
+          {t("Open")}
+        </Button>
+      </SettingRow>
 
-      <Heading as="h2">{t("Behavior")}</Heading>
+      <SettingGroup>{t("Behavior")}</SettingGroup>
       <SettingRow
         label={t("Public document sharing")}
         name="sharing"

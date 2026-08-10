@@ -4,15 +4,16 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import type FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ExportDialog } from "~/components/Export/ExportDialog";
 import FileOperationListItem from "./components/FileOperationListItem";
 
+import { SettingGroup } from "./components/SettingGroup";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 function Export() {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -32,8 +33,7 @@ function Export() {
 
   return (
     <Scene title={t("Export")} icon={<DownloadIcon />}>
-      <Heading>{t("Export")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Export")}>
         <Trans
           defaults="A full export might take some time, consider exporting a single document or collection. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{
@@ -43,7 +43,7 @@ function Export() {
             em: <strong />,
           }}
         />
-      </Text>
+      </SettingsTitle>
       <Button type="submit" onClick={handleOpenDialog}>
         {t("Export data")}…
       </Button>
@@ -55,9 +55,9 @@ function Export() {
           type: "export",
         }}
         heading={
-          <h2>
+          <SettingGroup>
             <Trans>Recent exports</Trans>
-          </h2>
+          </SettingGroup>
         }
         renderItem={(item) => (
           <FileOperationListItem key={item.id} fileOperation={item} />

@@ -6,11 +6,9 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -18,6 +16,8 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { SharesTable } from "./components/SharesTable";
 import { StickyFilters } from "./components/StickyFilters";
+
+import { SettingsIntro, SettingsTitle } from "./components/SettingsTitle";
 
 function Shares() {
   const team = useCurrentTeam();
@@ -89,8 +89,8 @@ function Shares() {
   }, [query, updateParams]);
 
   return (
-    <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide>
-      <Heading>{t("Shared Links")}</Heading>
+    <Scene title={t("Shared links")} icon={<GlobeIcon />} measure="full">
+      <SettingsTitle title={t("Shared links")} />
 
       {can.update && !canShareDocuments && (
         <>
@@ -107,13 +107,13 @@ function Shares() {
         </>
       )}
 
-      <Text as="p" type="secondary">
+      <SettingsIntro as="p" type="secondary">
         <Trans>
           Documents that have been shared are listed below. Anyone that has the
           public link can access a read-only version of the document until the
           link has been revoked.
         </Trans>
-      </Text>
+      </SettingsIntro>
 
       <StickyFilters>
         <InputSearch

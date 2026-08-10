@@ -8,15 +8,12 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { toast } from "sonner";
 import type User from "~/models/User";
-import { Action } from "~/components/Actions";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import Error404 from "~/scenes/Errors/Error404";
 import { createInternalLinkAction } from "~/actions";
@@ -42,6 +39,8 @@ import { settingsPath } from "~/utils/routeHelpers";
 /**
  * Settings page that lists members of a specific group.
  */
+import { SettingsIntro, SettingsTitle } from "./components/SettingsTitle";
+
 function GroupMembers() {
   const { id } = useParams<{ id: string }>();
   const { groups } = useStores();
@@ -203,39 +202,37 @@ const GroupMembersPage = observer(function GroupMembersPage({
       <Scene
         title={group.name}
         left={<Breadcrumb actions={breadcrumbActions} />}
-        actions={
-          <>
-            <Action>
+        measure="full"
+      >
+        <SettingsTitle
+          title={
+            <>
+              {group.name}
+              {group.disableMentions && (
+                <>
+                  &nbsp;
+                  <Tooltip content={t("This group is hidden")}>
+                    <HiddenIcon size={32} color={theme.textSecondary} />
+                  </Tooltip>
+                </>
+              )}
+            </>
+          }
+          actions={
+            <>
               <ActionContextProvider value={{ activeModels: [currentUser] }}>
                 <Button neutral action={removeGroupUser} hideOnActionDisabled>
                   {t("Leave group")}
                 </Button>
               </ActionContextProvider>
-            </Action>
-            <Action>
               <Button action={addGroupUsers} hideOnActionDisabled>
                 {`${t("Add people")}…`}
               </Button>
-            </Action>
-            <Action>
               <GroupMenu group={group} hideMembers />
-            </Action>
-          </>
-        }
-        wide
-      >
-        <Heading>
-          {group.name}
-          {group.disableMentions && (
-            <>
-              &nbsp;
-              <Tooltip content={t("This group is hidden")}>
-                <HiddenIcon size={32} color={theme.textSecondary} />
-              </Tooltip>
             </>
-          )}
-        </Heading>
-        <Text as="p" type="secondary">
+          }
+        />
+        <SettingsIntro as="p" type="secondary">
           {group.externalGroup && (
             <>
               {t("Synced to {{ provider }}", {
@@ -245,7 +242,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
             </>
           )}
           {group.description || (!group.externalGroup && t("No description"))}
-        </Text>
+        </SettingsIntro>
         <StickyFilters>
           <InputSearch
             value={query}

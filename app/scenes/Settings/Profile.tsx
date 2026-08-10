@@ -5,10 +5,8 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import { UserChangeEmailDialog } from "~/components/UserDialogs";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -16,6 +14,8 @@ import useStores from "~/hooks/useStores";
 import { UserValidation } from "@shared/validations";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 const Profile = () => {
   const user = useCurrentUser();
@@ -62,10 +62,9 @@ const Profile = () => {
 
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>
-      <Heading>{t("Profile")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Profile")}>
         <Trans>Manage how you appear to other members of the workspace.</Trans>
-      </Text>
+      </SettingsTitle>
 
       <form onSubmit={handleSubmit} ref={form}>
         <SettingRow

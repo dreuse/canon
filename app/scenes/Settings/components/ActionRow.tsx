@@ -1,6 +1,4 @@
-import { transparentize } from "polished";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { HStack } from "~/components/primitives/HStack";
 
@@ -12,19 +10,10 @@ export const ActionRow = styled(HStack).attrs({
 })`
   position: sticky;
   bottom: 0;
-  width: 100vw;
-  padding: 16px 12px;
-  margin-inline-start: -12px;
+  width: 100%;
+  padding: 14px 0;
 
+  border-top: 1px solid ${s("divider")};
   background: ${s("background")};
   color: ${s("textTertiaryOnTint")};
-
-  @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
-  }
-
-  ${breakpoint("tablet")`
-    width: auto;
-  `}
 `;

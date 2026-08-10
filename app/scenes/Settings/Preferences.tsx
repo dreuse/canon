@@ -4,6 +4,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { languageOptions as availableLanguages } from "@shared/i18n";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   NotificationBadgeType,
   TeamPreference,
@@ -11,19 +12,20 @@ import {
 } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
-import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
 import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
+import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Preferences() {
   const { t } = useTranslation();
@@ -167,29 +169,32 @@ function Preferences() {
 
   return (
     <Scene title={t("Preferences")} icon={<SettingsIcon />}>
-      <Heading>{t("Preferences")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Preferences")}>
         <Trans>Manage settings that affect your personal experience.</Trans>
-      </Text>
+      </SettingsTitle>
 
-      <Heading as="h2">{t("Display")}</Heading>
+      <SettingGroup>{t("Display")}</SettingGroup>
       <SettingRow
         label={t("Language")}
         name="language"
         description={
           <>
-            <Trans>
-              Choose the interface language. Community translations are accepted
-              though our{" "}
-              <a
-                href="https://translate.getoutline.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                translation portal
-              </a>
-              .
-            </Trans>
+            {UrlHelper.translations ? (
+              <Trans>
+                Choose the interface language. Community translations are
+                accepted though our{" "}
+                <a
+                  href={UrlHelper.translations}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  translation portal
+                </a>
+                .
+              </Trans>
+            ) : (
+              <Trans>Choose the interface language.</Trans>
+            )}
           </>
         }
       >
@@ -256,7 +261,7 @@ function Preferences() {
         />
       </SettingRow>
 
-      <Heading as="h2">{t("Behavior")}</Heading>
+      <SettingGroup>{t("Behavior")}</SettingGroup>
       <SettingRow
         name={UserPreference.SeamlessEdit}
         label={t("Separate editing")}
@@ -324,7 +329,7 @@ function Preferences() {
 
       {can.delete && (
         <>
-          <Heading as="h2">{t("Danger")}</Heading>
+          <SettingGroup>{t("Danger")}</SettingGroup>
           <SettingRow
             name="delete"
             label={t("Delete account")}

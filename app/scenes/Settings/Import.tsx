@@ -3,15 +3,15 @@ import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Pagination } from "@shared/constants";
 import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import type FileOperation from "~/models/FileOperation";
 import ImportModel from "~/models/Import";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
-import OutlineIcon from "~/components/Icons/OutlineIcon";
+import CanonIcon from "~/components/Icons/CanonIcon";
 import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
@@ -19,6 +19,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { Hook, PluginManager } from "~/utils/PluginManager";
+import { settingsPath } from "~/utils/routeHelpers";
 import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
@@ -35,6 +36,9 @@ type Config = {
   action: React.ReactElement;
 };
 
+import { SettingGroup } from "./components/SettingGroup";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 function useImportsConfig() {
   const { t } = useTranslation();
   const { dialogs } = useStores();
@@ -71,7 +75,7 @@ function useImportsConfig() {
             appName,
           }
         ),
-        icon: <OutlineIcon size={28} cover />,
+        icon: <CanonIcon size={28} cover />,
         action: (
           <Button
             type="submit"
@@ -159,15 +163,17 @@ function Import() {
   ).slice(0, offset.imports + offset.fileOperations);
 
   return (
-    <Scene title={t("Import")} icon={<NewDocumentIcon />}>
-      <Heading>{t("Import")}</Heading>
-      <Text as="p" type="secondary">
+    <Scene title={t("Import & export")} icon={<NewDocumentIcon />}>
+      <SettingsTitle title={t("Import & export")}>
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
           tools and services into {{ appName }}. You can also drag and drop any
           HTML, Markdown, and text documents directly into Collections in the
           app.
         </Trans>
+      </SettingsTitle>
+      <Text as="p" type="secondary">
+        <Link to={settingsPath("export")}>{t("Export the workspace")}</Link>
       </Text>
 
       <div>
@@ -187,9 +193,9 @@ function Import() {
         items={allImports}
         fetch={fetchImports}
         heading={
-          <h2>
+          <SettingGroup>
             <Trans>Recent imports</Trans>
-          </h2>
+          </SettingGroup>
         }
         renderItem={(item) =>
           item instanceof ImportModel ? (

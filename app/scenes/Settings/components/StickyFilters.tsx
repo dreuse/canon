@@ -11,4 +11,16 @@ export const StickyFilters = styled(HStack)`
   top: ${HEADER_HEIGHT}px;
   z-index: ${depths.header};
   background: ${s("background")};
+
+  @media (max-width: 768px) {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding-block: 6px;
+
+    > * {
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+  }
 `;

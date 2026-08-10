@@ -2,6 +2,8 @@ import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import { s } from "@shared/styles";
 import Text from "@shared/components/Text";
 import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -162,16 +164,17 @@ export function UsersTable({ canManage, ...rest }: Props) {
           header: t("Role"),
           accessor: (user) => user.role,
           component: (user) => (
-            <HStack spacing={4} wrap>
-              {user.isInvited && <Badge>{t("Invited")}</Badge>}
-              {user.isAdmin ? (
-                <Badge primary>{t("Admin")}</Badge>
+            <HStack spacing={6} wrap>
+              {user.isInvited ? (
+                <Role>{t("Invited")}</Role>
+              ) : user.isAdmin ? (
+                <Role $strong>{t("Admin")}</Role>
               ) : user.isViewer ? (
-                <Badge>{t("Viewer")}</Badge>
+                <Role>{t("Viewer")}</Role>
               ) : user.isGuest ? (
-                <Badge>{t("Guest")}</Badge>
+                <Role>{t("Guest")}</Role>
               ) : (
-                <Badge>{t("Editor")}</Badge>
+                <Role>{t("Editor")}</Role>
               )}
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </HStack>
@@ -204,3 +207,10 @@ export function UsersTable({ canManage, ...rest }: Props) {
     />
   );
 }
+
+const Role = styled.span<{ $strong?: boolean }>`
+  font-size: 14px;
+  font-weight: ${(props) => (props.$strong ? 600 : 500)};
+  color: ${(props) =>
+    props.$strong ? props.theme.text : s("textSecondary")(props)};
+`;

@@ -15,9 +15,12 @@ type Props = {
   compact?: boolean;
 };
 
+const CONTROL_COLUMN_WIDTH = 300;
+
 const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
-  padding: ${(props) => (props.$compact ? "12px 0" : "22px 0")};
-  align-items: ${(props) => (props.$compact ? "center" : "initial")};
+  flex-direction: column;
+  gap: 10px;
+  padding: ${(props) => (props.$compact ? "14px 0" : "20px 0")};
   border-bottom: 1px solid
     ${(props) =>
       props.$border === false
@@ -27,41 +30,45 @@ const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
   &:last-child {
     border-bottom: 0;
   }
+
+  ${breakpoint("tablet")`
+    flex-direction: row;
+    gap: 40px;
+    align-items: ${(props: { $compact?: boolean }) =>
+      props.$compact ? "center" : "flex-start"};
+  `}
 `;
 
-const Column = styled.div`
+const LabelColumn = styled.div`
   display: flex;
   flex-direction: column;
-  flex-basis: 100%;
   flex: 1;
-
-  &:first-child {
-    min-width: 50%;
-
-    ${breakpoint("tablet")`
-      min-width: 65%;
-    `}
-  }
-
-  &:last-child {
-    min-width: 0;
-
-    > * {
-      align-self: flex-end;
-    }
-
-    ${breakpoint("tablet")`
-      > * {
-        align-self: initial;
-      }
-    `}
-  }
+  min-width: 0;
 
   ${breakpoint("tablet")`
     p {
       margin-bottom: 0;
     }
   `};
+`;
+
+const ControlColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  > * {
+    align-self: flex-start;
+  }
+
+  ${breakpoint("tablet")`
+    flex: 0 0 ${CONTROL_COLUMN_WIDTH}px;
+    width: ${CONTROL_COLUMN_WIDTH}px;
+
+    > * {
+      align-self: flex-end;
+    }
+  `}
 `;
 
 const Label = styled(Text)`
@@ -82,8 +89,8 @@ const SettingRow: React.FC<Props> = ({
   }
 
   return (
-    <Row gap={32} $border={border} $compact={compact}>
-      <Column>
+    <Row $border={border} $compact={compact}>
+      <LabelColumn>
         <Label as="h3">
           <label htmlFor={name}>{label}</label>
         </Label>
@@ -92,8 +99,8 @@ const SettingRow: React.FC<Props> = ({
             {description}
           </Text>
         )}
-      </Column>
-      <Column>{children}</Column>
+      </LabelColumn>
+      <ControlColumn>{children}</ControlColumn>
     </Row>
   );
 };

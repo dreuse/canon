@@ -3,16 +3,15 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
-import { settingsPath } from "~/utils/routeHelpers";
 import IntegrationCard, { Card } from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
 import { observer } from "mobx-react";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Integrations() {
   const { t } = useTranslation();
@@ -27,9 +26,9 @@ function Integrations() {
   const groupedItems = groupBy(
     items.filter(
       (item) =>
-        item.group === t("Integrations") &&
+        item.group === t("Connections") &&
+        item.nav === false &&
         item.enabled &&
-        item.path !== settingsPath("integrations") &&
         item.name.toLowerCase().includes(query.toLowerCase())
     ),
     (item) =>
@@ -40,12 +39,11 @@ function Integrations() {
 
   return (
     <Scene title={t("Integrations")}>
-      <Heading>{t("Integrations")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Integrations")}>
         <Trans>
           Configure a variety of integrations with third-party services.
         </Trans>
-      </Text>
+      </SettingsTitle>
       <StickyFilters>
         <InputSearch
           short

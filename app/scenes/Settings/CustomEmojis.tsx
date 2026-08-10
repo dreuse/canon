@@ -5,13 +5,10 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import { createEmoji } from "~/actions/definitions/emojis";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -22,6 +19,8 @@ import { useTableRequest } from "~/hooks/useTableRequest";
 import EmojisTable from "./components/EmojisTable";
 import { StickyFilters } from "./components/StickyFilters";
 import type EmojisStore from "~/stores/EmojiStore";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Emojis() {
   const location = useLocation();
@@ -96,36 +95,29 @@ function Emojis() {
   }, [query, updateParams]);
 
   return (
-    <Scene
-      title={t("Emojis")}
-      icon={<SmileyIcon />}
-      actions={
-        <>
-          {can.createEmoji && (
-            <Action>
-              <Button
-                type="button"
-                data-on="click"
-                data-event-category="emoji"
-                data-event-action="create"
-                action={createEmoji}
-                context={context}
-                icon={<PlusIcon />}
-              >
-                {t("New emoji")}…
-              </Button>
-            </Action>
-          )}
-        </>
-      }
-      wide
-    >
-      <Heading>{t("Emojis")}</Heading>
-      <Text as="p" type="secondary">
+    <Scene title={t("Emojis")} icon={<SmileyIcon />} measure="full">
+      <SettingsTitle
+        title={t("Emojis")}
+        actions={
+          can.createEmoji ? (
+            <Button
+              type="button"
+              data-on="click"
+              data-event-category="emoji"
+              data-event-action="create"
+              action={createEmoji}
+              context={context}
+              icon={<PlusIcon />}
+            >
+              {t("New emoji")}…
+            </Button>
+          ) : null
+        }
+      >
         {t(
           "Custom emojis can be used throughout your workspace in documents, comments, and reactions."
         )}
-      </Text>
+      </SettingsTitle>
       <StickyFilters>
         <InputSearch
           short

@@ -1,22 +1,15 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { PlusIcon, UserIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import type UsersStore from "~/stores/UsersStore";
 import { queriedUsers } from "~/stores/UsersStore";
-import { Action } from "~/components/Actions";
-import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
-import Scene from "~/components/Scene";
-import Text from "~/components/Text";
-import { inviteUser } from "~/actions/definitions/users";
-import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -29,8 +22,7 @@ import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 import { HStack } from "~/components/primitives/HStack";
 
-function Users() {
-  const appName = env.APP_NAME;
+function UsersPanel() {
   const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
@@ -115,44 +107,16 @@ function Users() {
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
 
+  const admins = (data ?? []).filter((user) => user.isAdmin).length;
+
   return (
-    <Scene
-      title={t("Users")}
-      icon={<UserIcon />}
-      actions={
-        <>
-          {can.inviteUser && (
-            <Action>
-              <Button
-                type="button"
-                data-on="click"
-                data-event-category="invite"
-                data-event-action="peoplePage"
-                action={inviteUser}
-                icon={<PlusIcon />}
-              >
-                {t("Invite people")}…
-              </Button>
-            </Action>
-          )}
-        </>
-      }
-      wide
-    >
-      <Heading>{t("Users")}</Heading>
-      <Text as="p" type="secondary">
-        <Trans>
-          Everyone that has signed into {{ appName }} is listed here. It’s
-          possible that there are other users who have access through{" "}
-          {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
-        </Trans>
-      </Text>
+    <>
       <StickyFilters justify="space-between">
         <HStack>
           <InputSearch
             short
             value={query}
-            placeholder={`${t("Filter")}…`}
+            placeholder={`${t("Filter members")}…`}
             onChange={handleSearch}
           />
           <LargeUserStatusFilter
@@ -164,7 +128,14 @@ function Users() {
             onSelect={handleRoleFilter}
           />
         </HStack>
-        <ExportCSV reqParams={reqParams} />
+        <HStack spacing={12}>
+          <Count>
+            {t("{{ count }} member", { count: (data ?? []).length })}
+            {" · "}
+            {t("{{ count }} admin", { count: admins })}
+          </Count>
+          <ExportCSV reqParams={reqParams} />
+        </HStack>
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <UsersTable
@@ -178,7 +149,7 @@ function Users() {
           }}
         />
       </ConditionalFade>
-    </Scene>
+    </>
   );
 }
 
@@ -228,4 +199,10 @@ const LargeUserRoleFilter = styled(UserRoleFilter)`
   height: 32px;
 `;
 
-export default observer(Users);
+const Count = styled.span`
+  font-size: 13px;
+  color: ${s("textTertiary")};
+  white-space: nowrap;
+`;
+
+export default observer(UsersPanel);

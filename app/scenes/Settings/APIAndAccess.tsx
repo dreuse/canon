@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import { PadlockIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import type ApiKey from "~/models/ApiKey";
 import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
-import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
@@ -15,8 +15,12 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { settingsPath } from "~/utils/routeHelpers";
 import ApiKeyListItem from "./components/ApiKeyListItem";
+import { SettingGroup } from "./components/SettingGroup";
 import OAuthAuthenticationListItem from "./components/OAuthAuthenticationListItem";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function APIAndAccess() {
   const team = useCurrentTeam();
@@ -27,25 +31,22 @@ function APIAndAccess() {
   const appName = env.APP_NAME;
 
   return (
-    <Scene
-      title={t("API & Access")}
-      icon={<PadlockIcon />}
-      actions={
-        <>
-          {can.createApiKey && (
-            <Action>
-              <Button
-                type="submit"
-                value={`${t("New API key")}…`}
-                action={createApiKey}
-              />
-            </Action>
-          )}
-        </>
-      }
-    >
-      <Heading>{t("API & Access")}</Heading>
-      <h2>{t("Personal keys")}</h2>
+    <Scene title={t("Access & keys")} icon={<PadlockIcon />}>
+      <SettingsTitle
+        title={t("Access & keys")}
+        actions={
+          can.createApiKey ? (
+            <Button
+              type="submit"
+              value={`${t("New API key")}…`}
+              action={createApiKey}
+            />
+          ) : null
+        }
+      >
+        <Link to={settingsPath("passkeys")}>{t("Manage passkeys")}</Link>
+      </SettingsTitle>
+      <SettingGroup>{t("Personal keys")}</SettingGroup>
       {can.createApiKey ? (
         <Text as="p" type="secondary">
           <Trans
@@ -54,7 +55,7 @@ function APIAndAccess() {
             components={{
               em: (
                 <a
-                  href="https://www.getoutline.com/developers"
+                  href={UrlHelper.developers}
                   target="_blank"
                   rel="noreferrer"
                 />
@@ -78,7 +79,7 @@ function APIAndAccess() {
         items={oauthAuthentications.orderedData}
         heading={
           <>
-            <h2>{t("Application access")}</h2>
+            <SettingGroup>{t("Application access")}</SettingGroup>
             <Text as="p" type="secondary">
               {t(
                 "Manage which third-party and internal applications have been granted access to your {{ appName }} account.",

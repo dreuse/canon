@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
-import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import { InputSelect } from "~/components/InputSelect";
 import type AuthenticationProvider from "~/models/AuthenticationProvider";
@@ -18,6 +17,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { getRedirectUrl, toRelative } from "~/utils/urls";
@@ -28,6 +28,8 @@ import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import { client } from "~/utils/ApiClient";
 import { useTheme } from "styled-components";
 import { VStack } from "~/components/primitives/VStack";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
@@ -159,15 +161,14 @@ function Authentication() {
 
   return (
     <Scene title={t("Authentication")} icon={<PadlockIcon />}>
-      <Heading>{t("Authentication")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Authentication")}>
         <Trans>
           Manage how members sign-in to your workspace and which authentication
           providers are enabled.
         </Trans>
-      </Text>
+      </SettingsTitle>
 
-      <Heading as="h2">{t("Sign In")}</Heading>
+      <SettingGroup>{t("Sign In")}</SettingGroup>
 
       {authenticationProviders.orderedData.map((provider) => (
         <React.Fragment key={provider.name}>
@@ -317,7 +318,7 @@ function Authentication() {
         />
       </SettingRow>
 
-      <Heading as="h2">{t("Restrictions")}</Heading>
+      <SettingGroup>{t("Restrictions")}</SettingGroup>
       <DomainManagement onSuccess={showSuccessMessage} />
     </Scene>
   );

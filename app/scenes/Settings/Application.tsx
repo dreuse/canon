@@ -38,6 +38,8 @@ type Props = {
   oauthClient: OAuthClient;
 };
 
+import { SettingGroup } from "./components/SettingGroup";
+
 const LoadingState = observer(function LoadingState() {
   const { id } = useParams<{ id: string }>();
   const { oauthClients } = useStores();
@@ -263,7 +265,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
           </SettingRow>
         )}
 
-        <h2>{t("Credentials")}</h2>
+        <SettingGroup>{t("Credentials")}</SettingGroup>
         <SettingRow
           name="clientId"
           label={t("OAuth client ID")}

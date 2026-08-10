@@ -7,13 +7,10 @@ import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import type Template from "~/models/Template";
-import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import NewTemplateMenu from "~/menus/NewTemplateMenu";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -22,6 +19,8 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { StickyFilters } from "./components/StickyFilters";
 import { TemplatesTable } from "./components/TemplatesTable";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function getFilteredTemplates(templates: Template[], query?: string) {
   if (!query?.length) {
@@ -105,26 +104,15 @@ function Templates() {
   }, [query, updateQuery]);
 
   return (
-    <Scene
-      title={t("Templates")}
-      icon={<ShapesIcon />}
-      actions={
-        <>
-          {can.readTemplate && (
-            <Action>
-              <NewTemplateMenu />
-            </Action>
-          )}
-        </>
-      }
-      wide
-    >
-      <Heading>{t("Templates")}</Heading>
-      <Text as="p" type="secondary">
+    <Scene title={t("Templates")} icon={<ShapesIcon />} measure="full">
+      <SettingsTitle
+        title={t("Templates")}
+        actions={can.readTemplate ? <NewTemplateMenu /> : null}
+      >
         <Trans>
           Templates help your team create consistent and accurate documentation.
         </Trans>
-      </Text>
+      </SettingsTitle>
       {isEmpty ? (
         <Empty>{t("No templates have been created yet")}</Empty>
       ) : (

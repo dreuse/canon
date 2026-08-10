@@ -1,18 +1,19 @@
 import { observer } from "mobx-react";
 import { InternetIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import type OAuthClient from "~/models/oauth/OAuthClient";
-import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import { createOAuthClient } from "~/actions/definitions/oauthClients";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import env from "~/env";
 import OAuthClientListItem from "./components/OAuthClientListItem";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Applications() {
   const team = useCurrentTeam();
@@ -21,38 +22,29 @@ function Applications() {
   const can = usePolicy(team);
 
   return (
-    <Scene
-      title={t("Applications")}
-      icon={<InternetIcon />}
-      actions={
-        <>
-          {can.createOAuthClient && (
-            <Action>
-              <Button
-                type="submit"
-                value={`${t("New App")}…`}
-                action={createOAuthClient}
-              />
-            </Action>
-          )}
-        </>
-      }
-    >
-      <Heading>{t("Applications")}</Heading>
-      <Text as="p" type="secondary">
+    <Scene title={t("Applications")} icon={<InternetIcon />}>
+      <SettingsTitle
+        title={t("Applications")}
+        actions={
+          can.createOAuthClient ? (
+            <Button
+              type="submit"
+              value={`${t("New App")}…`}
+              action={createOAuthClient}
+            />
+          ) : null
+        }
+      >
         <Trans
-          defaults="Applications allow you to build internal or public integrations with Outline and provide secure access via OAuth. For more details see the <em>developer documentation</em>."
+          defaults="Applications allow you to build internal or public integrations with {{ appName }} and provide secure access via OAuth. For more details see the <em>developer documentation</em>."
+          values={{ appName: env.APP_NAME }}
           components={{
             em: (
-              <a
-                href="https://www.getoutline.com/developers"
-                target="_blank"
-                rel="noreferrer"
-              />
+              <a href={UrlHelper.developers} target="_blank" rel="noreferrer" />
             ),
           }}
         />
-      </Text>
+      </SettingsTitle>
       <PaginatedList<OAuthClient>
         fetch={oauthClients.fetchPage}
         items={oauthClients.orderedData}

@@ -20,7 +20,6 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
-import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -29,6 +28,8 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Notifications() {
   const user = useCurrentUser();
@@ -196,7 +197,7 @@ function Notifications() {
 
   return (
     <Scene title={t("Notifications")} icon={<EmailIcon />}>
-      <Heading>{t("Notifications")}</Heading>
+      <SettingsTitle title={t("Notifications")} />
 
       {showSuccessNotice && (
         <Notice>

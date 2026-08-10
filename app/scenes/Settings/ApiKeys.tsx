@@ -5,13 +5,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { Action } from "~/components/Actions";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import { createApiKey } from "~/actions/definitions/apiKeys";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -20,6 +18,8 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { ApiKeysTable } from "./components/ApiKeysTable";
 import { StickyFilters } from "./components/StickyFilters";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function ApiKeys() {
   const team = useCurrentTeam();
@@ -99,40 +99,29 @@ function ApiKeys() {
   }, [query, updateParams]);
 
   return (
-    <Scene
-      title={t("API")}
-      icon={<CodeIcon />}
-      actions={
-        <>
-          {can.createApiKey && (
-            <Action>
-              <Button
-                type="submit"
-                value={`${t("New API key")}…`}
-                action={createApiKey}
-              />
-            </Action>
-          )}
-        </>
-      }
-      wide
-    >
-      <Heading>{t("API Keys")}</Heading>
-      <Text as="p" type="secondary">
+    <Scene title={t("API Keys")} icon={<CodeIcon />} measure="full">
+      <SettingsTitle
+        title={t("API Keys")}
+        actions={
+          can.createApiKey ? (
+            <Button
+              type="submit"
+              value={`${t("New API key")}…`}
+              action={createApiKey}
+            />
+          ) : null
+        }
+      >
         <Trans
           defaults="API keys can be used to authenticate with the API and programatically control
           your workspace's data. For more details see the <em>developer documentation</em>."
           components={{
             em: (
-              <a
-                href="https://www.getoutline.com/developers"
-                target="_blank"
-                rel="noreferrer"
-              />
+              <a href={UrlHelper.developers} target="_blank" rel="noreferrer" />
             ),
           }}
         />
-      </Text>
+      </SettingsTitle>
       <StickyFilters>
         <InputSearch
           short

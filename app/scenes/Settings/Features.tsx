@@ -5,7 +5,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { TeamPreference } from "@shared/types";
 import { TeamValidation } from "@shared/validations";
-import Heading from "~/components/Heading";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -16,6 +16,8 @@ import Tooltip from "~/components/Tooltip";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import NudeButton from "~/components/NudeButton";
 import { useTheme } from "styled-components";
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Features() {
   const { t } = useTranslation();
@@ -51,10 +53,9 @@ function Features() {
 
   return (
     <Scene title={t("AI")} icon={<SparklesIcon />}>
-      <Heading>{t("AI")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("AI")}>
         <Trans>Manage AI and integration features for your workspace.</Trans>
-      </Text>
+      </SettingsTitle>
 
       <SettingRow
         name={TeamPreference.MCP}
@@ -81,7 +82,7 @@ function Features() {
                         <Text
                           as="a"
                           weight="bold"
-                          href="https://docs.getoutline.com/s/guide/doc/mcp-6j9jtENNKL"
+                          href={UrlHelper.guide}
                           target="_blank"
                           rel="noopener noreferrer"
                         />

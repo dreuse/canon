@@ -6,16 +6,18 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import embeds from "@shared/editor/embeds";
 import { TeamPreference } from "@shared/types";
-import Heading from "~/components/Heading";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { IntegrationScene } from "./components/IntegrationScene";
+import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
 import { HStack } from "~/components/primitives/HStack";
 
 /** List of embed providers available for configuration. */
 const providers = embeds.filter((e) => e.id !== "embed");
+
+import { SettingsTitle } from "./components/SettingsTitle";
 
 function Embeds() {
   const team = useCurrentTeam();
@@ -82,7 +84,7 @@ function Embeds() {
 
   return (
     <IntegrationScene title={t("Embeds")} icon={<BrowserIcon />}>
-      <Heading>{t("Embeds")}</Heading>
+      <SettingsTitle title={t("Embeds")} />
 
       <SettingRow
         label={t("Enabled")}
@@ -100,7 +102,7 @@ function Embeds() {
 
       {team.documentEmbeds && (
         <>
-          <Heading as="h2">{t("Providers")}</Heading>
+          <SettingGroup>{t("Providers")}</SettingGroup>
           <Text as="p" type="secondary">
             <Trans>
               Enabled providers will appear in the editor slash menu and embed
