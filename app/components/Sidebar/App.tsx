@@ -25,7 +25,7 @@ import RecentDocuments from "./components/RecentDocuments";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
-import SidebarNav from "./components/SidebarNav";
+import SidebarNav, { SidebarSystemActions } from "./components/SidebarNav";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import useMobile from "~/hooks/useMobile";
@@ -56,7 +56,7 @@ function AppSidebar() {
   }, []);
 
   return (
-    <Sidebar hidden={!ui.readyToShow}>
+    <Sidebar hidden={!ui.readyToShow} accountActions={<SidebarSystemActions />}>
       <DragActiveProvider>
         <DragPlaceholder />
 
@@ -106,9 +106,6 @@ function AppSidebar() {
               <SharedWithMe />
             </Section>
             <Section>
-              <RecentDocuments />
-            </Section>
-            <Section>
               <Collections />
             </Section>
             <Section auto>
@@ -119,6 +116,7 @@ function AppSidebar() {
             </Section>
           </SidebarScrollProvider>
         </Scrollable>
+        <RecentDocuments />
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>

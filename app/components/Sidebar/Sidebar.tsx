@@ -288,7 +288,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         {user && (
           <AccountMenu>
             <SidebarButton
-              showMoreMenu
               title={user.name}
               position="bottom"
               image={

@@ -33,17 +33,67 @@ import type { DragObject } from "../hooks/useDragAndDrop";
 import { useDropToArchive, useDropToUnpublish } from "../hooks/useDragAndDrop";
 import NavLink from "./NavLink";
 import SidebarContext from "./SidebarContext";
+import SidebarLink from "./SidebarLink";
 
 const DRAFT_COUNT_LIMIT = 25;
 
 function SidebarNav() {
   const { t } = useTranslation();
-  const { documents, policies, dialogs, notifications } = useStores();
+  const { documents } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team.id);
 
   const [{ isOver: isOverDrafts, canDrop: canDropDrafts }, dropToUnpublishRef] =
     useDropToUnpublish();
+
+  const draftCount = documents.totalDrafts;
+
+  return (
+    <Nav aria-label={t("Navigation")}>
+      <SidebarLink
+        to={homePath()}
+        exact={false}
+        icon={<VoHomeIcon />}
+        label={t("Home")}
+        onPointerEnter={Scenes.Home.preload}
+      />
+      {can.createDocument && (
+        <div ref={dropToUnpublishRef}>
+          <SidebarLink
+            to={draftsPath()}
+            icon={<VoDraftsIcon />}
+            label={t("Drafts")}
+            isActiveDrop={isOverDrafts && canDropDrafts}
+            trailing={
+              draftCount > 0 ? (
+                <Pill>
+                  {draftCount > DRAFT_COUNT_LIMIT
+                    ? `${DRAFT_COUNT_LIMIT}+`
+                    : draftCount}
+                </Pill>
+              ) : undefined
+            }
+            onPointerEnter={Scenes.Drafts.preload}
+          />
+        </div>
+      )}
+      {can.readTemplate && (
+        <SidebarLink
+          to={settingsPath("templates")}
+          icon={<VoTemplateIcon />}
+          label={t("Templates")}
+        />
+      )}
+    </Nav>
+  );
+}
+
+function SidebarSystemNav() {
+  const { t } = useTranslation();
+  const { documents, policies, dialogs, notifications } = useStores();
+  const team = useCurrentTeam();
+  const can = usePolicy(team.id);
+
   const [{ isOverArchiveSection, isDragging }, dropToArchiveRef] =
     useDropToArchive();
 
@@ -78,39 +128,8 @@ function SidebarNav() {
     }),
   });
 
-  const draftCount = documents.totalDrafts;
-  const draftLabel =
-    draftCount > 0
-      ? `${t("Drafts")} · ${draftCount > DRAFT_COUNT_LIMIT ? `${DRAFT_COUNT_LIMIT}+` : draftCount}`
-      : t("Drafts");
-
   return (
-    <Nav aria-label={t("Navigation")}>
-      <NavItem
-        to={homePath()}
-        label={t("Home")}
-        icon={<VoHomeIcon />}
-        exact={false}
-        onPointerEnter={Scenes.Home.preload}
-      />
-      {can.createDocument && (
-        <NavItem
-          to={draftsPath()}
-          label={draftLabel}
-          icon={<VoDraftsIcon />}
-          dropRef={dropToUnpublishRef}
-          isActiveDrop={isOverDrafts && canDropDrafts}
-          dot={draftCount > 0}
-          onPointerEnter={Scenes.Drafts.preload}
-        />
-      )}
-      {can.readTemplate && (
-        <NavItem
-          to={settingsPath("templates")}
-          label={t("Templates")}
-          icon={<VoTemplateIcon />}
-        />
-      )}
+    <System aria-label={t("System")}>
       {can.createDocument && (
         <SidebarContext.Provider value="archive">
           <NavItem
@@ -136,28 +155,26 @@ function SidebarNav() {
           onPointerEnter={Scenes.Trash.preload}
         />
       )}
-      <System>
-        <Tooltip content={t("Help")} placement="bottom" delay={300}>
-          <Trigger>
-            <HelpMenu>
-              <IconButton aria-label={t("Help")}>
-                <VoHelpIcon />
-              </IconButton>
-            </HelpMenu>
-          </Trigger>
-        </Tooltip>
-        <Tooltip content={t("Notifications")} placement="bottom" delay={300}>
-          <Trigger>
-            <NotificationsPopover>
-              <IconButton aria-label={t("Notifications")}>
-                <VoBellIcon />
-                {notifications.approximateUnreadCount > 0 && <Dot />}
-              </IconButton>
-            </NotificationsPopover>
-          </Trigger>
-        </Tooltip>
-      </System>
-    </Nav>
+      <Tooltip content={t("Notifications")} placement="top" delay={300}>
+        <Trigger>
+          <NotificationsPopover>
+            <IconButton aria-label={t("Notifications")}>
+              <VoBellIcon />
+              {notifications.approximateUnreadCount > 0 && <Dot />}
+            </IconButton>
+          </NotificationsPopover>
+        </Trigger>
+      </Tooltip>
+      <Tooltip content={t("Help")} placement="top" delay={300}>
+        <Trigger>
+          <HelpMenu>
+            <IconButton aria-label={t("Help")}>
+              <VoHelpIcon />
+            </IconButton>
+          </HelpMenu>
+        </Trigger>
+      </Tooltip>
+    </System>
   );
 }
 
@@ -166,7 +183,6 @@ type NavItemProps = {
   label: string;
   icon: React.ReactNode;
   exact?: boolean;
-  dot?: boolean;
   isActiveDrop?: boolean;
   isActive?: () => boolean;
   dropRef?: React.Ref<HTMLDivElement>;
@@ -178,7 +194,6 @@ function NavItem({
   label,
   icon,
   exact,
-  dot,
   isActiveDrop,
   isActive,
   dropRef,
@@ -186,7 +201,7 @@ function NavItem({
 }: NavItemProps) {
   return (
     <div ref={dropRef}>
-      <Tooltip content={label} placement="bottom" delay={300}>
+      <Tooltip content={label} placement="top" delay={300}>
         <Trigger>
           <Item
             to={to}
@@ -197,7 +212,6 @@ function NavItem({
             onPointerEnter={onPointerEnter}
           >
             {icon}
-            {dot && <Dot />}
           </Item>
         </Trigger>
       </Tooltip>
@@ -209,11 +223,26 @@ const Trigger = styled.span`
   display: inline-flex;
 `;
 
-const System = styled.span`
+const System = styled.nav`
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  margin-inline-start: auto;
+  padding-inline-end: 12px;
+`;
+
+const Pill = styled.span`
+  flex-shrink: 0;
+  align-self: center;
+  margin-inline-start: 8px;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: ${s("accent")};
+  background: ${s("sidebarActiveBackground")};
 `;
 
 const itemStyles = css`
@@ -250,10 +279,9 @@ const IconButton = styled.button`
 
 const Nav = styled.nav`
   display: flex;
-  align-items: center;
-  gap: 2px;
+  flex-direction: column;
   flex-shrink: 0;
-  padding: 2px 12px 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid ${s("divider")};
 `;
 
@@ -284,5 +312,7 @@ const Item = styled(NavLink)<{ $isActiveDrop?: boolean }>`
       box-shadow: inset 0 0 0 1px ${props.theme.accent};
     `}
 `;
+
+export const SidebarSystemActions = observer(SidebarSystemNav);
 
 export default observer(SidebarNav);
