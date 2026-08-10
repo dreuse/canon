@@ -873,7 +873,41 @@ export class Environment {
    * The product name
    */
   @Public
-  public APP_NAME = "Outline";
+  @IsOptional()
+  public APP_NAME = this.toOptionalString(environment.APP_NAME) ?? "Canon";
+
+  @Public
+  @IsOptional()
+  public HELP_URL = this.toOptionalString(environment.HELP_URL);
+
+  @Public
+  @IsOptional()
+  public CONTACT_URL = this.toOptionalString(environment.CONTACT_URL);
+
+  @Public
+  @IsOptional()
+  public DEVELOPERS_URL = this.toOptionalString(environment.DEVELOPERS_URL);
+
+  @Public
+  @IsOptional()
+  public CHANGELOG_URL = this.toOptionalString(environment.CHANGELOG_URL);
+
+  @Public
+  @IsOptional()
+  public BUG_REPORT_URL = this.toOptionalString(environment.BUG_REPORT_URL);
+
+  @Public
+  @IsOptional()
+  public TRANSLATIONS_URL = this.toOptionalString(environment.TRANSLATIONS_URL);
+
+  @Public
+  @IsOptional()
+  public DESKTOP_DOWNLOAD_URL = this.toOptionalString(
+    environment.DESKTOP_DOWNLOAD_URL
+  );
+
+  @IsOptional()
+  public UPDATES_URL = this.toOptionalString(environment.UPDATES_URL);
 
   /**
    * Gravity constant for time decay in popularity scoring. Higher values cause

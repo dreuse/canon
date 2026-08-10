@@ -2,16 +2,19 @@ import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import env from "~/env";
-import OutlineIcon from "./Icons/OutlineIcon";
+import { AvatarSize } from "./Avatar";
+import CanonIcon from "./Icons/CanonIcon";
 
 type Props = {
   href?: string;
 };
 
+const logoSize = AvatarSize.Medium;
+
 function Branding({ href = env.URL }: Props) {
   return (
     <Link href={href} target="_blank">
-      <OutlineIcon size={20} />
+      <CanonIcon size={logoSize} />
       &nbsp;{env.APP_NAME}
     </Link>
   );

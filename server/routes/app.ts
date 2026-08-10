@@ -26,6 +26,9 @@ const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
 
+const defaultDescription =
+  "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, & more…";
+
 let indexHtmlCache: Buffer | undefined;
 
 /**
@@ -90,7 +93,7 @@ export const renderApp = async (
 ) => {
   const {
     title = env.APP_NAME,
-    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
+    description = defaultDescription,
     canonical = "",
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
@@ -150,30 +153,18 @@ export const renderApp = async (
   } else {
     headTags += prefetchTags;
     headTags += `
-    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-192.png"
-      sizes="192x192"
-    />
-    <link
-      rel="apple-touch-icon"
-      type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-512.png"
-      sizes="512x512"
-    />
-    <link
-      rel="apple-touch-icon"
-      type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-1024.png"
-      sizes="1024x1024"
+      href="${env.CDN_URL ?? ""}/images/apple-touch-icon-180.png"
+      sizes="180x180"
     />
     <link
       rel="search"
       type="application/opensearchdescription+xml"
       href="/opensearch.xml"
-      title="Outline"
+      title="${escape(env.APP_NAME)}"
     />
     `;
   }

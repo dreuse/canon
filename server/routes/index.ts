@@ -12,6 +12,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
+import { manifestResponse } from "@server/utils/manifest";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -184,6 +185,12 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
+router.get("/manifest.webmanifest", (ctx) => {
+  ctx.type = "application/manifest+json";
+  ctx.response.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
+  ctx.body = manifestResponse();
+});
+
 router.get("/s/:shareId.:format", shareDomains(), renderShare);
 router.get("/s/:shareId", shareDomains(), renderShare);
 router.get(
@@ -268,17 +275,7 @@ router.get("*", async (ctx, next) => {
     team?.id
   );
 
-  const publicBranding =
-    team?.getPreference(TeamPreference.PublicBranding) ?? false;
-
-  return renderApp(ctx, next, {
-    title: publicBranding && team?.name ? team.name : undefined,
-    description:
-      publicBranding && team?.description ? team.description : undefined,
-    analytics,
-    shortcutIcon:
-      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
-  });
+  return renderApp(ctx, next, { analytics });
 });
 
 // In order to report all possible performance metrics to Sentry this header

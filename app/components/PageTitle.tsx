@@ -1,9 +1,7 @@
 import { observer } from "mobx-react";
 import { Helmet } from "react-helmet-async";
 import env from "~/env";
-import useStores from "~/hooks/useStores";
 import { useSplitView } from "./SplitView/context";
-import { useTeamContext } from "./TeamContext";
 
 type Props = {
   title: string;
@@ -15,8 +13,6 @@ const originalShortcutHref = document
   ?.getAttribute("href") as string;
 
 const PageTitle = ({ title, favicon }: Props) => {
-  const { auth } = useStores();
-  const team = useTeamContext() ?? auth.team;
   const { isFocused } = useSplitView();
 
   // Only the focused pane of a split view titles the tab, otherwise the panes
@@ -27,9 +23,7 @@ const PageTitle = ({ title, favicon }: Props) => {
 
   return (
     <Helmet>
-      <title>
-        {team?.name ? `${title} - ${team.name}` : `${title} - ${env.APP_NAME}`}
-      </title>
+      <title>{`${title} - ${env.APP_NAME}`}</title>
       <link
         rel="shortcut icon"
         type="image/png"
