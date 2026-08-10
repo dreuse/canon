@@ -1,4 +1,9 @@
-import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
+import {
+  DownloadIcon,
+  GlobeIcon,
+  ImageIcon,
+  ZoomInIcon,
+} from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
@@ -37,6 +42,8 @@ type Props = ComponentProps & {
 export const InlineIconMaxWidth = 48;
 
 export const FullWidthMinWidth = 832;
+
+export const ErrorLabelMinWidth = 300;
 
 type ImageClassNameOptions = {
   /** Layout modifier, e.g. "full-width", "left-50". */
@@ -232,8 +239,10 @@ const Image = (props: Props) => {
         {error ? (
           <Error className={EditorStyleHelper.imageHandle}>
             <Flex gap={4} align="center">
-              <CrossIcon size={16} />
-              {width > 300 ? t("Image failed to load") : null}
+              <ImageIcon size={16} />
+              {width && width <= ErrorLabelMinWidth
+                ? null
+                : t("Image failed to load")}
             </Flex>
           </Error>
         ) : (
@@ -320,7 +329,7 @@ const Image = (props: Props) => {
           </>
         )}
       </ImageWrapper>
-      {isInlineIcon
+      {isInlineIcon || (error && !isEditable)
         ? null
         : isFullWidth && props.children
           ? React.cloneElement(props.children, { style: widthStyle })
@@ -338,8 +347,9 @@ export const Error = styled(Flex)`
   color: ${s("textTertiary")};
   font-size: 14px;
   background: ${s("backgroundSecondary")};
+  border: 1px dashed ${s("divider")};
   border-radius: ${EditorStyleHelper.blockRadius};
-  height: 80px;
+  height: 64px;
   align-items: center;
   justify-content: center;
   user-select: none;
