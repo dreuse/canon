@@ -12,7 +12,9 @@ import type {
 import type { Command, EditorState } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { getMarkRange } from "../queries/getMarkRange";
 import Mark from "./Mark";
 import {
@@ -25,6 +27,73 @@ import {
 import { isInCode } from "../queries/isInCode";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
+
+const WORD_REGEX = /\S+/g;
+
+const LEADING_PUNCTUATION_REGEX = /^[([{<"']+/;
+
+const TRAILING_PUNCTUATION_REGEX = /[)\]}>.,;:!?"']+$/;
+
+export function bareLinkDecorations(doc: Node): Decoration[] {
+  const decorations: Decoration[] = [];
+
+  doc.descendants((node, pos) => {
+    if (node.type.spec.code) {
+      return false;
+    }
+    if (!node.isText || !node.text) {
+      return undefined;
+    }
+    if (node.marks.some((mark) => mark.type.name === "code_inline")) {
+      return undefined;
+    }
+
+    const link = node.marks.find((mark) => mark.type.name === "link");
+    if (link) {
+      if (node.text === link.attrs.href) {
+        decorations.push(
+          Decoration.inline(pos, pos + node.nodeSize, {
+            class: EditorStyleHelper.bareLink,
+            title: node.text,
+          })
+        );
+      }
+      return undefined;
+    }
+
+    for (const match of node.text.matchAll(WORD_REGEX)) {
+      const leading =
+        match[0].match(LEADING_PUNCTUATION_REGEX)?.[0].length ?? 0;
+      const candidate = match[0]
+        .slice(leading)
+        .replace(TRAILING_PUNCTUATION_REGEX, "");
+
+      if (!candidate || !isUrl(candidate)) {
+        continue;
+      }
+
+      const href = sanitizeUrl(candidate);
+      if (!href) {
+        continue;
+      }
+
+      const from = pos + (match.index ?? 0) + leading;
+      decorations.push(
+        Decoration.inline(from, from + candidate.length, {
+          nodeName: "a",
+          href,
+          title: candidate,
+          rel: "noopener noreferrer nofollow",
+          class: EditorStyleHelper.bareLink,
+        })
+      );
+    }
+
+    return undefined;
+  });
+
+  return decorations;
+}
 
 function isPlainURL(
   link: ProsemirrorMark,
@@ -169,6 +238,14 @@ export default class Link extends Mark<LinkOptions> {
     };
 
     const plugin: Plugin = new Plugin({
+      state: {
+        init: (_config, state: EditorState) =>
+          DecorationSet.create(state.doc, bareLinkDecorations(state.doc)),
+        apply: (tr, value: DecorationSet) =>
+          tr.docChanged
+            ? DecorationSet.create(tr.doc, bareLinkDecorations(tr.doc))
+            : value,
+      },
       props: {
         decorations: (state: EditorState) => plugin.getState(state),
         handleDOMEvents: {
