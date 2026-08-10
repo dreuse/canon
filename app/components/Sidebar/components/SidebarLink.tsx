@@ -78,6 +78,9 @@ const rankWeight: Record<NavRank, number> = {
 
 const DEFAULT_WEIGHT = 475;
 
+const HIGHLIGHT_INSET = 8;
+const ROW_PADDING_INLINE_END = HIGHLIGHT_INSET * 2;
+
 const activeDropStyle = {
   fontWeight: 600,
 };
@@ -321,7 +324,7 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
 
   position: absolute;
   top: 3px;
-  inset-inline-end: 4px;
+  inset-inline-end: ${ROW_PADDING_INLINE_END}px;
   gap: 4px;
   color: ${s("textTertiary")};
   transition: opacity 50ms;
@@ -388,10 +391,6 @@ const Link = styled(NavLink)<{
     --background: ${s("sidebarActiveBackground")};
   }
 
-  &[aria-current="page"] ${Actions} {
-    --background: ${s("sidebarActiveBackground")};
-  }
-
   ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
 
   display: flex;
@@ -409,7 +408,7 @@ const Link = styled(NavLink)<{
     content: "";
     position: absolute;
     inset-block: 0;
-    inset-inline: 8px;
+    inset-inline: ${HIGHLIGHT_INSET}px;
     border-radius: 7px;
     background: var(--background);
     pointer-events: none;
@@ -438,7 +437,7 @@ const Link = styled(NavLink)<{
         content: "";
         position: absolute;
         inset-block: 4px;
-        inset-inline-start: 8px;
+        inset-inline-start: ${HIGHLIGHT_INSET}px;
         width: 2px;
         border-radius: 2px;
         background: ${props.theme.accent};
@@ -466,7 +465,7 @@ const Link = styled(NavLink)<{
 
   ${breakpoint("tablet")`
     padding-block: 3px;
-    padding-inline: 12px 16px;
+    padding-inline: 12px ${ROW_PADDING_INLINE_END}px;
     font-size: 14px;
   `}
 
