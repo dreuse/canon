@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import type { Request } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
-import { toError } from "@shared/utils/error";
+import { errToString, toError } from "@shared/utils/error";
+import Logger from "@server/logging/Logger";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -61,13 +62,20 @@ async function requestPhoto(accessToken: string): Promise<string | undefined> {
 
     // A missing photo returns 404, which we can safely ignore.
     if (!response.ok) {
+      Logger.info("authentication", "Microsoft Graph photo not returned", {
+        status: response.status,
+        statusText: response.statusText,
+      });
       return undefined;
     }
 
     const contentType = response.headers.get("content-type") ?? "image/jpeg";
     const buffer = await response.buffer();
     return `data:${contentType};base64,${buffer.toString("base64")}`;
-  } catch (_err) {
+  } catch (err) {
+    Logger.warn("Failed to load photo from Microsoft Graph", {
+      error: errToString(err),
+    });
     return undefined;
   }
 }
