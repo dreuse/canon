@@ -137,32 +137,12 @@ jobs:
       - name: Run server tests
         run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4
 
-  bundle-size:
-    needs: changes
-    if: ${{ (needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true') && github.repository == 'outline/outline' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/install
-      - name: Set environment to production
-        run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
-      - run: yarn vite:build
-      - name: Send bundle stats to RelativeCI
-        if: ${{ env.RELATIVE_CI_KEY != '' }}
-        env:
-          RELATIVE_CI_KEY: ${{ secrets.RELATIVE_CI_KEY }}
-        uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03 # v2
-        with:
-          key: ${{ secrets.RELATIVE_CI_KEY }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          webpackStatsFile: ./build/app/webpack-stats.json
-
   # Always runs, so it can be used as the single required status check. Jobs
   # above are skipped when irrelevant to the changes, which is a pass here.
   # Audit is intentionally excluded, it reports advisories that can have no
   # fix available or affect dev only and should not block merging.
   ci:
-    needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
+    needs: [changes, lint, actionlint, types, test, test-server]
     if: always()
     runs-on: ubuntu-latest
     steps:
