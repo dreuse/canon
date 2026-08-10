@@ -31,7 +31,7 @@ export default function Version() {
   return (
     <SidebarLink
       target="_blank"
-      href="https://github.com/outline/outline/releases"
+      href="https://github.com/dreuse/canon/releases"
       label={
         <>
           v{currentVersion}
