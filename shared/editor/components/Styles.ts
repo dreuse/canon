@@ -2904,6 +2904,9 @@ li > .${EditorStyleHelper.toggleBlock} {
       margin-top: 0;
     }
     > .${EditorStyleHelper.toggleBlockHead} {
+      /* The title acts as a fold/unfold control when the document is read-only */
+      ${props.readOnly ? "cursor: var(--pointer);" : ""}
+
       > * {
         margin-top: 0;
       }
