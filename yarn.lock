@@ -8954,7 +8954,7 @@ __metadata:
     concurrently: "npm:^8.2.2"
     content-disposition: "npm:^0.5.4"
     cookie: "npm:^0.7.2"
-    copy-to-clipboard: "npm:^3.3.3"
+    copy-to-clipboard: "npm:^4.0.2"
     core-js: "npm:^3.49.0"
     crypto-js: "npm:^4.2.0"
     date-fns: "npm:^3.6.0"
@@ -9736,12 +9736,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"copy-to-clipboard@npm:^3.3.3":
-  version: 3.3.3
-  resolution: "copy-to-clipboard@npm:3.3.3"
-  dependencies:
-    toggle-selection: "npm:^1.0.6"
-  checksum: 10c0/3ebf5e8ee00601f8c440b83ec08d838e8eabb068c1fae94a9cda6b42f288f7e1b552f3463635f419af44bf7675afc8d0390d30876cf5c2d5d35f86d9c56a3e5f
+"copy-to-clipboard@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "copy-to-clipboard@npm:4.0.2"
+  checksum: 10c0/0a007c86cc5f235653ddd98ef9901fa8d52b40bd0aeadce4ecc92d6aad16f89136a526f2ae7050421de5b02a374d803de88a40cde1298915093d1b62aeadc9e5
   languageName: node
   linkType: hard
 
@@ -19743,13 +19741,6 @@ __metadata:
   version: 3.7.1
   resolution: "toad-cache@npm:3.7.1"
   checksum: 10c0/22efc940723bbe30b8386af82ed0824263567b84d37f29f57651ad28d9aef823b678f07f6d6c2e142448d5f351f89e15e05f37f59e2c7f1d183294b8d32f93fb
-  languageName: node
-  linkType: hard
-
-"toggle-selection@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "toggle-selection@npm:1.0.6"
-  checksum: 10c0/f2cf1f2c70f374fd87b0cdc8007453ba9e981c4305a8bf4eac10a30e62ecdfd28bca7d18f8f15b15a506bf8a7bfb20dbe3539f0fcf2a2c8396c1a78d53e1f179
   languageName: node
   linkType: hard
 
