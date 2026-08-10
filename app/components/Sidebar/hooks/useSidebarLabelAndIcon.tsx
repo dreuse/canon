@@ -3,11 +3,40 @@ import * as React from "react";
 import Icon from "@shared/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
+import type Document from "~/models/Document";
 
 interface SidebarItem {
   documentId?: string;
   collectionId?: string;
   groupId?: string;
+}
+
+export function useDocumentIcon(document: Document | undefined) {
+  const { collections } = useStores();
+
+  if (!document) {
+    return null;
+  }
+
+  if (document.icon) {
+    return (
+      <Icon
+        value={document.icon}
+        initial={document.initial}
+        color={document.color ?? undefined}
+      />
+    );
+  }
+
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
+
+  return collection ? (
+    <CollectionIcon collection={collection} />
+  ) : (
+    <DocumentIcon outline={document.isDraft} />
+  );
 }
 
 export function useSidebarLabelAndIcon({

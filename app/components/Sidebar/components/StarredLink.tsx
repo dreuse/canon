@@ -28,7 +28,7 @@ import {
   useDropToCreateStar,
   useDropToReorderStar,
 } from "../hooks/useDragAndDrop";
-import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
+import { useDocumentIcon } from "../hooks/useSidebarLabelAndIcon";
 import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
@@ -449,7 +449,7 @@ function StarredLink({ star }: Props) {
     const next = star?.next();
     return fractionalIndex(star?.index || null, next?.index || null);
   };
-  const { icon } = useSidebarLabelAndIcon(star);
+  const documentIcon = useDocumentIcon(document);
   const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
 
@@ -482,7 +482,7 @@ function StarredLink({ star }: Props) {
           handlePrefetch={handlePrefetch}
           onExpand={handleExpand}
           onCollapse={handleCollapse}
-          icon={document.icon ? icon : undefined}
+          icon={documentIcon}
           menuOpen={menuOpen}
           handleMenuOpen={handleMenuOpen}
           handleMenuClose={handleMenuClose}

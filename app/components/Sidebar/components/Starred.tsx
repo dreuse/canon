@@ -7,6 +7,7 @@ import { s } from "@shared/styles";
 import type Star from "~/models/Star";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
+import { VoStarredIcon } from "~/components/Icons/VobysIcons";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
 import {
@@ -51,7 +52,12 @@ function Starred() {
           sectionStarProps.isDragging && sectionStarProps.isOverCursor
         }
       >
-        <Header id="starred" title={t("Starred")}>
+        <Header
+          id="starred"
+          title={t("Starred")}
+          icon={<VoStarredIcon />}
+          count={stars.orderedData.length}
+        >
           <Relative>
             {reorderStarProps.isDragging && (
               <DropCursor

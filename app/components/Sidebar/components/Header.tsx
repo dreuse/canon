@@ -1,14 +1,20 @@
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
 import { extraArea, s } from "@shared/styles";
+import {
+  VoChevronDownIcon,
+  VoChevronRightIcon,
+} from "~/components/Icons/VobysIcons";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
+import SidebarLink from "./SidebarLink";
 
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
   id?: string;
   title: React.ReactNode;
+  icon?: React.ReactNode;
+  count?: number;
   actions?: React.ReactNode;
   children?: React.ReactNode;
 };
@@ -23,6 +29,8 @@ export function getHeaderExpandedKey(id: string) {
 export const Header: React.FC<Props> = ({
   id,
   title,
+  icon,
+  count,
   actions,
   children,
 }: Props) => {
@@ -42,9 +50,25 @@ export const Header: React.FC<Props> = ({
     setExpanded(!expanded);
   }, [expanded, setExpanded]);
 
+  if (id && !expanded && icon) {
+    return (
+      <SidebarLink
+        onClick={handleClick}
+        icon={icon}
+        label={title}
+        trailing={
+          <Meta>
+            {count !== undefined && count > 0 && <Count>{count}</Count>}
+            <VoChevronRightIcon size={16} />
+          </Meta>
+        }
+      />
+    );
+  }
+
   return (
     <>
-      <H3 $expanded={expanded}>
+      <H3>
         <Button onClick={handleClick} disabled={!id}>
           {title}
           {id && <Disclosure $expanded={expanded} size={16} />}
@@ -100,17 +124,33 @@ const Button = styled.button`
   }
 `;
 
-const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
+const Disclosure = styled(VoChevronDownIcon)<{ $expanded?: boolean }>`
+  margin-inline-start: 2px;
   transition:
     opacity 100ms ease,
-    transform 100ms ease,
-    fill 50ms !important;
+    transform 100ms ease;
   ${(props) => !props.$expanded && "transform: rotate(-90deg);"};
-  opacity: 0;
+  opacity: ${(props) => (props.$expanded ? 0 : 1)};
 
   [dir="rtl"] & {
     ${(props) => !props.$expanded && "transform: rotate(90deg);"};
   }
+`;
+
+const Meta = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  align-self: center;
+  margin-inline-start: 8px;
+  color: ${s("textTertiaryOnTint")};
+`;
+
+const Count = styled.span`
+  font-size: 11.5px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 `;
 
 const Actions = styled.span`
@@ -132,12 +172,11 @@ const Actions = styled.span`
   }
 `;
 
-const H3 = styled.h3<{ $expanded?: boolean }>`
+const H3 = styled.h3`
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 0;
-  margin-bottom: ${(props) => (props.$expanded ? 0 : "-6px")};
 
   &:hover,
   &:focus-within {

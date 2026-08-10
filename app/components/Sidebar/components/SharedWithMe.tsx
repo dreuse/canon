@@ -8,6 +8,7 @@ import type GroupMembership from "~/models/GroupMembership";
 import type UserMembership from "~/models/UserMembership";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
+import { VoSharedIcon } from "~/components/Icons/VobysIcons";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
@@ -112,7 +113,15 @@ function SharedWithMe() {
   return (
     <SidebarContext.Provider value="shared">
       <Flex column>
-        <Header id="shared" title={t("Shared with me")}>
+        <Header
+          id="shared"
+          title={t("Shared with me")}
+          icon={<VoSharedIcon />}
+          count={
+            user.documentMemberships.length +
+            user.groupsWithDocumentMemberships.length
+          }
+        >
           {user.groupsWithDocumentMemberships.map((group) => (
             <GroupLink key={group.id} group={group} />
           ))}
