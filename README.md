@@ -58,6 +58,10 @@ Container images are published to the GitHub Container Registry:
 docker pull ghcr.io/dreuse/canon:latest
 ```
 
+Images are built for `linux/amd64` only. On an arm64 machine, such as an Apple
+Silicon Mac, add `--platform linux/amd64` to `docker pull` and `docker run`; it
+will work under emulation.
+
 Canon needs PostgreSQL and Redis. `docker-compose.yml` in this repository brings
 both up for local use, and `.env.sample` documents every supported setting —
 start there and set at least `URL`, `SECRET_KEY`, `UTILS_SECRET`, `DATABASE_URL`
