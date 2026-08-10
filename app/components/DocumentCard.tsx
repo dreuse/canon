@@ -203,7 +203,7 @@ const DocumentSquircle = ({
   const iconType = determineIconType(icon)!;
   const squircleColor = iconType === IconType.SVG ? color : theme.slateLight;
   const style = {
-    "--background": squircleColor,
+    "--letter-background": squircleColor,
   } as React.CSSProperties;
 
   return (
