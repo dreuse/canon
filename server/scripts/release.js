@@ -6,7 +6,6 @@ const path = require("path");
 const { exit } = require("process");
 const readline = require("readline");
 const semver = require("semver");
-const { addYears } = require("date-fns/addYears");
 
 const input = process.argv.slice(2);
 
@@ -69,31 +68,15 @@ rl.question("Do you want to proceed with this release? (Y/n): ", (answer) => {
     fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + "\n");
     console.log("Updated package.json");
 
-    // Update LICENSE
-    const license = fs.readFileSync(path.resolve(root, "LICENSE"), "utf8");
-    const newDate = addYears(new Date(), 4).toISOString().split("T")[0];
-
-    const newLicense = license
-      // Update version number
-      .replace(
-        /Licensed Work: {8}Outline (.*)/,
-        `Licensed Work:        Outline ${newVersion}`
-      )
-      // Update change date
-      .replace(/Change Date: {9}(.*)/, `Change Date:          ${newDate}`)
-      // Update current year
-      .replace(/\(c\) \d{4}/, `(c) ${new Date().getFullYear()}`);
-
-    fs.writeFileSync(path.resolve(root, "LICENSE"), newLicense);
-    console.log("Updated LICENSE");
-
     // Git operations
     execSync(`git add package.json`, opts);
-    execSync(`git add LICENSE`, opts);
-    execSync(`git commit -m "v${newVersion}" --no-verify`, opts);
+    execSync(
+      `git commit -m "chore(release): bump version to ${newVersion}" --no-verify`,
+      opts
+    );
     execSync(`git tag v${newVersion} -m v${newVersion}`, opts);
-    execSync(`git push origin v${newVersion}`, opts);
     execSync(`git push origin main`, opts);
+    execSync(`git push origin v${newVersion}`, opts);
 
     console.log(`\nReleased v${newVersion} 🚀`);
   } catch (err) {
