@@ -11,6 +11,7 @@ import { cloneDeep } from "es-toolkit/compat";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { colorPalette } from "@shared/constants";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Editor from "~/components/Editor";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
@@ -360,10 +361,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
                 {t(
                   "Add content to your document, then use headings or dividers to separate it into slides."
                 )}{" "}
-                <a
-                  href="https://docs.getoutline.com/s/guide/doc/present-mode-yMGzaY7A9L"
-                  target="_blank"
-                >
+                <a href={UrlHelper.guide} target="_blank">
                   {t("Learn more")}
                 </a>
                 .

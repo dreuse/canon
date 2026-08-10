@@ -59,9 +59,7 @@ function SharedDocument({ document }: Props) {
         tocPosition={tocPosition}
         readOnly
       />
-      {showBranding ? (
-        <Branding href="//www.getoutline.com?ref=sharelink" />
-      ) : null}
+      {showBranding ? <Branding /> : null}
     </>
   );
 }

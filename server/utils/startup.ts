@@ -103,19 +103,14 @@ export async function printEnv() {
   if (env.isProduction) {
     Logger.info(
       "lifecycle",
-      styleText(
-        "green",
-        `
-Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
-`
-      )
+      styleText("green", `\nRunning ${env.APP_NAME}.\n`)
     );
   } else if (env.isDevelopment) {
     Logger.warn(
-      `Running Outline in ${styleText(
+      `Running ${env.APP_NAME} in ${styleText(
         "bold",
         "development mode"
-      )}. To run Outline in production mode set the ${styleText(
+      )}. To run ${env.APP_NAME} in production mode set the ${styleText(
         "bold",
         "NODE_ENV"
       )} env variable to "production"`

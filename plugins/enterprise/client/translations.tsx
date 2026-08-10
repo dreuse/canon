@@ -98,7 +98,7 @@ export const Translations = () => (
     <Trans defaults={`API Secret`} />
     <Trans defaults={`Datasource`} />
     <Trans
-      defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach or increase licensed seats please contact your account manager or email <4>priority@getoutline.com</4>.`}
+      defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach or increase licensed seats please contact your account manager.`}
     />
     <Trans
       defaults={`Sorry, an answer could not be found in the collection, try widening your search.`}

@@ -8,7 +8,6 @@ import Redis from "@server/storage/redis";
 import packageInfo from "../../package.json";
 import fetch from "./fetch";
 
-const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
 
 /**
@@ -17,6 +16,10 @@ const UPDATES_KEY = "UPDATES_KEY";
  * the request.
  */
 export async function checkUpdates() {
+  if (!env.UPDATES_URL) {
+    return;
+  }
+
   const secret = env.SECRET_KEY.slice(0, 6) + env.URL;
   const id = crypto.createHash("sha256").update(secret).digest("hex");
   const [userCount, teamCount, collectionCount, documentCount] =
@@ -40,7 +43,7 @@ export async function checkUpdates() {
   await Redis.defaultClient.del(UPDATES_KEY);
 
   try {
-    const response = await fetch(UPDATES_URL, {
+    const response = await fetch(env.UPDATES_URL, {
       method: "POST",
       headers: {
         Accept: "application/json",

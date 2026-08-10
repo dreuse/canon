@@ -27,7 +27,7 @@ import {
 } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
-import isCloudHosted from "~/utils/isCloudHosted";
+import env from "~/env";
 import {
   homePath,
   searchPath,
@@ -173,7 +173,8 @@ export const openDocumentation = createExternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  url: UrlHelper.guide,
+  visible: () => !!UrlHelper.guide,
+  url: UrlHelper.guide ?? "",
   target: "_blank",
 });
 
@@ -183,7 +184,8 @@ export const openAPIDocumentation = createExternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  url: UrlHelper.developers,
+  visible: () => !!UrlHelper.developers,
+  url: UrlHelper.developers ?? "",
   target: "_blank",
 });
 
@@ -201,7 +203,8 @@ export const openFeedbackUrl = createExternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  url: UrlHelper.contact,
+  visible: () => !!UrlHelper.contact,
+  url: UrlHelper.contact ?? "",
   target: "_blank",
 });
 
@@ -211,7 +214,8 @@ export const openBugReportUrl = createExternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <BugIcon />,
-  url: UrlHelper.github,
+  visible: () => !!UrlHelper.bugReport,
+  url: UrlHelper.bugReport ?? "",
   target: "_blank",
 });
 
@@ -221,7 +225,8 @@ export const openChangelog = createExternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  url: UrlHelper.changelog,
+  visible: () => !!UrlHelper.changelog,
+  url: UrlHelper.changelog ?? "",
   target: "_blank",
 });
 
@@ -249,8 +254,8 @@ export const downloadApp = createExternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <BrowserIcon />,
-  visible: () => !Desktop.isElectron() && isMac && isCloudHosted,
-  url: "https://desktop.getoutline.com",
+  visible: () => !Desktop.isElectron() && isMac && !!env.DESKTOP_DOWNLOAD_URL,
+  url: env.DESKTOP_DOWNLOAD_URL ?? "",
   target: "_blank",
 });
 
