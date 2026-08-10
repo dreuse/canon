@@ -529,8 +529,8 @@ const style = (props: Props) => css`
 --font-size-p: var(--font-size-body);
 --font-size-h1: calc(var(--font-size-body) * 1.75);
 --font-size-h2: calc(var(--font-size-body) * 1.5);
---font-size-h3: calc(var(--font-size-body) * 1.125);
---font-size-h4: var(--font-size-body);
+--font-size-h3: calc(var(--font-size-body) * 1.25);
+--font-size-h4: calc(var(--font-size-body) * 0.75);
 --font-size-h5: calc(var(--font-size-body) * 0.9375);
 --font-size-h6: calc(var(--font-size-body) * 0.9375);
 
@@ -568,6 +568,13 @@ width: 100%;
   &[data-type="user"],
   &[data-type="group"] {
     gap: 0;
+  }
+
+  &[data-type="url"] {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Date mentions are plain text, so they inherit the surrounding font weight
@@ -627,7 +634,7 @@ width: 100%;
   h5,
   h6 {
     margin-top: 1em;
-    margin-bottom: 0.25em;
+    margin-bottom: 0.5em;
     line-height: inherit;
     font-weight: 600;
     cursor: text;
@@ -677,6 +684,24 @@ width: 100%;
   h4 { font-size: var(--font-size-h4); }
   h5 { font-size: var(--font-size-h5); }
   h6 { font-size: var(--font-size-h6); }
+
+  h4 {
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: ${props.theme.textTertiary};
+  }
+
+  & > h1,
+  & > h2,
+  & > h3,
+  & > h4 {
+    margin-top: 2em;
+  }
+
+  & > h2 {
+    border-top: 1px solid ${props.theme.divider};
+    padding-top: 1.25em;
+  }
 
   .${EditorStyleHelper.multiplayerSelection} {
     transition: background-color 500ms ease-in-out;
@@ -1048,7 +1073,7 @@ img.ProseMirror-separator {
     pointer-events: none;
   }
   .${EditorStyleHelper.imageCaption}:empty {
-    visibility: hidden;
+    display: none;
   }
 }
 
@@ -1370,25 +1395,31 @@ ${
 
 blockquote {
   margin: 0;
-  padding: 8px 10px 8px 1.5em;
+  padding: 2px 0 2px 14px;
   overflow: hidden;
   position: relative;
+  border-inline-start: 1px solid ${props.theme.quote};
+  font-size: 0.9375em;
+  line-height: 1.5;
+  color: ${props.theme.textSecondary};
 
-  &::before {
-    content: "";
-    display: inline-block;
-    width: 2px;
-    border-radius: 1px;
-    position: absolute;
-    margin-left: -1.5em;
-    top: 0;
-    bottom: 0;
-    background: ${props.theme.quote};
+  &:dir(rtl) {
+    padding: 2px 14px 2px 0;
   }
 
-  &:dir(rtl)::before {
-    margin-left: 0;
-    margin-right: -1.5em;
+  blockquote {
+    padding-inline-start: 16px;
+    border-inline-start: 0;
+    font-size: 1em;
+    color: ${props.theme.textTertiary};
+  }
+
+  p {
+    margin: 0 0 4px;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
   }
 }
 
@@ -1456,6 +1487,15 @@ p a {
 a {
   color: ${props.theme.link};
   cursor: pointer;
+}
+
+.ProseMirror[contenteditable="false"] .${EditorStyleHelper.bareLink} {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .ProseMirror-focused {
@@ -1574,6 +1614,10 @@ ul.checkbox_list {
     padding-right: 0;
   }
 
+  & > li + li {
+    margin-top: 0.75em;
+  }
+
   &:has(p:dir(rtl)) {
     margin-left: 0;
     margin-right: -24px;
@@ -1659,10 +1703,10 @@ ul.checkbox_list {
     pointer-events: ${
       props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
     };
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     position: relative;
-    top: 1px;
+    top: 2px;
     transition: transform 100ms ease-in-out;
     opacity: .8;
     margin: 0 0.5em 0 0;

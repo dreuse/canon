@@ -17,6 +17,8 @@ export class EditorStyleHelper {
   /** Class added to body when resizing images/media */
   static readonly resizeDragging = "resize-dragging";
 
+  static readonly bareLink = "bare-link";
+
   // Headings
 
   static readonly headingPositionAnchor = "heading-position-anchor";
