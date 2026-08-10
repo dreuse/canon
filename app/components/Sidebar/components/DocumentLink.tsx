@@ -31,7 +31,10 @@ import {
   useDropToReorderDocument,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
-import { useTruncatedNodes } from "../hooks/useTruncatedNodes";
+import {
+  SEE_ALL_THRESHOLD,
+  useTruncatedNodes,
+} from "../hooks/useTruncatedNodes";
 import { useIsDragActive, useSidebarScrollElement } from "./DragActiveContext";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
@@ -137,6 +140,8 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
     remaining: remainingChildren,
     showMore: showMoreChildren,
   } = useTruncatedNodes(nodeChildren, expanded);
+  const seeAllChildren =
+    !!collection && nodeChildren.length > SEE_ALL_THRESHOLD;
 
   // Flip mount state during render (not in an effect) so the first paint
   // already contains the row content when the placeholder is on screen,
@@ -193,13 +198,16 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
           <SidebarLink
             label={
               <Text type="tertiary" size="small">
-                {t(`{{ remaining }} more`, {
-                  remaining: remainingChildren,
-                  count: remainingChildren,
-                })}
+                {seeAllChildren
+                  ? t(`See all {{ total }}`, { total: nodeChildren.length })
+                  : t(`{{ remaining }} more`, {
+                      remaining: remainingChildren,
+                      count: remainingChildren,
+                    })}
               </Text>
             }
-            onClick={showMoreChildren}
+            to={seeAllChildren ? collection?.url : undefined}
+            onClick={seeAllChildren ? undefined : showMoreChildren}
             depth={props.depth + 1}
           />
         )}

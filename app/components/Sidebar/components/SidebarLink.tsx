@@ -59,6 +59,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   inlineDisclosure?: boolean;
   rank?: NavRank;
   count?: number;
+  trailing?: React.ReactNode;
   /** Whether to truncate the label text (default: true, causes overflow: hidden) */
   ellipsis?: boolean;
   /** Whether to automatically scroll this link into view if needed */
@@ -106,6 +107,7 @@ function SidebarLink(
     inlineDisclosure,
     rank,
     count,
+    trailing,
     className,
     expanded,
     onDisclosureClick,
@@ -218,6 +220,7 @@ function SidebarLink(
             </Label>
           </Tooltip>
           {count !== undefined && count > 0 && <Count>{count}</Count>}
+          {trailing}
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
@@ -426,6 +429,21 @@ const Link = styled(NavLink)<{
     css`
       pointer-events: none;
       opacity: 0.75;
+    `}
+
+  ${(props) =>
+    !props.$isDraft &&
+    css`
+      &[aria-current="page"]::after {
+        content: "";
+        position: absolute;
+        inset-block: 4px;
+        inset-inline-start: 8px;
+        width: 2px;
+        border-radius: 2px;
+        background: ${props.theme.accent};
+        pointer-events: none;
+      }
     `}
 
   ${(props) =>

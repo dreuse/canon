@@ -4,7 +4,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export const DEPTH_STEP = 16;
+export const DEPTH_STEP = 12;
 
 const Folder: React.FC<Props> = ({ expanded, children }: Props) => {
   if (!expanded) {

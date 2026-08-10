@@ -12,7 +12,10 @@ import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
-import { useTruncatedNodes } from "../hooks/useTruncatedNodes";
+import {
+  SEE_ALL_THRESHOLD,
+  useTruncatedNodes,
+} from "../hooks/useTruncatedNodes";
 import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
@@ -54,6 +57,8 @@ function CollectionLinkChildren({
     childDocuments,
     expanded
   );
+  const total = childDocuments?.length ?? 0;
+  const seeAll = total > SEE_ALL_THRESHOLD;
 
   const expansion = useSidebarExpansionState(
     childDocuments,
@@ -111,10 +116,13 @@ function CollectionLinkChildren({
             <SidebarLink
               label={
                 <Text type="tertiary" size="small">
-                  {t(`{{ remaining }} more`, { remaining, count: remaining })}
+                  {seeAll
+                    ? t(`See all {{ total }}`, { total })
+                    : t(`{{ remaining }} more`, { remaining, count: remaining })}
                 </Text>
               }
-              onClick={showMore}
+              to={seeAll ? collection.url : undefined}
+              onClick={seeAll ? undefined : showMore}
               depth={childDepth}
             />
           )}

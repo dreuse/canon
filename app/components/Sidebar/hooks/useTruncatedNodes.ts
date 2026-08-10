@@ -4,6 +4,8 @@ const DEFAULT_VISIBLE = 8;
 
 const STEP = 50;
 
+export const SEE_ALL_THRESHOLD = 20;
+
 export function useTruncatedNodes<T>(
   nodes: T[] | undefined,
   expanded: boolean,
