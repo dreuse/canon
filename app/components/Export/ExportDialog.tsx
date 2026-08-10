@@ -11,7 +11,7 @@ import Flex from "~/components/Flex";
 import { FileFormatSelector } from "~/components/Export/FileFormatSelector";
 import type { FileFormat } from "~/components/Export/FileFormatSelector";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
-import OutlineIcon from "~/components/Icons/OutlineIcon";
+import CanonIcon from "~/components/Icons/CanonIcon";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -107,7 +107,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
       title: "JSON",
       extension: ".json.zip",
       value: FileOperationFormat.JSON,
-      icon: <OutlineIcon />,
+      icon: <CanonIcon />,
     },
   ];
 

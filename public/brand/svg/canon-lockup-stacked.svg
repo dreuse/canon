@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220" width="300" height="220">
+  <path d="M0 0 H60 V42.00 L0 100 Z" fill="#2A2724"></path>
+  <path d="M80 0 H140 V42.00 L80 100 Z" fill="#2A2724"></path>
+  <text x="0" y="208" font-family="IBM Plex Sans, Helvetica, Arial, sans-serif" font-weight="500" font-size="86" letter-spacing="-3" fill="#2A2724">Canon</text>
+</svg>
