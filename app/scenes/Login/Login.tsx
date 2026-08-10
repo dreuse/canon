@@ -9,14 +9,14 @@ import { getCookie, setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
 import { Client, UserPreference } from "@shared/types";
 import { isPWA } from "@shared/utils/browser";
-import { parseDomain } from "@shared/utils/domains";
+import { parseDomain, getBaseDomain } from "@shared/utils/domains";
 import type { Config } from "~/stores/AuthStore";
 import { AvatarSize } from "~/components/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import OutlineIcon from "~/components/Icons/OutlineIcon";
+import CanonIcon from "~/components/Icons/CanonIcon";
 import Input from "~/components/Input";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
@@ -208,7 +208,8 @@ function Login({ children, onBack }: Props) {
           <Heading centered>{t("Almost there")}…</Heading>
           <Note>
             {t(
-              "Your custom domain is successfully pointing at Outline. To complete the setup process please contact support."
+              "Your custom domain is successfully pointing at {{ appName }}. To complete the setup process please contact support.",
+              { appName: env.APP_NAME }
             )}
           </Note>
         </Centered>
@@ -238,7 +239,7 @@ function Login({ children, onBack }: Props) {
               pattern="^[a-z\d-]+$"
               required
             >
-              <Domain>.getoutline.com</Domain>
+              <Domain>.{getBaseDomain()}</Domain>
             </Input>
           </Flex>
           <ButtonLarge type="submit" fullwidth>
@@ -333,14 +334,12 @@ function Login({ children, onBack }: Props) {
       <SwitchHostButton />
 
       <Centered gap={12}>
-        <PageTitle
-          title={config.name ? `${config.name} – ${t("Login")}` : t("Login")}
-        />
+        <PageTitle title={t("Login")} />
         <Logo>
           {config.logo && !isCreate ? (
             <TeamLogo size={AvatarSize.XXLarge} src={config.logo} />
           ) : (
-            <OutlineIcon size={AvatarSize.XXLarge} />
+            <CanonIcon size={markSize} cover />
           )}
         </Logo>
         {isCreate ? (
@@ -357,10 +356,9 @@ function Login({ children, onBack }: Props) {
         ) : (
           <>
             <StyledHeading as="h2" centered>
-              {t("Login to {{ authProviderName }}", {
-                authProviderName: config.name || env.APP_NAME,
-              })}
+              {t("Sign in to {{ appName }}", { appName: env.APP_NAME })}
             </StyledHeading>
+            <Content>{t("Your team's canonical record.")}</Content>
             {children?.(config)}
           </>
         )}
@@ -429,6 +427,8 @@ const Domain = styled.div`
 const CheckEmailIcon = styled(EmailIcon)`
   margin-bottom: -1.5em;
 `;
+
+const markSize = 70;
 
 const Logo = styled.div`
   margin-bottom: -4px;

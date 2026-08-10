@@ -40,9 +40,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
         data: {
           name: team.name,
           customTheme: team.getPreference(TeamPreference.CustomTheme),
-          logo: team.getPreference(TeamPreference.PublicBranding)
-            ? team.avatarUrl
-            : undefined,
+          logo: team.avatarUrl ?? undefined,
           providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
@@ -66,9 +64,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
         data: {
           name: team.name,
           customTheme: team.getPreference(TeamPreference.CustomTheme),
-          logo: team.getPreference(TeamPreference.PublicBranding)
-            ? team.avatarUrl
-            : undefined,
+          logo: team.avatarUrl ?? undefined,
           hostname: ctx.request.hostname,
           providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
@@ -93,9 +89,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
         data: {
           name: team.name,
           customTheme: team.getPreference(TeamPreference.CustomTheme),
-          logo: team.getPreference(TeamPreference.PublicBranding)
-            ? team.avatarUrl
-            : undefined,
+          logo: team.avatarUrl ?? undefined,
           hostname: ctx.request.hostname,
           providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { getBaseDomain } from "@shared/utils/domains";
 import ButtonLarge from "~/components/ButtonLarge";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
@@ -43,7 +44,7 @@ export function LoginDialog() {
           pattern: /^[a-z\d-]{1,63}$/,
         })}
       >
-        <Domain>.getoutline.com</Domain>
+        <Domain>.{getBaseDomain()}</Domain>
       </Input>
       <ButtonLarge type="submit" fullwidth>
         {t("Continue")}

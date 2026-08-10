@@ -3,15 +3,15 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Client } from "@shared/types";
-import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getRedirectUrl } from "~/utils/urls";
+import AuthButton from "./AuthButton";
 import { PasskeyAuthenticationProvider } from "./PasskeyAuthenticationProvider";
 
-type Props = React.ComponentProps<typeof ButtonLarge> & {
+type Props = React.ComponentProps<typeof AuthButton> & {
   id: string;
   name: string;
   authUrl: string;
@@ -91,14 +91,14 @@ function AuthenticationProvider(props: Props) {
                 required
                 short
               />
-              <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
+              <AuthButton type="submit" disabled={isSubmitting} {...rest}>
                 {t("Sign In")} →
-              </ButtonLarge>
+              </AuthButton>
             </>
           ) : (
-            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth {...rest}>
+            <AuthButton type="submit" icon={<EmailIcon />} fullwidth {...rest}>
               {t("Continue with Email")}
-            </ButtonLarge>
+            </AuthButton>
           )}
         </Form>
       </Wrapper>
@@ -106,7 +106,7 @@ function AuthenticationProvider(props: Props) {
   }
 
   return (
-    <ButtonLarge
+    <AuthButton
       onClick={() => (window.location.href = href)}
       icon={<PluginIcon id={id} />}
       fullwidth
@@ -115,7 +115,7 @@ function AuthenticationProvider(props: Props) {
       {t("Continue with {{ authProviderName }}", {
         authProviderName: name,
       })}
-    </ButtonLarge>
+    </AuthButton>
   );
 }
 

@@ -8,7 +8,7 @@ import { AvatarSize } from "~/components/Avatar";
 import Avatar, { AvatarVariant } from "~/components/Avatar/Avatar";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
-import OutlineIcon from "~/components/Icons/OutlineIcon";
+import CanonIcon from "~/components/Icons/CanonIcon";
 import env from "~/env";
 import type { Sessions } from "~/hooks/useLoggedInSessions";
 import { detectLanguage } from "~/utils/language";
@@ -32,7 +32,7 @@ export function TeamSwitcher({ sessions }: Props) {
     <Background>
       <ChangeLanguage locale={detectLanguage()} />
       <Centered>
-        <OutlineIcon size={AvatarSize.XXLarge} />
+        <CanonIcon size={AvatarSize.XXLarge} />
 
         <StyledHeading>{t("Choose a workspace")}</StyledHeading>
         <Text type="tertiary" as="p">

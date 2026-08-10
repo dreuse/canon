@@ -6,14 +6,14 @@ import styled from "styled-components";
 import { CSRF } from "@shared/constants";
 import { Client } from "@shared/types";
 import { errToString } from "@shared/utils/error";
-import ButtonLarge from "~/components/ButtonLarge";
 import PluginIcon from "~/components/PluginIcon";
 import useQuery from "~/hooks/useQuery";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getCSRFToken } from "~/utils/csrf";
+import AuthButton from "./AuthButton";
 
-type Props = React.ComponentProps<typeof ButtonLarge>;
+type Props = React.ComponentProps<typeof AuthButton>;
 
 /**
  * Flattens a nested object into form field entries using bracket notation
@@ -161,7 +161,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
             />
           ))}
         {(!autoStarting || hasError) && (
-          <ButtonLarge
+          <AuthButton
             type="submit"
             icon={<PluginIcon id="passkeys" color="currentColor" />}
             fullwidth
@@ -169,7 +169,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
             disabled={isAuthenticating}
           >
             {t("Continue with Passkey")}
-          </ButtonLarge>
+          </AuthButton>
         )}
       </Form>
     </Wrapper>
