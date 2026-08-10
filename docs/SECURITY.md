@@ -2,8 +2,16 @@
 
 ## Reporting a Vulnerability
 
-The Outline team takes security bugs seriously. We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
+If you discover a security vulnerability in Canon, please disclose it via
+[GitHub](https://github.com/dreuse/canon/security/advisories/new). You will get a
+response indicating the next steps in handling the report, and be kept informed of
+progress towards a fix.
 
-If you discover a security vulnerability in outline, please disclose it via [GitHub](https://github.com/outline/outline/security/advisories/new). The Outline maintainers will send a response indicating the next steps in handling your report. After the initial reply to your report you will be kept informed of the progress towards a fix and full announcement.
+Canon is a fork of [Outline](https://github.com/outline/outline). If the
+vulnerability is in code inherited from upstream and affects Outline too, please
+also report it to
+[the Outline project](https://github.com/outline/outline/security/advisories/new),
+since they cannot see reports filed here.
 
-Report security bugs in third-party dependencies to the person or team maintaining the module.
+Report security bugs in third-party dependencies to the person or team maintaining
+the module.
