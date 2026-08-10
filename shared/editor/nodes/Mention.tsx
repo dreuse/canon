@@ -35,6 +35,14 @@ import mentionRule from "../rules/mention";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 
+const MARKDOWN_DESTINATION_UNSAFE_REGEX = /[()<>\s]/g;
+
+const MARKDOWN_LABEL_UNSAFE_REGEX = /[[\]\\]/g;
+
+function percentEncode(character: string) {
+  return `%${character.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`;
+}
+
 /**
  * Formats a date mention's stored value (a date-only or time-specific ISO
  * string) into a human-readable label for display and serialization.
@@ -366,6 +374,11 @@ export default class Mention extends Node {
     const label =
       mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
     const id = node.attrs.id;
+    const sanitizedHref = sanitizeUrl(node.attrs.href);
+    const safeHref = sanitizedHref?.replace(
+      MARKDOWN_DESTINATION_UNSAFE_REGEX,
+      percentEncode
+    );
 
     // Use regular links for document and collection mentions
     if (mType === MentionType.Document) {
@@ -376,8 +389,12 @@ export default class Mention extends Node {
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
-    } else if (mType === MentionType.URL && node.attrs.href) {
-      state.write(`[${label}](${node.attrs.href})`);
+    } else if (mType === MentionType.URL && safeHref) {
+      const safeLabel = String(label).replace(
+        MARKDOWN_LABEL_UNSAFE_REGEX,
+        "\\$&"
+      );
+      state.write(`[${safeLabel}](${safeHref})`);
     } else {
       // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
       state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
