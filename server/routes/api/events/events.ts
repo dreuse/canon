@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { intersection } from "es-toolkit/compat";
-import type { WhereOptions } from "sequelize";
+import type { Includeable, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
@@ -58,10 +58,7 @@ router.post(
       where = { ...where, actorId };
     }
 
-    // Non-admins must specify either documentId or collectionId to use the read policy
-    if (!user.isAdmin && !documentId && !collectionId) {
-      authorize(user, "listAllEvents", user.team);
-    }
+    const hasExplicitScope = !!documentId || !!collectionId;
 
     if (documentId) {
       const document = await Document.findByPk(documentId, {
@@ -79,6 +76,32 @@ router.post(
       where = { ...where, collectionId };
     }
 
+    const documentInclude: Includeable[] = [];
+
+    if (!hasExplicitScope) {
+      const isVisibleDocument: WhereOptions<Event> = {
+        "$document.publishedAt$": { [Op.ne]: null },
+      };
+
+      if (!user.isAdmin) {
+        isVisibleDocument["$document.collectionId$"] =
+          await user.collectionIds();
+      }
+
+      documentInclude.push({
+        model: Document.unscoped(),
+        as: "document",
+        required: false,
+        paranoid: false,
+        attributes: [],
+      });
+
+      where = {
+        ...where,
+        [Op.or]: [{ documentId: null }, isVisibleDocument],
+      };
+    }
+
     const loadedEvents = await Event.findAll({
       where,
       order: [[sort, direction]],
@@ -88,9 +111,11 @@ router.post(
           as: "actor",
           paranoid: false,
         },
+        ...documentInclude,
       ],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
+      subQuery: false,
     });
 
     ctx.body = {

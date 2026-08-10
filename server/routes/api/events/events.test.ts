@@ -398,7 +398,7 @@ describe("#events.list", () => {
     expect(privateDraft.publishedAt).toBeNull();
 
     // Event for the private draft (using an ACTIVITY event)
-    await buildEvent({
+    const draftEvent = await buildEvent({
       name: "documents.delete",
       documentId: privateDraft.id,
       collectionId: null,
@@ -406,11 +406,13 @@ describe("#events.list", () => {
       actorId: user1.id,
     });
 
-    // user2 tries to list events without specifying documentId/collectionId
     const res = await server.post("/api/events.list", user2);
+    const body = await res.json();
 
-    // Non-admins cannot list events without documentId or collectionId
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(200);
+    expect(body.data.map((event: { id: string }) => event.id)).not.toContain(
+      draftEvent.id
+    );
 
     // Also verify user2 cannot see the draft when filtering by documentId
     const res2 = await server.post("/api/events.list", user2, {
@@ -421,7 +423,7 @@ describe("#events.list", () => {
     expect(res2.status).toEqual(403);
   });
 
-  it("should return events without collection for admins", async () => {
+  it("should not return events for unpublished documents to admins", async () => {
     const user = await buildUser();
     const admin = await buildAdmin({ teamId: user.teamId });
 
@@ -447,10 +449,165 @@ describe("#events.list", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.data.map((event: { id: string }) => event.id)).not.toContain(
+      draftEvent.id
+    );
+  });
 
-    // admin SHOULD see events for documents without a collection
-    const eventIds = body.data.map((e: { id: string }) => e.id);
-    expect(eventIds).toContain(draftEvent.id);
+  it("should return events that have no document", async () => {
+    const admin = await buildAdmin();
+    const member = await buildUser({ teamId: admin.teamId });
+
+    const event = await buildEvent({
+      name: "users.demote",
+      teamId: admin.teamId,
+      actorId: admin.id,
+      userId: member.id,
+    });
+
+    const res = await server.post("/api/events.list", admin);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.map((item: { id: string }) => item.id)).toContain(
+      event.id
+    );
+  });
+
+  it("should return events for deleted documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    const event = await buildEvent({
+      name: "documents.delete",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    await document.destroy();
+
+    const res = await server.post("/api/events.list", user);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.map((item: { id: string }) => item.id)).toContain(
+      event.id
+    );
+  });
+
+  it("should return an empty list for a user with no collections", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const privateCollection = await buildCollection({
+      userId: other.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+    const privateDocument = await buildDocument({
+      userId: other.id,
+      collectionId: privateCollection.id,
+      teamId: user.teamId,
+    });
+    await buildEvent({
+      name: "revisions.create",
+      documentId: privateDocument.id,
+      collectionId: null,
+      teamId: user.teamId,
+      actorId: other.id,
+    });
+
+    const res = await server.post("/api/events.list", user);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual([]);
+  });
+
+  it("should scope events to the collections a non-admin can access", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+
+    const readableCollection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const readableDocument = await buildDocument({
+      userId: user.id,
+      collectionId: readableCollection.id,
+      teamId: user.teamId,
+    });
+    const readableEvent = await buildEvent({
+      name: "revisions.create",
+      documentId: readableDocument.id,
+      collectionId: null,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    const privateCollection = await buildCollection({
+      userId: other.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+    const privateDocument = await buildDocument({
+      userId: other.id,
+      collectionId: privateCollection.id,
+      teamId: user.teamId,
+    });
+    const privateEvent = await buildEvent({
+      name: "revisions.create",
+      documentId: privateDocument.id,
+      collectionId: null,
+      teamId: user.teamId,
+      actorId: other.id,
+    });
+
+    const res = await server.post("/api/events.list", user);
+    const body = await res.json();
+    const eventIds = body.data.map((event: { id: string }) => event.id);
+
+    expect(res.status).toEqual(200);
+    expect(eventIds).toContain(readableEvent.id);
+    expect(eventIds).not.toContain(privateEvent.id);
+  });
+
+  it("should return events across the workspace for admins", async () => {
+    const admin = await buildAdmin();
+    const other = await buildUser({ teamId: admin.teamId });
+
+    const privateCollection = await buildCollection({
+      userId: other.id,
+      teamId: admin.teamId,
+      permission: null,
+    });
+    const privateDocument = await buildDocument({
+      userId: other.id,
+      collectionId: privateCollection.id,
+      teamId: admin.teamId,
+    });
+    const privateEvent = await buildEvent({
+      name: "revisions.create",
+      documentId: privateDocument.id,
+      collectionId: null,
+      teamId: admin.teamId,
+      actorId: other.id,
+    });
+
+    const res = await server.post("/api/events.list", admin);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.map((event: { id: string }) => event.id)).toContain(
+      privateEvent.id
+    );
   });
 
   it("should allow non-admins to list events when collectionId is specified", async () => {
