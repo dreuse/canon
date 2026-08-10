@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="./public/logos/canon-lockup-light.png" height="29" alt="Canon" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./public/logos/canon-lockup-dark.png" height="29">
+    <source media="(prefers-color-scheme: light)" srcset="./public/logos/canon-lockup-light.png" height="29">
+    <img src="./public/logos/canon-lockup-light.png" height="29" alt="Canon" />
+  </picture>
 </p>
 <p align="center">
   <i>A fast, collaborative knowledge base for your team, built with React and Node.js.</i>
@@ -39,10 +43,12 @@ disagree, ours win, except for bug fixes and security fixes, which we always tak
 - Document freshness tracking, so a document can be marked verified and flagged
   when it goes stale.
 - Bare URLs in document text render as real links.
-- Built for a single self-hosted workspace. Multi-tenant and hosted-service
-  plumbing is removed rather than left switched off.
-- Telemetry and outbound help links are strictly opt-in: unset means off, and
-  nothing phones home by default.
+- Built and run as a single self-hosted workspace. Upstream's hosted-service
+  paths (subdomain routing, workspace creation) stay in the code but are
+  permanently inactive, since they key off Outline's own cloud URLs.
+- Nothing phones home. The usage-statistics reporter is removed outright rather
+  than left behind a flag, and every outbound help link is an opt-in environment
+  variable with no default.
 
 ## Installation
 
