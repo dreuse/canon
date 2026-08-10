@@ -382,15 +382,6 @@ export class Environment {
     environment.PROXY_HEADERS_TRUSTED ?? "true"
   );
 
-  /**
-   * Should the installation send anonymized statistics to the maintainers.
-   * Defaults to true.
-   */
-  @IsBoolean()
-  public TELEMETRY = this.toBoolean(
-    environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "true"
-  );
-
   // Third-party services
 
   /**
@@ -905,9 +896,6 @@ export class Environment {
   public DESKTOP_DOWNLOAD_URL = this.toOptionalString(
     environment.DESKTOP_DOWNLOAD_URL
   );
-
-  @IsOptional()
-  public UPDATES_URL = this.toOptionalString(environment.UPDATES_URL);
 
   /**
    * Gravity constant for time decay in popularity scoring. Higher values cause
