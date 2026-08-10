@@ -9,6 +9,7 @@ type Props = {
   /** Unique header id – if passed the header will become toggleable */
   id?: string;
   title: React.ReactNode;
+  actions?: React.ReactNode;
   children?: React.ReactNode;
 };
 
@@ -19,7 +20,12 @@ export function getHeaderExpandedKey(id: string) {
 /**
  * Toggleable sidebar header
  */
-export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
+export const Header: React.FC<Props> = ({
+  id,
+  title,
+  actions,
+  children,
+}: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
@@ -38,11 +44,12 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
 
   return (
     <>
-      <H3>
+      <H3 $expanded={expanded}>
         <Button onClick={handleClick} disabled={!id}>
           {title}
           {id && <Disclosure $expanded={expanded} size={16} />}
         </Button>
+        {actions && <Actions>{actions}</Actions>}
       </H3>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
     </>
@@ -106,8 +113,31 @@ const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
   }
 `;
 
-const H3 = styled.h3`
+const Actions = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline-end: 12px;
+  color: ${s("text")};
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    opacity: 0.6;
+  }
+
+  &:hover svg {
+    opacity: 0.9;
+  }
+`;
+
+const H3 = styled.h3<{ $expanded?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: 0;
+  margin-bottom: ${(props) => (props.$expanded ? 0 : "-6px")};
 
   &:hover,
   &:focus-within {

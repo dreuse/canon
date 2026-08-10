@@ -201,6 +201,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         document={document}
         to={{ pathname: document.path, state: { sidebarContext } }}
         depth={0}
+        inlineDisclosure
         icon={icon}
         canEdit={can.update}
         labelText={document.titleWithDefault}
@@ -481,7 +482,7 @@ function StarredLink({ star }: Props) {
           handlePrefetch={handlePrefetch}
           onExpand={handleExpand}
           onCollapse={handleCollapse}
-          icon={icon}
+          icon={document.icon ? icon : undefined}
           menuOpen={menuOpen}
           handleMenuOpen={handleMenuOpen}
           handleMenuClose={handleMenuClose}

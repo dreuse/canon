@@ -17,6 +17,7 @@ import {
   InternetIcon,
   SmileyIcon,
   BrowserIcon,
+  PaletteIcon,
 } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,16 +32,16 @@ import usePolicy from "./usePolicy";
 import useStores from "./useStores";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
+const Appearance = lazy(() => import("~/scenes/Settings/Appearance"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
-const Groups = lazy(() => import("~/scenes/Settings/Groups"));
+const Members = lazy(() => import("~/scenes/Settings/Members"));
 const Import = lazy(() => import("~/scenes/Settings/Import"));
 const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
-const Users = lazy(() => import("~/scenes/Settings/Users"));
 const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
 const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
 const Profile = lazy(() => import("~/scenes/Settings/Profile"));
@@ -64,6 +65,7 @@ export type ConfigItem = {
   enabled: boolean;
   group: string;
   pluginId?: string;
+  nav?: boolean;
 };
 
 const useSettingsConfig = () => {
@@ -85,6 +87,7 @@ const useSettingsConfig = () => {
         path: settingsPath(),
         component: Profile.Component,
         preload: Profile.preload,
+        description: t("Your name, photo and language."),
         enabled: true,
         group: t("Account"),
         icon: ProfileIcon,
@@ -94,6 +97,7 @@ const useSettingsConfig = () => {
         path: settingsPath("preferences"),
         component: Preferences.Component,
         preload: Preferences.preload,
+        description: t("How the editor and the interface behave for you."),
         enabled: true,
         group: t("Account"),
         icon: SettingsIcon,
@@ -103,28 +107,65 @@ const useSettingsConfig = () => {
         path: settingsPath("notifications"),
         component: Notifications.Component,
         preload: Notifications.preload,
+        description: t("Which emails you receive, and when."),
         enabled: true,
         group: t("Account"),
         icon: EmailIcon,
       },
       {
-        name: t("API & Access"),
+        name: t("Access & keys"),
         path: settingsPath("api-and-access"),
         component: APIAndAccess.Component,
         preload: APIAndAccess.preload,
+        description: t(
+          "Personal API keys, passkeys, and the apps connected to your account."
+        ),
         enabled: true,
         group: t("Account"),
         icon: PadlockIcon,
       },
+      {
+        name: t("API Keys"),
+        path: settingsPath("api-keys"),
+        component: ApiKeys.Component,
+        preload: ApiKeys.preload,
+        enabled: can.listApiKeys,
+        group: t("Account"),
+        icon: CodeIcon,
+        nav: false,
+      },
       // Workspace
       {
-        name: t("Details"),
+        name: t("General"),
         path: settingsPath("details"),
         component: Details.Component,
         preload: Details.preload,
+        description: t("Name, logo and defaults for the workspace."),
         enabled: can.update,
         group: t("Workspace"),
         icon: TeamIcon,
+      },
+      {
+        name: t("Appearance"),
+        path: settingsPath("appearance"),
+        component: Appearance.Component,
+        preload: Appearance.preload,
+        description: t("Theme, accent colour, fonts, text size and code."),
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: PaletteIcon,
+      },
+      {
+        name: t("Security"),
+        path: settingsPath("security"),
+        component: Security.Component,
+        preload: Security.preload,
+        description: t(
+          "Sign-in methods, authentication, invites, sharing and AI."
+        ),
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: ShieldIcon,
       },
       {
         name: t("Authentication"),
@@ -134,15 +175,7 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: PadlockIcon,
-      },
-      {
-        name: t("Security"),
-        path: settingsPath("security"),
-        component: Security.Component,
-        preload: Security.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: ShieldIcon,
+        nav: false,
       },
       {
         name: t("AI"),
@@ -152,12 +185,14 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: SparklesIcon,
+        nav: false,
       },
       {
-        name: t("Users"),
+        name: t("Members"),
         path: settingsPath("users"),
-        component: Users.Component,
-        preload: Users.preload,
+        component: Members.Component,
+        preload: Members.preload,
+        description: t("People and groups in the workspace, and their roles."),
         enabled: can.listUsers,
         group: t("Workspace"),
         icon: UserIcon,
@@ -165,17 +200,19 @@ const useSettingsConfig = () => {
       {
         name: t("Groups"),
         path: settingsPath("groups"),
-        component: Groups.Component,
-        preload: Groups.preload,
+        component: Members.Component,
+        preload: Members.preload,
         enabled: can.listGroups,
         group: t("Workspace"),
         icon: GroupIcon,
+        nav: false,
       },
       {
         name: t("Templates"),
         path: settingsPath("templates"),
         component: Templates.Component,
         preload: Templates.preload,
+        description: t("Starting points for new documents."),
         enabled: can.readTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
@@ -185,45 +222,20 @@ const useSettingsConfig = () => {
         path: settingsPath("emojis"),
         component: CustomEmojis.Component,
         preload: CustomEmojis.preload,
+        description: t("Custom emoji for this workspace."),
         enabled: can.update,
         group: t("Workspace"),
         icon: SmileyIcon,
       },
       {
-        name: t("API Keys"),
-        path: settingsPath("api-keys"),
-        component: ApiKeys.Component,
-        preload: ApiKeys.preload,
-        enabled: can.listApiKeys,
-        group: t("Workspace"),
-        icon: CodeIcon,
-      },
-      {
-        name: t("Applications"),
-        path: settingsPath("applications"),
-        component: Applications.Component,
-        preload: Applications.preload,
-        enabled: can.listOAuthClients,
-        group: t("Workspace"),
-        icon: InternetIcon,
-      },
-      {
-        name: t("Shared Links"),
+        name: t("Shared links"),
         path: settingsPath("shares"),
         component: Shares.Component,
         preload: Shares.preload,
+        description: t("Documents published outside the workspace."),
         enabled: can.listShares,
         group: t("Workspace"),
         icon: GlobeIcon,
-      },
-      {
-        name: t("Import"),
-        path: settingsPath("import"),
-        component: Import.Component,
-        preload: Import.preload,
-        enabled: can.createImport,
-        group: t("Workspace"),
-        icon: ImportIcon,
       },
       {
         name: t("Export"),
@@ -233,8 +245,33 @@ const useSettingsConfig = () => {
         enabled: can.createExport,
         group: t("Workspace"),
         icon: ExportIcon,
+        nav: false,
       },
-      // Integrations
+      // Connections
+      {
+        name: t("Integrations"),
+        path: settingsPath("integrations"),
+        component: Integrations.Component,
+        preload: Integrations.preload,
+        description: t(
+          "Embeds, webhooks, applications and third-party services."
+        ),
+        enabled: can.update,
+        group: t("Connections"),
+        icon: PlusIcon,
+      },
+      {
+        name: t("Import & export"),
+        path: settingsPath("import"),
+        component: Import.Component,
+        preload: Import.preload,
+        description: t(
+          "Move documents in from another tool, or take a copy out."
+        ),
+        enabled: can.createImport,
+        group: t("Connections"),
+        icon: ImportIcon,
+      },
       {
         name: t("Embeds"),
         path: integrationSettingsPath("embeds"),
@@ -244,33 +281,38 @@ const useSettingsConfig = () => {
           "Configure which embed providers are available in the editor."
         ),
         enabled: can.update,
-        group: t("Integrations"),
+        group: t("Connections"),
         icon: BrowserIcon,
+        nav: false,
       },
       {
-        name: `${t("Install")}…`,
-        path: settingsPath("integrations"),
-        component: Integrations.Component,
-        preload: Integrations.preload,
-        enabled: can.update,
-        group: t("Integrations"),
-        icon: PlusIcon,
+        name: t("Applications"),
+        path: settingsPath("applications"),
+        component: Applications.Component,
+        preload: Applications.preload,
+        description: t("OAuth applications built against this workspace."),
+        enabled: can.listOAuthClients,
+        group: t("Connections"),
+        icon: InternetIcon,
+        nav: false,
       },
     ];
 
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
-      const group = plugin.value.group ?? "Integrations";
+      const declared = plugin.value.group ?? "Connections";
+      const group = declared === "Integrations" ? "Connections" : declared;
       const insertIndex = plugin.value.after
         ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
         : items.findIndex((i) => i.group === t(group));
       items.splice(insertIndex, 0, {
         name: t(plugin.name),
         path:
-          group === "Integrations"
+          group === "Connections"
             ? integrationSettingsPath(plugin.id)
             : settingsPath(plugin.id),
         group: t(group),
+        nav: false,
         pluginId: plugin.id,
         description: plugin.value.description,
         component: plugin.value.component.Component,

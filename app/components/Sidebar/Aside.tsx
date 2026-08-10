@@ -17,9 +17,16 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   border?: boolean;
   /** When true, skip the entrance animation and render at full width immediately. */
   skipInitialAnimation?: boolean;
+  width?: number;
 }
 
-function Aside({ children, border, className, skipInitialAnimation }: Props) {
+function Aside({
+  children,
+  border,
+  className,
+  skipInitialAnimation,
+  width,
+}: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const positionRef = React.useRef<HTMLDivElement>(null);
@@ -88,6 +95,11 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
         duration: sidebarAppearDuration / 1000,
       };
 
+  const flowWidth =
+    width !== undefined
+      ? width + (windowScrollbarWidth ?? 0)
+      : ui.sidebarRightWidth;
+
   const animationProps = {
     initial: skipInitialAnimation
       ? false
@@ -97,7 +109,7 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
         },
     animate: {
       transition,
-      width: ui.sidebarRightWidth,
+      width: flowWidth,
       opacity: 1,
     },
     exit: {
@@ -112,7 +124,7 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
     initial: false,
     animate: {
       transition,
-      width: ui.sidebarRightWidth - (windowScrollbarWidth ?? 0),
+      width: flowWidth - (windowScrollbarWidth ?? 0),
     },
   };
 
@@ -126,11 +138,13 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
     >
       <Position ref={positionRef} {...positionAnimationProps}>
         <ErrorBoundary>{children}</ErrorBoundary>
-        <ResizeBorder
-          onMouseDown={startResize}
-          onDoubleClick={handleReset}
-          dir="right"
-        />
+        {width === undefined && (
+          <ResizeBorder
+            onMouseDown={startResize}
+            onDoubleClick={handleReset}
+            dir="right"
+          />
+        )}
       </Position>
     </Sidebar>
   );

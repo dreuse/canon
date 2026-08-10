@@ -7,47 +7,34 @@ import {
 } from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
 import InputSearchPage from "~/components/InputSearchPage";
 import Scrollable from "~/components/Scrollable";
-import { createCollection } from "~/actions/definitions/collections";
 import { navigateToImport } from "~/actions/definitions/navigation";
-import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import TeamMenu from "~/menus/TeamMenu";
-import * as Scenes from "~/routes/scenes";
-import { homePath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
-import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
-import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
 import RecentDocuments from "./components/RecentDocuments";
 import Section from "./components/Section";
-import SidebarAction from "./components/SidebarAction";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
-import SidebarLink from "./components/SidebarLink";
+import SidebarNav from "./components/SidebarNav";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
-import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
-import { VoHomeIcon } from "~/components/Icons/VobysIcons";
 
 function AppSidebar() {
   const { t } = useTranslation();
   const { documents, ui, collections } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
-  const can = usePolicy(team);
   const isMobile = useMobile();
 
   useEffect(() => {
@@ -73,34 +60,32 @@ function AppSidebar() {
       <DragActiveProvider>
         <DragPlaceholder />
 
-        <TeamMenu>
-          <SidebarButton
-            title={team.name}
-            image={<TeamLogo model={team} size={24} alt={t("Logo")} />}
-          >
-            {isMobile ? null : (
-              <Tooltip
-                content={t("Toggle sidebar")}
-                shortcut={`${metaDisplay}+.`}
-              >
-                <ToggleButton
-                  position="bottom"
-                  image={<SidebarIcon size={16} />}
-                  aria-label={
-                    ui.sidebarCollapsed
-                      ? t("Expand sidebar")
-                      : t("Collapse sidebar")
-                  }
-                  style={{ paddingInline: 4 }}
-                  onClick={() => {
-                    ui.toggleCollapsedSidebar();
-                    (document.activeElement as HTMLElement)?.blur();
-                  }}
-                />
-              </Tooltip>
-            )}
-          </SidebarButton>
-        </TeamMenu>
+        <SidebarButton
+          title={team.name}
+          image={<TeamLogo model={team} size={24} alt={t("Logo")} />}
+        >
+          {isMobile ? null : (
+            <Tooltip
+              content={t("Toggle sidebar")}
+              shortcut={`${metaDisplay}+.`}
+            >
+              <ToggleButton
+                position="bottom"
+                image={<SidebarIcon size={16} />}
+                aria-label={
+                  ui.sidebarCollapsed
+                    ? t("Expand sidebar")
+                    : t("Collapse sidebar")
+                }
+                style={{ paddingInline: 4 }}
+                onClick={() => {
+                  ui.toggleCollapsedSidebar();
+                  (document.activeElement as HTMLElement)?.blur();
+                }}
+              />
+            </Tooltip>
+          )}
+        </SidebarButton>
         <Overflow>
           <SearchField>
             <InputSearchPage
@@ -110,16 +95,7 @@ function AppSidebar() {
               placeholder={`${t("Search docs")}…`}
             />
           </SearchField>
-          <Section>
-            <SidebarLink
-              to={homePath()}
-              icon={<VoHomeIcon />}
-              exact={false}
-              label={t("Home")}
-              onClickIntent={Scenes.Home.preload}
-            />
-            {can.createDocument && <DraftsLink />}
-          </Section>
+          <SidebarNav />
         </Overflow>
         <Scrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
@@ -135,29 +111,14 @@ function AppSidebar() {
             <Section>
               <Collections />
             </Section>
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
-              </Section>
-            )}
-            <Section>
-              {can.createDocument && <TrashLink />}
+            <Section auto>
               <DismissableSidebarAction
                 id="sidebar-import-hidden"
                 action={navigateToImport}
               />
-              <DismissableSidebarAction
-                id="sidebar-invite-hidden"
-                action={inviteUser}
-              />
             </Section>
           </SidebarScrollProvider>
         </Scrollable>
-        {can.createCollection && (
-          <Footer>
-            <SidebarAction action={createCollection} depth={0} />
-          </Footer>
-        )}
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>
@@ -171,12 +132,6 @@ const Overflow = styled.div`
 
 const SearchField = styled.div`
   padding: 0 12px 8px;
-`;
-
-const Footer = styled.div`
-  flex-shrink: 0;
-  padding-top: 4px;
-  border-top: 1px solid ${s("divider")};
 `;
 
 export default observer(AppSidebar);

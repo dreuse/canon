@@ -6,6 +6,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 import { ellipsis, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
@@ -54,6 +55,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   isDraft?: boolean;
   /** Nesting depth level for indentation (0-based) */
   depth?: number;
+  /** Keep the disclosure inline and indented as if an icon were present */
+  inlineDisclosure?: boolean;
   rank?: NavRank;
   count?: number;
   /** Whether to truncate the label text (default: true, causes overflow: hidden) */
@@ -100,6 +103,7 @@ function SidebarLink(
     exact,
     href,
     depth,
+    inlineDisclosure,
     rank,
     count,
     className,
@@ -114,16 +118,20 @@ function SidebarLink(
   ref: React.RefObject<HTMLAnchorElement>
 ) {
   const hasDisclosure = expanded !== undefined;
+  const isIndented = !!icon || !!inlineDisclosure;
+  const labelRef = React.useRef<HTMLDivElement>(null);
+  const [truncatedLabel, setTruncatedLabel] = React.useState<string>();
   const { t } = useTranslation();
   const theme = useTheme();
-  const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
+  const { handleMouseEnter: handleClickIntent, handleMouseLeave } =
+    useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingInlineStart: `${(depth || 0) * DEPTH_STEP + (icon ? 16 : 12)}px`,
+      paddingInlineStart: `${(depth || 0) * DEPTH_STEP + (isIndented ? 16 : 12)}px`,
       paddingInlineEnd: unreadBadge ? "32px" : undefined,
       fontWeight: rank ? rankWeight[rank] : DEFAULT_WEIGHT,
     }),
-    [depth, icon, unreadBadge, rank]
+    [depth, isIndented, unreadBadge, rank]
   );
 
   const unreadStyle = React.useMemo(
@@ -141,6 +149,32 @@ function SidebarLink(
     }),
     [theme.text, style, rank]
   );
+
+  const measureLabel = React.useCallback(() => {
+    const element = labelRef.current;
+    if (!element || !ellipsis) {
+      return;
+    }
+    // Some rows pass a label that truncates on a nested element, so the
+    // wrapper alone does not report the overflow.
+    const isTruncated = [
+      element,
+      ...element.querySelectorAll<HTMLElement>("*"),
+    ].some((node) => node.scrollWidth > node.clientWidth);
+
+    setTruncatedLabel(
+      isTruncated ? (element.textContent ?? undefined) : undefined
+    );
+  }, [ellipsis]);
+
+  React.useLayoutEffect(() => {
+    measureLabel();
+  }, [measureLabel]);
+
+  const handleMouseEnter = React.useCallback(() => {
+    measureLabel();
+    handleClickIntent();
+  }, [measureLabel, handleClickIntent]);
 
   const handleClick = React.useCallback(
     (ev: React.MouseEvent<HTMLAnchorElement>) => {
@@ -163,7 +197,7 @@ function SidebarLink(
     [onDisclosureClick, hasDisclosure]
   );
 
-  const DisclosureComponent = icon ? InlineDisclosure : Disclosure;
+  const DisclosureComponent = isIndented ? InlineDisclosure : Disclosure;
 
   const innerContent = (
     <>
@@ -178,7 +212,11 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
-          <Label $ellipsis={ellipsis}>{label}</Label>
+          <Tooltip content={truncatedLabel} placement="right" delay={500}>
+            <Label ref={labelRef} $ellipsis={ellipsis}>
+              {label}
+            </Label>
+          </Tooltip>
           {count !== undefined && count > 0 && <Count>{count}</Count>}
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
@@ -240,6 +278,7 @@ export const IconWrapper = styled.span`
   align-items: center;
   justify-content: center;
   margin-inline-end: 6px;
+  width: 24px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;

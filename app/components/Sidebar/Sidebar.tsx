@@ -17,8 +17,6 @@ import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
-import NotificationIcon from "../Notifications/NotificationIcon";
-import NotificationsPopover from "../Notifications/NotificationsPopover";
 import { TooltipProvider } from "../TooltipContext";
 import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
@@ -37,10 +35,18 @@ type Props = {
   className?: string;
   /** Content to render inside the sidebar. */
   children: React.ReactNode;
+  /** Buttons to render alongside the account row at the foot of the sidebar. */
+  accountActions?: React.ReactNode;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
-  { children, hidden = false, canCollapse = true, className }: Props,
+  {
+    children,
+    accountActions,
+    hidden = false,
+    canCollapse = true,
+    className,
+  }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
@@ -294,14 +300,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                 />
               }
             >
-              <NotificationsPopover>
-                <SidebarButton
-                  position="bottom"
-                  image={<NotificationIcon />}
-                  aria-label={t("Notifications")}
-                  style={{ paddingInline: 4 }}
-                />
-              </NotificationsPopover>
+              {accountActions}
             </SidebarButton>
           </AccountMenu>
         )}

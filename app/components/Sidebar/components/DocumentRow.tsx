@@ -32,6 +32,8 @@ export type DocumentRowProps = {
 
   /** Indentation depth of the row. */
   depth: number;
+  /** Keep the disclosure inline and indented when the row has no icon. */
+  inlineDisclosure?: boolean;
   /** Applies draft styling around the row. */
   isDraft?: boolean;
   /** Scroll this row into view when it becomes the active route. */
@@ -118,6 +120,7 @@ function DocumentRow({
   document,
   to,
   depth,
+  inlineDisclosure,
   isDraft,
   scrollIntoViewIfNeeded,
   icon,
@@ -255,6 +258,7 @@ function DocumentRow({
       // @ts-expect-error react-router type is wrong, string component is fine.
       component={isEditing ? "div" : undefined}
       depth={depth}
+      inlineDisclosure={inlineDisclosure}
       rank={hasChildren ? "section" : "document"}
       to={to}
       expanded={hasChildren && !isDragging ? expanded : undefined}

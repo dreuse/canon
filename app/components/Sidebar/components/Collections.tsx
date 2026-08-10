@@ -1,5 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import { useEffect, useMemo, useRef } from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -7,7 +8,12 @@ import styled from "styled-components";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
+import NudeButton from "~/components/NudeButton";
 import PaginatedList from "~/components/PaginatedList";
+import Tooltip from "~/components/Tooltip";
+import { createCollection } from "~/actions/definitions/collections";
+import { actionToMenuItem } from "~/actions";
+import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
@@ -25,6 +31,13 @@ function Collections() {
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
   const orderedCollections = collections.allActive;
+  const context = useActionContext({
+    isMenu: false,
+    isCommandBar: false,
+    activeCollectionId: undefined,
+    activeDocumentId: undefined,
+  });
+  const createMenuItem = actionToMenuItem(createCollection, context);
 
   const params = useMemo(
     () => ({
@@ -71,7 +84,22 @@ function Collections() {
   return (
     <SidebarContext.Provider value="collections">
       <Flex column>
-        <Header id="collections" title={t("Collections")}>
+        <Header
+          id="collections"
+          title={t("Collections")}
+          actions={
+            createMenuItem.type === "button" && createMenuItem.visible ? (
+              <Tooltip content={t("New collection")} delay={500}>
+                <NudeButton
+                  aria-label={t("New collection")}
+                  onClick={createMenuItem.onClick}
+                >
+                  <PlusIcon />
+                </NudeButton>
+              </Tooltip>
+            ) : undefined
+          }
+        >
           <Relative>
             <PaginatedList<Collection>
               options={params}
