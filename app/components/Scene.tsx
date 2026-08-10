@@ -4,6 +4,12 @@ import CenteredContent from "~/components/CenteredContent";
 import Header from "~/components/Header";
 import PageTitle from "~/components/PageTitle";
 
+export const SceneMeasure = {
+  prose: undefined,
+  index: "72em",
+  full: "100vw",
+};
+
 type Props = {
   /** An icon to display in the header when content has scrolled past the title */
   icon?: React.ReactNode;
@@ -17,8 +23,7 @@ type Props = {
   actions?: React.ReactNode;
   /** Whether to center the content horizontally with the standard maximum width (default: true) */
   centered?: boolean;
-  /** Whether to use the full width of the screen (default: false) */
-  wide?: boolean;
+  measure?: keyof typeof SceneMeasure;
   /** The content of the scene */
   children?: React.ReactNode;
 };
@@ -31,7 +36,7 @@ const Scene: React.FC<Props> = ({
   left,
   children,
   centered,
-  wide,
+  measure = "prose",
 }: Props) => (
   <FillWidth>
     <PageTitle title={textTitle ?? (typeof title === "string" ? title : "")} />
@@ -50,7 +55,7 @@ const Scene: React.FC<Props> = ({
       left={left}
     />
     {centered !== false ? (
-      <CenteredContent maxWidth={wide ? "100vw" : undefined} withStickyHeader>
+      <CenteredContent maxWidth={SceneMeasure[measure]} withStickyHeader>
         {children}
       </CenteredContent>
     ) : (

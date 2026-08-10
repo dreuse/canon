@@ -95,7 +95,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.MonospaceFontFamily]: MonospaceFontFamily.FiraCode,
   [TeamPreference.FontSize]: FontSize.Default,
   [TeamPreference.CodeFontSize]: CodeFontSize.Default,
-  [TeamPreference.TocPosition]: TOCPosition.Right,
+  [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,

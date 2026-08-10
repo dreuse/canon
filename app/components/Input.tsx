@@ -140,7 +140,7 @@ export const Outline = styled(Flex)<{
   ${(props) =>
     props.$focused &&
     css`
-      outline: 2px solid ${props.theme.accent};
+      outline: 2px solid ${props.theme.inputBorderFocused};
       outline-offset: -1px;
       border-color: transparent;
     `}

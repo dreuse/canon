@@ -22,8 +22,8 @@ export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
   }
   const { schema, state } = ctx;
 
-  const isFullWidth = isNodeActive(schema.nodes.table, {
-    layout: TableLayout.fullWidth,
+  const isFullWidth = !isNodeActive(schema.nodes.table, {
+    layout: TableLayout.narrow,
   })(state);
 
   const isGrid = isNodeActive(schema.nodes.table, {
@@ -35,7 +35,9 @@ export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
       name: "setTableAttr",
       label: isFullWidth ? t("Default width") : t("Full width"),
       icon: <AlignFullWidthIcon />,
-      attrs: isFullWidth ? { layout: null } : { layout: TableLayout.fullWidth },
+      attrs: isFullWidth
+        ? { layout: TableLayout.narrow }
+        : { layout: TableLayout.fullWidth },
     },
     {
       name: "setTableAttr",

@@ -36,6 +36,8 @@ type Props = ComponentProps & {
 /** Images rendered smaller than this width are displayed as inline icons. */
 export const InlineIconMaxWidth = 48;
 
+export const FullWidthMinWidth = 832;
+
 type ImageClassNameOptions = {
   /** Layout modifier, e.g. "full-width", "left-50". */
   layoutClass?: string | null;
@@ -74,13 +76,27 @@ export function isInlineImageIcon({
  * @returns The space-separated className string.
  */
 export function imageClassName(options: ImageClassNameOptions): string {
+  const layoutClass = isFullWidthImage(options)
+    ? "full-width"
+    : options.layoutClass;
+
   return [
     "image",
-    options.layoutClass ? `image-${options.layoutClass}` : "",
+    layoutClass ? `image-${layoutClass}` : "",
     isInlineImageIcon(options) ? "image-icon" : "",
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+export function isFullWidthImage({
+  layoutClass,
+  width,
+}: ImageClassNameOptions): boolean {
+  if (layoutClass) {
+    return layoutClass === "full-width";
+  }
+  return !!width && width > FullWidthMinWidth;
 }
 
 const Image = (props: Props) => {
@@ -104,7 +120,7 @@ const Image = (props: Props) => {
       ref,
     });
 
-  const isFullWidth = layoutClass === "full-width";
+  const isFullWidth = isFullWidthImage({ layoutClass, width });
   const isInlineIcon = isInlineImageIcon({ layoutClass, width, error });
   const isResizable = !!props.onChangeSize && !error && !isInlineIcon;
   const isDownloadable = !!props.onDownload && !error;
@@ -124,7 +140,7 @@ const Image = (props: Props) => {
   }, [sanitizedSrc]);
 
   const widthStyle = isFullWidth
-    ? { width: "var(--container-width)" }
+    ? { width: "var(--full-width-size, var(--container-width))" }
     : width
       ? { ["--image-width"]: `${width}px` }
       : { width: "auto" };

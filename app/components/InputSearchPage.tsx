@@ -122,6 +122,11 @@ const InputMaxWidth = styled(Input)`
 
   ${Outline} {
     border-radius: 8px;
+
+    &:focus-within {
+      outline: none;
+      border-color: ${s("inputBorderFocused")};
+    }
   }
 
   /* On mobile the input grows to fill the header, so add a gap before the

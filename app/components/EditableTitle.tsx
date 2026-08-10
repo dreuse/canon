@@ -185,8 +185,10 @@ const Input = styled.input`
   margin: -4px;
   height: 30px;
 
-  &:focus {
-    outline-color: ${s("accent")};
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px ${s("inputBorder")};
   }
 `;
 

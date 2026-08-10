@@ -156,7 +156,7 @@ const StyledHexColorInput = styled(HexColorInput)`
 
   &:focus {
     outline: none;
-    border-color: ${s("accent")};
+    border-color: ${s("inputBorderFocused")};
   }
 `;
 

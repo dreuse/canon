@@ -36,6 +36,24 @@ export class ProsemirrorDataHelper {
     return parts.join(" ").replace(/\s+/g, " ").trim();
   }
 
+  static toLinkHrefs(data: ProsemirrorData): string[] {
+    const hrefs: string[] = [];
+
+    const walk = (node: ProsemirrorData) => {
+      node.marks?.forEach((mark) => {
+        const href = mark.attrs?.href;
+        if (mark.type === "link" && typeof href === "string") {
+          hrefs.push(href);
+        }
+      });
+      node.content?.forEach(walk);
+    };
+
+    walk(data);
+
+    return hrefs;
+  }
+
   /**
    * Returns true if the data looks like an empty document.
    *

@@ -8,6 +8,7 @@ import styled, { css } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import { Avatar } from "~/components/Avatar";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -28,6 +29,8 @@ type Props = {
   showLastViewed?: boolean;
   /** Show the number of documents nested under this one. */
   showParentDocuments?: boolean;
+  /** Show the parent documents the document sits under, in place of the time. */
+  showPath?: boolean;
   /** The document to display meta information for. */
   document: Document;
   /** A revision of the document, when displaying meta for a point in history. */
@@ -46,6 +49,7 @@ const DocumentMeta: React.FC<Props> = ({
   showOwner,
   showLastViewed,
   showParentDocuments,
+  showPath,
   document,
   revision,
   children,
@@ -163,7 +167,7 @@ const DocumentMeta: React.FC<Props> = ({
   const nestedDocumentsCount = collection
     ? collection.getChildrenForDocument(document.id).length
     : 0;
-  const canShowProgressBar = isTasks;
+  const canShowProgressBar = isTasks && !showPath;
 
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
@@ -198,13 +202,30 @@ const DocumentMeta: React.FC<Props> = ({
   return (
     <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {showOwner && document.createdBy && (
-        <span>
-          {t("Owned by")}&nbsp;
+        <Owner>
+          <Avatar model={document.createdBy} size={18} />
+          {t("Owned by")}
           <Strong>{document.createdBy.name}</Strong>
           <Separator />
-        </span>
+        </Owner>
       )}
-      {showCollection ? (
+      {showPath ? (
+        <>
+          {showCollection && (
+            <Chip $unfiled={!collection}>
+              {collection ? collection.name : t("Unfiled")}
+            </Chip>
+          )}
+          <Path>
+            {document.pathTo.slice(0, -1).map((node, index) => (
+              <React.Fragment key={node.id}>
+                {(showCollection || index > 0) && <PathSeparator />}
+                {node.title || t("Untitled")}
+              </React.Fragment>
+            ))}
+          </Path>
+        </>
+      ) : showCollection ? (
         <>
           <Chip $unfiled={!collection}>
             {collection ? collection.name : t("Unfiled")}
@@ -269,6 +290,26 @@ export const Separator = styled.span`
 
 const Strong = styled.strong`
   font-weight: 550;
+`;
+
+const Owner = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+`;
+
+const Path = styled.span`
+  ${ellipsis()}
+  min-width: 0;
+`;
+
+const PathSeparator = styled.span`
+  padding: 0 0.35em;
+  opacity: 0.65;
+
+  &::after {
+    content: "›";
+  }
 `;
 
 const Chip = styled.span<{ $unfiled?: boolean }>`

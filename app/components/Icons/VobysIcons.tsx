@@ -84,8 +84,22 @@ export const VoCollectionIcon = (props: VobysIconProps) => (
 
 export const VoArchiveIcon = (props: VobysIconProps) => (
   <VobysIcon {...props}>
-    <rect x="2.4" y="2.9" width="11.2" height="3.2" rx="1" />
-    <path d="M3.4 6.1V13a.8.8 0 00.8.8h7.6a.8.8 0 00.8-.8V6.1M6.5 9.2h3" />
+    <rect x="2.5" y="2.9" width="11" height="3.2" rx="1" />
+    <path d="M3.5 6.1V13a.8.8 0 00.8.8h7.4a.8.8 0 00.8-.8V6.1M6.5 9.2h3" />
+  </VobysIcon>
+);
+
+export const VoBellIcon = (props: VobysIconProps) => (
+  <VobysIcon {...props}>
+    <path d="M4 6.6a4 4 0 018 0v2.5l1 2H3l1-2V6.6zM6.6 13.1a1.5 1.5 0 002.8 0" />
+  </VobysIcon>
+);
+
+export const VoHelpIcon = (props: VobysIconProps) => (
+  <VobysIcon {...props}>
+    <circle cx="8" cy="8" r="5.6" />
+    <path d="M6.4 6.4a1.6 1.6 0 113.1.5c-.2.7-1.5 1-1.5 2" />
+    <path d="M8 11.4h.01" />
   </VobysIcon>
 );
 
@@ -99,6 +113,14 @@ export const VoDocumentIcon = (props: VobysIconProps) => (
   <VobysIcon {...props}>
     <path d="M4 2.3h5l3 3v8.4H4V2.3z" />
     <path d="M9 2.3v3h3" />
+  </VobysIcon>
+);
+
+export const VoTemplateIcon = (props: VobysIconProps) => (
+  <VobysIcon {...props}>
+    <rect x="2.6" y="2.6" width="10.8" height="10.8" rx="1.6" />
+    <path d="M2.6 6.4h10.8" />
+    <path d="M6.6 6.4v7" />
   </VobysIcon>
 );
 

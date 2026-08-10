@@ -880,7 +880,7 @@ th .image .image-wrapper img {
   max-width: 100vw;
   clear: both;
   position: initial;
-  transform: translateX(calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
+  transform: translateX(var(--full-width-shift, calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset))));
 
   img {
     max-width: 100vw;
@@ -918,17 +918,21 @@ th .image .image-wrapper img {
 }
 
 .${EditorStyleHelper.tableFullWidth} {
-  transform: translateX(calc(50% + ${
-    EditorStyleHelper.padding
-  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
+  transform: translateX(var(--full-width-shift, calc((100% - var(--full-width-size, calc(var(--container-width) - ${
+    EditorStyleHelper.padding * 2
+  }px))) / 2 + var(--full-width-transform-offset))));
 
   .${EditorStyleHelper.tableScrollable},
   table {
-    width: calc(var(--container-width) - ${EditorStyleHelper.padding * 2}px);
+    width: var(--full-width-size, calc(var(--container-width) - ${
+      EditorStyleHelper.padding * 2
+    }px));
   }
 
   &.${EditorStyleHelper.tableShadowRight}::after {
-    left: calc(var(--container-width) - ${EditorStyleHelper.padding * 3}px);
+    left: calc(var(--full-width-size, calc(var(--container-width) - ${
+      EditorStyleHelper.padding * 2
+    }px)) - ${EditorStyleHelper.padding}px);
   }
 }
 
@@ -2072,7 +2076,14 @@ mark {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  width: var(--full-width-size, calc(var(--container-width) - ${
+    EditorStyleHelper.padding * 2
+  }px));
   margin: 0.75em 0;
+  margin-inline-start: var(--full-width-shift, calc((100% - var(--full-width-size, calc(var(--container-width) - ${
+    EditorStyleHelper.padding * 2
+  }px))) / 2));
   min-height: 1.6em;
   background: ${props.theme.codeBackground};
   border-radius: ${EditorStyleHelper.blockRadius};

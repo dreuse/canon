@@ -15,7 +15,7 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
       ? theme.accent
       : yellow
         ? darken(0.1, theme.yellow)
-        : theme.textTertiary};
+        : theme.textTertiaryOnTint};
   border: 1px solid
     ${({ yellow, primary, theme }) =>
       yellow

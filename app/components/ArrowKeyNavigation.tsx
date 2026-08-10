@@ -26,8 +26,10 @@ function ArrowKeyNavigation(
 
         if (
           ev.key === "ArrowUp" &&
-          // If the first item is focused and the user presses ArrowUp
-          ev.currentTarget.firstElementChild === document.activeElement
+          // If the first item is focused and the user presses ArrowUp. Items
+          // are not always the first child, headings can separate them.
+          (ev.currentTarget.querySelector("a, button") ??
+            ev.currentTarget.firstElementChild) === document.activeElement
         ) {
           onEscape(ev);
         }

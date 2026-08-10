@@ -40,6 +40,10 @@ type Props = {
    * shift when the menu lives inside a scrollable container.
    */
   modal?: boolean;
+  /** Minimum width of the menu in pixels, overriding the default */
+  minWidth?: number;
+  /** Additional component to display at the top of the top-level menu */
+  prepend?: React.ReactNode;
   /** Additional component to display at the bottom of the top-level menu */
   append?: React.ReactNode;
   /** Callback when menu is opened */
@@ -58,6 +62,8 @@ export const DropdownMenu = observer(
         align = "start",
         ariaLabel,
         modal = true,
+        minWidth,
+        prepend,
         append,
         onOpen,
         onClose,
@@ -120,7 +126,7 @@ export const DropdownMenu = observer(
         }
       }, []);
 
-      if (isEmpty && !append) {
+      if (isEmpty && !append && !prepend) {
         return null;
       }
 
@@ -132,6 +138,7 @@ export const DropdownMenu = observer(
             items={menuItems}
             trigger={children}
             ariaLabel={ariaLabel}
+            prepend={prepend}
             append={append}
           />
         );
@@ -151,7 +158,9 @@ export const DropdownMenu = observer(
               onAnimationStart={disablePointerEvents}
               onAnimationEnd={enablePointerEvents}
               onCloseAutoFocus={preventDefault}
+              style={minWidth ? { minWidth } : undefined}
             >
+              {prepend}
               {content}
               {append}
             </MenuContent>
@@ -167,7 +176,7 @@ type MobileDropdownProps = {
   onOpenChange: (open: boolean) => void;
   items: MenuItem[];
   trigger: React.ReactNode;
-} & Pick<Props, "ariaLabel" | "append">;
+} & Pick<Props, "ariaLabel" | "prepend" | "append">;
 
 function MobileDropdown({
   open,
@@ -175,6 +184,7 @@ function MobileDropdown({
   items,
   trigger,
   ariaLabel,
+  prepend,
   append,
 }: MobileDropdownProps) {
   const [submenuName, setSubmenuName] = React.useState<string>();
@@ -236,6 +246,7 @@ function MobileDropdown({
       >
         <DrawerTitle>{ariaLabel}</DrawerTitle>
         <StyledScrollable hiddenScrollbars>
+          {!submenuName ? prepend : null}
           {content}
           {!submenuName ? append : null}
         </StyledScrollable>

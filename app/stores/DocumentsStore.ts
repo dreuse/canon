@@ -56,6 +56,9 @@ export default class DocumentsStore extends Store<Document> {
   @observable
   movingDocumentId: string | null | undefined;
 
+  @observable
+  searchTotal: number | undefined;
+
   importFileTypes: string[] = [
     ".md",
     ".markdown",
@@ -442,6 +445,7 @@ export default class DocumentsStore extends Store<Document> {
     runInAction("DocumentsStore#searchTitles", () => {
       res.data.forEach(this.add);
       this.addPolicies(res.policies);
+      this.searchTotal = undefined;
     });
 
     // store a reference to the document model in the search cache instead
@@ -473,6 +477,7 @@ export default class DocumentsStore extends Store<Document> {
     runInAction("DocumentsStore#search", () => {
       res.data.forEach((result: SearchResult) => this.add(result.document));
       this.addPolicies(res.policies);
+      this.searchTotal = res.pagination?.total;
     });
 
     // store a reference to the document model in the search cache instead

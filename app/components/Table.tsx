@@ -720,6 +720,10 @@ const TR = styled.div<{ $columns: string }>`
   display: grid;
   grid-template-columns: ${({ $columns }) => `${$columns}`};
   align-items: center;
+
+  > * {
+    min-width: 0;
+  }
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
 

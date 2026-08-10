@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import { isTouchDevice } from "../utils/browser";
 
@@ -31,6 +32,9 @@ export const ellipsis = () => `
 export const s =
   (key: keyof DefaultTheme) => (props: { theme: DefaultTheme }) =>
     props.theme[key] as string;
+
+export const hairline = (props: { theme: DefaultTheme }) =>
+  transparentize(0.55, props.theme.divider);
 
 /**
  * Mixin to hide scrollbars.

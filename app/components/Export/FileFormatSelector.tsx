@@ -107,7 +107,7 @@ const Format = styled.label`
   }
 
   &:has(input:focus-visible) {
-    outline: 2px solid ${s("accent")};
+    outline: 2px solid ${s("inputBorderFocused")};
     outline-offset: 2px;
   }
 `;

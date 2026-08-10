@@ -25,6 +25,7 @@ export type EditorNotice = (message: string, type?: EditorNoticeType) => void;
 
 export enum TableLayout {
   fullWidth = "full-width",
+  narrow = "narrow",
 }
 
 export enum TableStyle {

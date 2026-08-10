@@ -38,6 +38,27 @@ export default createGlobalStyle<Props>`
     --scrollbar-width: calc(100vw - 100cqw);
     overscroll-behavior-x: none;
 
+    scrollbar-width: thin;
+    scrollbar-color: ${s("scrollbarThumb")} ${s("scrollbarBackground")};
+
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: ${s("scrollbarBackground")};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background: ${s("scrollbarThumb")};
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: ${s("textTertiary")};
+    }
+
     @media print {
       background: none !important;
     }
@@ -132,6 +153,13 @@ export default createGlobalStyle<Props>`
   :focus-visible {
     outline: 2px solid ${s("accent")};
     outline-offset: 2px;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [contenteditable="true"]:focus-visible {
+    outline-color: ${s("inputBorderFocused")};
   }
 
   :root {

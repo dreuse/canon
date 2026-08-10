@@ -22,6 +22,7 @@ import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
 import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
+import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -30,6 +31,7 @@ import usePolicy from "~/hooks/usePolicy";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentEditPath, documentPath } from "~/utils/routeHelpers";
+import { queryIsInTitle, trimSearchContext } from "~/utils/searchContext";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
 import { useDragDocument } from "./Sidebar/hooks/useDragAndDrop";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -45,6 +47,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  showPath?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -86,19 +89,19 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
+    showPath,
     highlight,
     context,
     ...rest
   } = props;
-  const queryIsInTitle =
-    !!highlight &&
-    !!document.title.toLowerCase().includes(highlight.toLowerCase());
+  const matchedInTitle = queryIsInTitle(document.title, highlight);
   const canStar = !document.isArchived;
 
   const excerpt =
     context === undefined
       ? ProsemirrorDataHelper.toPlainText(document.getSummary(SUMMARY_BLOCKS))
       : "";
+  const trimmedContext = context ? trimSearchContext(context) : context;
 
   // Multi-select is only offered for documents the user can update.
   const can = usePolicy(document.id);
@@ -187,6 +190,7 @@ function DocumentListItem(
           $isDragging={isDragging}
           $menuOpen={menuOpen}
           $selectable={selectable}
+          $compact={showPath}
           to={{
             pathname: documentPath(document),
             search: highlight
@@ -246,11 +250,23 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
+                {showPath && (
+                  <ItemTime>
+                    <Time
+                      dateTime={
+                        document.deletedAt ??
+                        document.archivedAt ??
+                        document.updatedAt
+                      }
+                      shorten
+                    />
+                  </ItemTime>
+                )}
               </Heading>
 
-              {!queryIsInTitle && (
+              {!matchedInTitle && !!trimmedContext && (
                 <ResultContext
-                  text={context}
+                  text={trimmedContext}
                   highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
                   processResult={replaceResultMarks}
                 />
@@ -261,7 +277,8 @@ function DocumentListItem(
                 showCollection={showCollection}
                 showPublished={showPublished}
                 showParentDocuments={showParentDocuments}
-                showLastViewed
+                showPath={showPath}
+                showLastViewed={!showPath}
               />
             </Content>
           </Flex>
@@ -394,11 +411,12 @@ const DocumentLink = styled(Link)<{
   $isDragging?: boolean;
   $menuOpen?: boolean;
   $selectable?: boolean;
+  $compact?: boolean;
 }>`
   display: flex;
   align-items: flex-start;
   margin: 0;
-  padding: 15px 8px;
+  padding: ${(props) => (props.$compact ? "8px" : "15px 8px")};
   border-radius: 0;
   border-bottom: 1px solid ${s("divider")};
   max-height: 50vh;
@@ -418,6 +436,14 @@ const DocumentLink = styled(Link)<{
   ${breakpoint("tablet")`
     width: auto;
   `};
+
+  ${(props) =>
+    props.$compact &&
+    css`
+      ${Actions} {
+        margin: 2px 8px;
+      }
+    `}
 
   ${Actions} > * {
     opacity: 0;
@@ -499,18 +525,29 @@ const Heading = styled.span<{ rtl?: boolean }>`
 
 const Title = styled(Highlight)`
   max-width: 90%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const ItemTime = styled.span`
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  flex-shrink: 0;
+  color: ${s("textTertiary")};
+  font-size: 13px;
+  font-weight: 400;
 `;
 
 const ResultContext = styled(Highlight)`
   display: block;
   color: ${s("textSecondary")};
-  font-size: 15px;
-  margin-top: -0.25em;
-  margin-bottom: 0.25em;
-  max-height: 90px;
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0 0 2px;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export default observer(React.forwardRef(DocumentListItem));

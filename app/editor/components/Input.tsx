@@ -4,15 +4,19 @@ import { s } from "@shared/styles";
 
 const Input = styled.input`
   font-size: 15px;
-  background: ${s("inputBorder")};
+  background: ${s("backgroundSecondary")};
   color: ${s("text")};
-  border-radius: 2px;
-  padding: 3px 8px;
-  border: 0;
+  border: 1px solid ${s("divider")};
+  border-radius: 6px;
+  padding: 5px 8px;
   margin: 0;
   outline: none;
   flex-grow: 1;
   min-width: 0;
+
+  &:focus {
+    border-color: ${s("inputBorderFocused")};
+  }
 
   &::placeholder {
     color: ${(props) => transparentize(0.5, props.theme.text)};

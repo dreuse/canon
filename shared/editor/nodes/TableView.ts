@@ -78,7 +78,7 @@ export class TableView extends ProsemirrorTableView {
 
     this.dom.classList.toggle(
       EditorStyleHelper.tableFullWidth,
-      node.attrs.layout === TableLayout.fullWidth
+      node.attrs.layout !== TableLayout.narrow
     );
 
     this.dom.classList.toggle(

@@ -1,4 +1,5 @@
 import { escapeRegExp } from "es-toolkit/compat";
+import { transparentize } from "polished";
 import * as React from "react";
 import replace from "string-replace-to-array";
 import styled from "styled-components";
@@ -45,8 +46,11 @@ function Highlight({
 
 export const Mark = styled.mark`
   color: ${s("text")};
-  background: transparent;
-  font-weight: 600;
+  background: ${(props) =>
+    transparentize(props.theme.isDark ? 0.72 : 0.8, props.theme.accent)};
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: inherit;
 `;
 
 export default Highlight;

@@ -121,7 +121,7 @@ function Webhooks() {
           )}
         </>
       }
-      wide
+      measure="full"
     >
       <Heading>{t("Webhooks")}</Heading>
       <Text as="p" type="secondary">

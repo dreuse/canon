@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
-import { SubscribeIcon } from "outline-icons";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { VoBellIcon } from "~/components/Icons/VobysIcons";
 import useStores from "~/hooks/useStores";
 import Relative from "../Sidebar/components/Relative";
 
@@ -11,7 +11,7 @@ const NotificationIcon = () => {
 
   return (
     <Relative style={{ height: 16 }}>
-      <SubscribeIcon size={16} />
+      <VoBellIcon />
       {count > 0 && <Badge />}
     </Relative>
   );

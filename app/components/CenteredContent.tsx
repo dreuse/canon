@@ -25,7 +25,8 @@ type ContentProps = { $maxWidth?: string };
 
 const Content = styled.div<ContentProps>`
   max-width: ${(props: ContentProps) =>
-    props.$maxWidth ?? EditorStyleHelper.documentWidth};
+    props.$maxWidth ??
+    `var(--content-measure, ${EditorStyleHelper.documentWidth})`};
   margin: 0 auto;
 `;
 

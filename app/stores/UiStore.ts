@@ -40,6 +40,7 @@ export type RightSidebarPanel = "comments" | "history";
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
+  | "startHereDismissed"
   | "rightSidebar"
   | "theme"
   | "sidebarWidth"
@@ -53,6 +54,10 @@ class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
   @observable
   languagePromptDismissed: boolean | undefined;
+
+  // has the user dismissed the completed onboarding rail on Home
+  @observable
+  startHereDismissed: boolean | undefined;
 
   // theme represents the users UI preference (defaults to system)
   @observable
@@ -166,6 +171,7 @@ class UiStore {
     // Rehydrate
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
+    this.startHereDismissed = data.startHereDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
     // Widths are clamped as a drag may have been interrupted while stretched beyond the bounds,
     // or the bounds themselves may have since changed.
@@ -583,6 +589,7 @@ class UiStore {
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
+      startHereDismissed: this.startHereDismissed,
       rightSidebar: this.rightSidebar,
       theme: this.theme,
     };
