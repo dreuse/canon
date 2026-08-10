@@ -118,7 +118,10 @@ function CollectionLinkChildren({
                 <Text type="tertiary" size="small">
                   {seeAll
                     ? t(`See all {{ total }}`, { total })
-                    : t(`{{ remaining }} more`, { remaining, count: remaining })}
+                    : t(`{{ remaining }} more`, {
+                        remaining,
+                        count: remaining,
+                      })}
                 </Text>
               }
               to={seeAll ? collection.url : undefined}
