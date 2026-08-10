@@ -235,6 +235,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           .join(" ");
 
         const language = node.attrs.language;
+        const copyLabel = t("Copy") ?? "Copy";
 
         return [
           "div",
@@ -265,9 +266,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
                       class: EditorStyleHelper.codeBlockCopy,
                       type: "button",
                       contentEditable: "false",
-                      "aria-label": t("Copy"),
+                      "aria-label": copyLabel,
                     },
-                    t("Copy"),
+                    copyLabel,
                   ],
                 ],
               ]
