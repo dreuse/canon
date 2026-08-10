@@ -26,14 +26,25 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$TAG" \
-            --verify-tag \
-            --title "$TAG" \
-            --generate-notes \
-            --notes "Container image: \`ghcr.io/$GH_REPO:${TAG#v}\`"
+          notes="$RUNNER_TEMP/notes.md"
+          previous=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)
+          {
+            printf "Container image: \`ghcr.io/%s:%s\`\n" "$GH_REPO" "${TAG#v}"
+            if [ -n "$previous" ]; then
+              printf '\n## Changes\n\n'
+              git log --no-merges --pretty='- %s' "$previous..$TAG"
+              printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' \
+                "$GH_REPO" "$previous" "$TAG"
+            fi
+          } > "$notes"
+          gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "$notes"
