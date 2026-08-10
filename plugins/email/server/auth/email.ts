@@ -86,6 +86,7 @@ router.post(
       language: user.language,
       token,
       teamUrl: team.url,
+      teamId: team.id,
       client,
       verificationCode,
     }).schedule();
@@ -190,6 +191,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
       language: user.language,
       role: user.role,
       teamUrl: user.team.url,
+      teamId: user.teamId,
     }).schedule();
 
     const inviter = await user.$get("invitedBy");
@@ -200,6 +202,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
         inviterId: inviter.id,
         invitedName: user.name,
         teamUrl: user.team.url,
+        teamId: user.teamId,
       }).schedule();
     }
   }

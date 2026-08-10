@@ -10,18 +10,20 @@ import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { Day } from "@shared/utils/time";
+import { brandingForTeam } from "@server/emails/branding";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
-import type { Team } from "@server/models";
 import Notification from "@server/models/Notification";
+import Team from "@server/models/Team";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import type { NotificationMetadata } from "@server/types";
+import { BrandingContext } from "./components/BrandingContext";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
@@ -38,6 +40,7 @@ export interface EmailProps {
   language?: string | null;
   /** The notification that triggered the email, if any. */
   notification?: Notification;
+  teamId?: string;
 }
 
 export default abstract class BaseEmail<
@@ -134,6 +137,17 @@ export default abstract class BaseEmail<
       : undefined;
     const data = { ...this.props, notification, ...(bsResponse ?? ({} as S)) };
 
+    const teamId = this.props.teamId ?? notification?.teamId;
+    if (!teamId) {
+      Logger.debug(
+        "email",
+        `Email ${templateName} has no team to brand with, using defaults`
+      );
+    }
+    const branding = await brandingForTeam(
+      teamId ? await Team.findByPk(teamId) : undefined
+    );
+
     if (notification?.viewedAt) {
       Logger.info(
         "email",
@@ -170,11 +184,12 @@ export default abstract class BaseEmail<
         references,
         previewText: this.preview(data),
         component: (
-          <>
+          <BrandingContext.Provider value={branding}>
             {this.render(data)}
             {notification ? this.pixel(notification) : null}
-          </>
+          </BrandingContext.Provider>
         ),
+        hasCustomLogo: !!branding.logoUrl,
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
         unsubscribeUrl: this.unsubscribeUrl?.(data),

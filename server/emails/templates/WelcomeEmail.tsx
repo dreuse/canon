@@ -1,5 +1,6 @@
 import * as React from "react";
 import { UserRole } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import env from "@server/env";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
@@ -53,9 +54,7 @@ ${this.t("{{ appName }} is a place for your team to build and share knowledge.",
 
 ${this.t("To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work.")}
 
-${this.t("Or, learn more about everything {{ appName }} can do in the guide", { appName: env.APP_NAME })}:
-https://docs.getoutline.com/s/guide
-
+${UrlHelper.guide ? `${this.t("Or, learn more about everything {{ appName }} can do in the guide", { appName: env.APP_NAME })}:\n${UrlHelper.guide}\n` : ""}
 ${teamUrl}/home
 `;
   }
@@ -82,15 +81,15 @@ ${teamUrl}/home
               "To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work."
             )}
           </p>
-          <p>
-            {this.t("Or, learn more about everything {{ appName }} can do in", {
-              appName: env.APP_NAME,
-            })}{" "}
-            <a href="https://docs.getoutline.com/s/guide">
-              {this.t("the guide")}
-            </a>
-            .
-          </p>
+          {UrlHelper.guide ? (
+            <p>
+              {this.t(
+                "Or, learn more about everything {{ appName }} can do in",
+                { appName: env.APP_NAME }
+              )}{" "}
+              <a href={UrlHelper.guide}>{this.t("the guide")}</a>.
+            </p>
+          ) : null}
           <EmptySpace height={10} />
           <p>
             <Button href={welcomeLink}>

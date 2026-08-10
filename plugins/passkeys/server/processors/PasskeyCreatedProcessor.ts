@@ -24,6 +24,7 @@ export class PasskeyCreatedProcessor extends BaseProcessor {
       passkeyId: userPasskey.id,
       passkeyName: userPasskey.name,
       teamUrl: user.team.url,
+      teamId: user.teamId,
     }).schedule();
   }
 }

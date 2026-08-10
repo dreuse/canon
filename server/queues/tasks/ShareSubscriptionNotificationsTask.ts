@@ -84,6 +84,7 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
           documentTitle: document.titleWithDefault,
           shareUrl,
           revisionId: event.modelId,
+          teamId: document.teamId,
         }).schedule();
 
         subscription.lastNotifiedAt = new Date();

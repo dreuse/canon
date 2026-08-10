@@ -217,6 +217,7 @@ export default async function userProvisioner(
           inviterId: inviter.id,
           invitedName: existingUser.name,
           teamUrl: existingUser.team.url,
+          teamId: existingUser.teamId,
         }).schedule();
       }
     }

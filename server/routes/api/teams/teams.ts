@@ -76,6 +76,7 @@ router.post(
       to: user.email,
       language: user.language,
       deleteConfirmationCode: team.getDeleteConfirmationCode(user),
+      teamId: team.id,
     }).schedule();
 
     ctx.body = {

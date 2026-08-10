@@ -37,6 +37,7 @@ type SendMailOptions = {
   unsubscribeUrl?: string;
   /** Tags used for reporting, where supported by the email provider. */
   tags?: EmailTags;
+  hasCustomLogo?: boolean;
 };
 
 type EmailTags = {
@@ -199,15 +200,16 @@ export class Mailer {
               },
             }
           : undefined,
-        attachments: env.isCloudHosted
-          ? undefined
-          : [
-              {
-                filename: "header-logo.png",
-                path: process.cwd() + "/public/email/header-logo.png",
-                cid: "header-image",
-              },
-            ],
+        attachments:
+          env.isCloudHosted || data.hasCustomLogo
+            ? undefined
+            : [
+                {
+                  filename: "header-logo.png",
+                  path: process.cwd() + "/public/email/header-logo.png",
+                  cid: "header-image",
+                },
+              ],
       });
 
       if (useTestEmailService) {

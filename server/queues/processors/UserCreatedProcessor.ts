@@ -31,6 +31,7 @@ export default class UserCreatedProcessor extends BaseProcessor {
       language: user.language,
       role: user.role,
       teamUrl: team.url,
+      teamId: team.id,
     }).schedule();
   }
 }

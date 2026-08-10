@@ -47,6 +47,7 @@ export default class InviteReminderTask extends CronTask {
             actorEmail: invitedBy.email,
             teamName: user.team.name,
             teamUrl: user.team.url,
+            teamId: user.teamId,
           }).schedule();
 
           user.incrementFlag(UserFlag.InviteReminderSent);

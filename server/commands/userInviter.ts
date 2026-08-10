@@ -105,6 +105,7 @@ export default async function userInviter(
         actorEmail: user.email,
         teamName: team.name,
         teamUrl: team.url,
+        teamId: team.id,
       }).schedule();
     }
 

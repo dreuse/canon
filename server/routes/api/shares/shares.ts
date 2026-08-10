@@ -557,6 +557,7 @@ router.post(
       documentTitle: document?.titleWithDefault ?? "",
       confirmUrl,
       teamName: usePublicBranding ? share.team?.name : undefined,
+      teamId: share.teamId,
     }).schedule();
 
     ctx.body = { success: true };

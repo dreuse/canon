@@ -956,6 +956,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
           to: createdBy.email,
           language: createdBy.language,
           teamUrl: team.url,
+          teamId: team.id,
           webhookName: subscription.name,
         }).schedule();
       }

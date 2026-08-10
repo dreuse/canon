@@ -243,6 +243,7 @@ router.post(
       previous: user.email,
       code: user.getEmailUpdateToken(email),
       teamUrl: team.url,
+      teamId: team.id,
     }).schedule();
 
     ctx.body = {
@@ -595,6 +596,7 @@ router.post(
       actorEmail: actor.email,
       teamName: actor.team.name,
       teamUrl: actor.team.url,
+      teamId: actor.teamId,
     }).schedule();
 
     user.incrementFlag(UserFlag.InviteSent);
@@ -633,6 +635,7 @@ router.post(
       deleteConfirmationCode: user.deleteConfirmationCode,
       teamName: user.team.name,
       teamUrl: user.team.url,
+      teamId: user.teamId,
     }).schedule();
 
     ctx.body = {
