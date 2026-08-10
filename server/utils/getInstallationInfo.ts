@@ -3,18 +3,10 @@ import { version } from "../../package.json";
 import Logger from "@server/logging/Logger";
 import fetch from "./fetch";
 
-const dockerhubLink =
-  "https://hub.docker.com/v2/repositories/outlinewiki/outline";
-
-function isFullReleaseVersion(versionName: string): boolean {
-  const releaseRegex = /^(version-)?\d+\.\d+\.\d+$/; // Matches "N.N.N" or "version-N.N.N" for dockerhub releases before v0.56.0"
-  return releaseRegex.test(versionName);
-}
+const releasesUrl =
+  "https://api.github.com/repos/dreuse/canon/releases?per_page=100";
 
 /**
- * Fetches the latest released version from Docker Hub and calculates how many
- * versions behind the current installation is.
- *
  * @param currentVersion the currently installed version.
  * @returns the latest version and the number of versions behind, or -1 if unknown.
  */
@@ -23,61 +15,29 @@ export async function getVersionInfo(currentVersion: string): Promise<{
   versionsBehind: number;
 }> {
   try {
-    let allVersions: string[] = [];
-    let latestVersion: string | null = null;
-    let nextUrl: string | null =
-      dockerhubLink + "/tags?name=&ordering=last_updated&page_size=100";
+    const response = await fetch(releasesUrl);
+    const releases = (await response.json()) as {
+      tag_name: string;
+      draft?: boolean;
+    }[];
 
-    // Continue fetching pages until the required versions are found or no more pages
-    while (nextUrl) {
-      const response = await fetch(nextUrl);
-      const data = (await response.json()) as {
-        results: { name: string }[];
-        next?: string | null;
-      };
-
-      // Map and filter the versions to keep only full releases
-      const pageVersions = data.results
-        .map((result) => result.name)
-        .filter(isFullReleaseVersion);
-
-      allVersions = allVersions.concat(pageVersions);
-
-      // Set the latest version if not already set
-      if (!latestVersion && pageVersions.length > 0) {
-        latestVersion = pageVersions[0];
-      }
-
-      // Check if the current version is found
-      const currentIndex = allVersions.findIndex(
-        (version: string) => version === currentVersion
-      );
-
-      if (currentIndex !== -1) {
-        const versionsBehind = currentIndex; // The number of versions behind
-        return {
-          latestVersion: latestVersion || currentVersion, // Fallback to current if no latest found
-          versionsBehind,
-        };
-      }
-
-      nextUrl = data.next || null;
-    }
+    const versions = releases
+      .filter((release) => !release.draft)
+      .map((release) => release.tag_name.replace(/^v/, ""));
 
     return {
-      latestVersion: latestVersion || currentVersion,
-      versionsBehind: -1, // Return -1 if current version is not found
+      latestVersion: versions[0] ?? currentVersion,
+      versionsBehind: versions.indexOf(currentVersion),
     };
   } catch (error) {
     Logger.warn(
-      "Failed to fetch version information from Docker Hub. This is expected in isolated environments.",
+      "Failed to fetch release information from GitHub. This is expected in isolated environments.",
       {
         currentVersion,
         error: errToString(error),
       }
     );
 
-    // Return fallback values when external request fails
     return {
       latestVersion: currentVersion,
       versionsBehind: -1,
