@@ -396,6 +396,6 @@
     "linkify-it@npm:5.0.1": "5.0.2",
     "i18next-parser/i18next": "^23.16.8"
   },
-  "version": "2026.8.2",
+  "version": "2026.8.3",
   "packageManager": "yarn@4.11.0"
 }
