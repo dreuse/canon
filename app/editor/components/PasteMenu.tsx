@@ -121,11 +121,6 @@ function useItems({
 
     return [
       {
-        name: "noop",
-        title: t("Keep as link"),
-        icon: <LinkIcon />,
-      },
-      {
         name: "mention",
         title: t("Mention"),
         icon: <EmailIcon />,
@@ -139,6 +134,11 @@ function useItems({
           actorId: user?.id,
         },
         appendSpace: true,
+      },
+      {
+        name: "noop",
+        title: t("Keep as link"),
+        icon: <LinkIcon />,
       },
       {
         name: "embed",
@@ -186,16 +186,16 @@ function useItems({
 
   return [
     {
-      name: "noop",
-      title: t("Keep as link"),
-      icon: <LinkIcon />,
-    },
-    {
       name: "mention_list",
       title: t("Mention"),
       visible: !!convertibleToMentionList,
       icon: <EmailIcon />,
       attrs: { actorId: user?.id, ...linksToMentionType },
+    },
+    {
+      name: "noop",
+      title: t("Keep as link"),
+      icon: <LinkIcon />,
     },
   ];
 }

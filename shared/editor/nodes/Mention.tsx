@@ -376,6 +376,8 @@ export default class Mention extends Node {
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
+    } else if (mType === MentionType.URL && node.attrs.href) {
+      state.write(`[${label}](${node.attrs.href})`);
     } else {
       // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
       state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
