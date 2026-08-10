@@ -175,6 +175,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import DotIcon from "../components/DotIcon";
 import LetterIcon from "../components/LetterIcon";
 
 type IconMapping = {
@@ -249,6 +250,14 @@ export class IconLibrary {
    */
   public static mapping: Record<string, IconMapping> = {
     // Internal icons
+    letter: {
+      component: LetterIcon,
+      keywords: "letter initial monogram marker",
+    },
+    dot: {
+      component: DotIcon,
+      keywords: "dot marker",
+    },
     academicCap: {
       component: AcademicCapIcon,
       keywords: "learn teach lesson guide tutorial onboarding training",
@@ -368,10 +377,6 @@ export class IconLibrary {
     lightning: {
       component: LightningIcon,
       keywords: "lightning fast zap",
-    },
-    letter: {
-      component: LetterIcon,
-      keywords: "letter",
     },
     math: {
       component: MathIcon,

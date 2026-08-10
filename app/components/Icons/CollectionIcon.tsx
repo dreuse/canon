@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
-import styled from "styled-components";
+import DotIcon from "@shared/components/DotIcon";
 import Icon from "@shared/components/Icon";
 import LetterIcon from "@shared/components/LetterIcon";
 import { colorPalette } from "@shared/constants";
@@ -38,7 +38,7 @@ function ResolvedCollectionIcon({
 
   if (collection.iconStyle === CollectionIconStyle.Dot) {
     return (
-      <Dot $color={identityColor} $size={size ?? 24} className={className} />
+      <DotIcon color={identityColor} size={size} className={className} />
     );
   }
 
@@ -86,21 +86,5 @@ function ResolvedCollectionIcon({
     />
   );
 }
-
-const Dot = styled.span<{ $color: string; $size: number }>`
-  display: inline-flex;
-  flex: 0 0 ${(props) => props.$size}px;
-  width: ${(props) => props.$size}px;
-  height: ${(props) => props.$size}px;
-
-  &::before {
-    content: "";
-    margin: auto;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: ${(props) => props.$color};
-  }
-`;
 
 export default observer(ResolvedCollectionIcon);

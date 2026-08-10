@@ -8,6 +8,8 @@
  * the mapping.
  */
 export const iconNames = [
+  "letter",
+  "dot",
   "academicCap",
   "bicycle",
   "beaker",
@@ -38,7 +40,6 @@ export const iconNames = [
   "library",
   "lightbulb",
   "lightning",
-  "letter",
   "math",
   "moon",
   "notepad",
