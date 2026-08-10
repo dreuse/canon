@@ -18,6 +18,7 @@ import {
   SmileyIcon,
   BrowserIcon,
   PaletteIcon,
+  InfoIcon,
 } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -50,6 +51,9 @@ const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 const Embeds = lazy(() => import("~/scenes/Settings/Embeds"));
+const About = lazy(() => import("~/scenes/Settings/About"), {
+  exportName: "About",
+});
 
 export type ConfigItem = {
   name: string;
@@ -295,6 +299,16 @@ const useSettingsConfig = () => {
         group: t("Connections"),
         icon: InternetIcon,
         nav: false,
+      },
+      {
+        name: t("About"),
+        path: settingsPath("about"),
+        component: About.Component,
+        preload: About.preload,
+        description: t("Version, source code and license."),
+        enabled: true,
+        group: t("Workspace"),
+        icon: InfoIcon,
       },
     ];
 

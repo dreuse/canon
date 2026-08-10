@@ -1,6 +1,8 @@
 import env from "../env";
 
 export class UrlHelper {
+  public static repository = "https://github.com/dreuse/canon";
+
   public static bugReport: string | undefined = env.BUG_REPORT_URL;
   public static contact: string | undefined = env.CONTACT_URL;
   public static developers: string | undefined = env.DEVELOPERS_URL;
