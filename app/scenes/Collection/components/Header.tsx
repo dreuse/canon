@@ -90,7 +90,9 @@ const StyledHeading = styled(Heading)`
   display: flex;
   align-items: center;
   position: relative;
-  margin-left: 16px;
+  margin: 0 0 0 16px;
+  flex: 1 1 auto;
+  min-width: 0;
 
   ${breakpoint("tablet")`
     margin-left: 0;

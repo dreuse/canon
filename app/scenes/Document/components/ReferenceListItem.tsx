@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { s, hover, ellipsis } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType } from "@shared/types";
@@ -25,6 +25,8 @@ import useClickIntent from "~/hooks/useClickIntent";
 import useStores from "~/hooks/useStores";
 import { useCallback } from "react";
 import useCurrentUser from "~/hooks/useCurrentUser";
+
+const EXCERPT_BLOCKS = 1;
 
 type Props = {
   document: Document | NavigationNode;
@@ -92,17 +94,30 @@ const Content = styled(Flex)`
   flex-grow: 1;
   min-width: 0;
   color: ${s("textSecondary")};
-  margin-left: -4px;
 `;
 
 const Title = styled.div`
   ${ellipsis()}
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.25;
-  padding-top: 3px;
-  color: ${s("text")};
+  line-height: 1.4;
+  color: ${s("accent")};
   font-family: ${s("fontFamily")};
+
+  ${DocumentLink}:${hover} & {
+    text-decoration: underline;
+  }
+`;
+
+const Excerpt = styled.p`
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: ${s("textTertiary")};
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 function ReferenceListItem({
@@ -127,6 +142,10 @@ function ReferenceListItem({
     document instanceof Document ? document.titleWithDefault : document.title;
   const initial = title.charAt(0).toUpperCase();
   const showContextMenu = document instanceof Document && !!user;
+  const excerpt =
+    document instanceof Document
+      ? ProsemirrorDataHelper.toPlainText(document.getSummary(EXCERPT_BLOCKS))
+      : undefined;
 
   const link = (
     <DocumentLink
@@ -145,13 +164,14 @@ function ReferenceListItem({
       }}
       {...rest}
     >
-      <Content gap={4} dir="auto">
-        {icon ? (
+      <Content gap={6} dir="auto">
+        {icon && (
           <Icon value={icon} color={color ?? undefined} initial={initial} />
-        ) : (
-          <DocumentIcon />
         )}
-        <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
+        <Flex column>
+          <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
+          {excerpt && <Excerpt>{excerpt}</Excerpt>}
+        </Flex>
       </Content>
       {showContextMenu && (
         <Actions>

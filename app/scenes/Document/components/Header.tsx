@@ -42,6 +42,7 @@ import ObservingBanner from "./ObservingBanner";
 import { SearchHighlightChip } from "./SearchHighlightChip";
 import FontSizeControl from "./FontSizeControl";
 import ShareButton from "./ShareButton";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 type Props = {
   editorRef: React.RefObject<Editor>;
@@ -184,12 +185,15 @@ function DocumentHeader({
             <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
           </MobileBreadcrumb>
         ) : (
-          <DocumentBreadcrumb document={document} showCurrent>
-            {toc} <FontSizeControl />{" "}
-            <StarAction>
-              <Star document={document} color={theme.textSecondary} />
-            </StarAction>
-          </DocumentBreadcrumb>
+          <Flex align="center" gap={8}>
+            <DocumentBreadcrumb document={document} showCurrent>
+              {toc} <FontSizeControl />{" "}
+              <StarAction>
+                <Star document={document} color={theme.textSecondary} />
+              </StarAction>
+            </DocumentBreadcrumb>
+            <VerifiedBadge document={document} />
+          </Flex>
         )
       }
       title={

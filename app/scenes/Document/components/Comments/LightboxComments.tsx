@@ -152,7 +152,7 @@ const Wrapper = styled(Flex)`
   width: 360px;
   max-width: 100%;
   height: 100%;
-  background: ${s("background")};
+  background: ${s("commentsBackground")};
   border-inline-start: 1px solid ${s("divider")};
 `;
 

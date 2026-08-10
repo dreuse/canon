@@ -4,14 +4,12 @@ import queryString from "query-string";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
-import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
 import FilterOptions from "~/components/FilterOptions";
 import Flex from "~/components/Flex";
-import Heading from "~/components/Heading";
+import { PageHeader } from "~/components/PageHeader";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import useStores from "~/hooks/useStores";
@@ -67,20 +65,17 @@ function Drafts() {
   const drafts = documents.drafts(options);
 
   return (
-    <Scene
-      icon={<DraftsIcon />}
-      title={t("Drafts")}
-      actions={
-        <Action>
-          <NewDocumentMenu />
-        </Action>
-      }
-    >
-      <Heading>{t("Drafts")}</Heading>
-      <Caption>
-        {t("{{ count }} drafts", { count: drafts.length })} &middot;{" "}
-        {t("only you can see these")}
-      </Caption>
+    <Scene measure="index" icon={<DraftsIcon />} title={t("Drafts")}>
+      <PageHeader
+        title={t("Drafts")}
+        caption={
+          <>
+            {t("{{ count }} drafts", { count: drafts.length })} &middot;{" "}
+            {t("only you can see these")}
+          </>
+        }
+        actions={<NewDocumentMenu />}
+      />
       <Filters>
         <CollectionFilter
           collectionId={collectionId}
@@ -119,19 +114,13 @@ function Drafts() {
         fetch={documents.fetchDrafts}
         documents={drafts}
         options={options}
-        showParentDocuments
         showCollection
+        showPath
         showDraft={false}
       />
     </Scene>
   );
 }
-
-const Caption = styled.p`
-  margin: -12px 0 20px;
-  color: ${s("textTertiary")};
-  font-size: 14px;
-`;
 
 const Filters = styled(Flex)`
   align-items: center;

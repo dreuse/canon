@@ -9,13 +9,19 @@ import { EmojiText } from "@shared/components/EmojiText";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
+import Time from "~/components/Time";
+import type Document from "~/models/Document";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { patchLocation } from "~/utils/history";
 import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
 
-function Contents() {
+interface Props {
+  document: Document;
+}
+
+function Contents({ document }: Props) {
   const history = useHistory();
   const [activeSlug, setActiveSlug] = useState<string>();
   const scrollPosition = useWindowScrollPosition({
@@ -88,8 +94,26 @@ function Contents() {
   const headingAdjustment = minHeading - 1;
   const { t } = useTranslation();
 
+  const nestedDocumentsCount = document.children.length;
+  const status = (
+    <Status>
+      {document.updatedBy && (
+        <StatusLine>
+          {t("{{ userName }} updated", { userName: document.updatedBy.name })}{" "}
+          <Time dateTime={document.updatedAt} addSuffix />
+        </StatusLine>
+      )}
+      {nestedDocumentsCount > 0 && (
+        <StatusLine>
+          {nestedDocumentsCount}{" "}
+          {t("nested document", { count: nestedDocumentsCount })}
+        </StatusLine>
+      )}
+    </Status>
+  );
+
   if (headings.length === 0) {
-    return <StickyWrapper />;
+    return <StickyWrapper>{status}</StickyWrapper>;
   }
 
   return (
@@ -114,6 +138,7 @@ function Contents() {
             </ListItem>
           ))}
       </List>
+      {status}
     </StickyWrapper>
   );
 }
@@ -181,6 +206,27 @@ const Link = styled.a`
 const List = styled.ol`
   padding: 0;
   list-style: none;
+`;
+
+const Status = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-block: 16px 24px;
+  padding-block-start: 16px;
+  padding-inline-start: 11px;
+  border-block-start: 1px solid ${s("divider")};
+  color: ${s("textTertiary")};
+  font-size: 13px;
+  line-height: 1.4;
+
+  &:empty {
+    display: none;
+  }
+`;
+
+const StatusLine = styled.span`
+  word-break: break-word;
 `;
 
 export default observer(Contents);

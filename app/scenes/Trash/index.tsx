@@ -2,10 +2,9 @@ import { observer } from "mobx-react";
 import { TrashIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import Empty from "~/components/Empty";
-import Heading from "~/components/Heading";
+import { PageHeader } from "~/components/PageHeader";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
 import TrashMenu from "~/menus/TrashMenu";
 
@@ -14,14 +13,18 @@ function Trash() {
   const { documents } = useStores();
 
   return (
-    <Scene icon={<TrashIcon />} title={t("Trash")} actions={<TrashMenu />}>
-      <Heading>{t("Trash")}</Heading>
+    <Scene measure="index" icon={<TrashIcon />} title={t("Trash")}>
+      <PageHeader
+        title={t("Trash")}
+        caption={t("Recently deleted documents, which can be restored")}
+        actions={<TrashMenu />}
+      />
       <PaginatedDocumentList
         documents={documents.deleted}
         fetch={documents.fetchDeleted}
-        heading={<Subheading sticky>{t("Recently deleted")}</Subheading>}
         empty={<Empty>{t("Trash is empty at the moment.")}</Empty>}
         showCollection
+        showPath
         showTemplate
       />
     </Scene>

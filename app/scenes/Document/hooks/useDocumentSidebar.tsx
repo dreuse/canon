@@ -1,6 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Route, matchPath, useHistory, useLocation } from "react-router-dom";
+import {
+  Route,
+  matchPath,
+  useHistory,
+  useLocation,
+  useRouteMatch,
+} from "react-router-dom";
 import {
   RightSidebarWrappedContext,
   useSetRightSidebar,
@@ -9,6 +15,7 @@ import Aside from "~/components/Sidebar/Aside";
 import PlaceholderText from "~/components/PlaceholderText";
 import { useSplitView } from "~/components/SplitView/context";
 import useMobile from "~/hooks/useMobile";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import {
@@ -17,6 +24,10 @@ import {
   matchDocumentSlug,
 } from "~/utils/routeHelpers";
 import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
+import {
+  CommentsRail,
+  CommentsRailWidth,
+} from "~/scenes/Document/components/Comments/CommentsRail";
 
 const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/Comments")
@@ -38,10 +49,37 @@ interface DocumentSidebarContentProps {
 const DocumentSidebarContent = observer(function DocumentSidebarContent({
   skipInitialAnimation,
 }: DocumentSidebarContentProps) {
-  const { ui } = useStores();
+  const { ui, comments, documents } = useStores();
   const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
   const panel = ui.getRightSidebar(pane);
+
+  const slugMatch = useRouteMatch<{ documentSlug: string }>({
+    path: `/doc/${matchDocumentSlug}`,
+  });
+  const document = slugMatch
+    ? documents.get(slugMatch.params.documentSlug)
+    : undefined;
+
+  const handleExpand = React.useCallback(
+    () => ui.setRightSidebar("comments", pane),
+    [ui, pane]
+  );
+
+  if (!isMobile && panel === null) {
+    return (
+      <Aside width={CommentsRailWidth}>
+        <CommentsRail
+          threadCount={
+            document
+              ? comments.unresolvedThreadsInDocument(document.id).length
+              : 0
+          }
+          onExpand={handleExpand}
+        />
+      </Aside>
+    );
+  }
 
   const inner = (
     <Route path={`/doc/${matchDocumentSlug}`}>
@@ -87,14 +125,23 @@ export default function useDocumentSidebar() {
   const paneHistory = useHistory();
   const { pane } = useSplitView();
   const setSidebar = useSetRightSidebar();
+  const isMobile = useMobile();
   const isHistoryRoute = !!matchPath(location.pathname, {
     path: matchDocumentHistory,
   });
+  const documentMatch = matchPath<{ documentSlug: string }>(location.pathname, {
+    path: `/doc/${matchDocumentSlug}`,
+  });
+  const can = usePolicy(
+    documentMatch ? documents.get(documentMatch.params.documentSlug) : undefined
+  );
   const panel = ui.getRightSidebar(pane);
   // A history panel outside of a history route is closed by the effect below,
   // so it is treated as closed here – otherwise the sidebar renders open for a
   // frame and then animates away again.
-  const isOpen = panel !== null && (panel !== "history" || isHistoryRoute);
+  const isOpen =
+    (panel !== null && (panel !== "history" || isHistoryRoute)) ||
+    (!isMobile && !!can.comment);
   const wasOpenRef = React.useRef(isOpen);
 
   React.useEffect(() => {

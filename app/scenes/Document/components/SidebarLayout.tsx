@@ -31,7 +31,13 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   scrollable?: boolean;
 };
 
-function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
+function SidebarLayout({
+  title,
+  onClose,
+  children,
+  className,
+  scrollable = true,
+}: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
   const isWrapped = React.useContext(RightSidebarWrappedContext);
@@ -49,7 +55,7 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   if (isMobile) {
     return (
       <Drawer onClose={onClose} defaultOpen>
-        <DrawerContent ref={setDrawerElement}>
+        <DrawerContent ref={setDrawerElement} className={className}>
           <DrawerTitle>{title}</DrawerTitle>
           <PortalContext.Provider value={drawerElement}>
             {content}
@@ -60,7 +66,7 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   }
 
   const inner = (
-    <>
+    <Container className={className}>
       <Header>
         <Title>{title}</Title>
         <Tooltip content={t("Close")} shortcut="Esc">
@@ -73,7 +79,7 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
         </Tooltip>
       </Header>
       {content}
-    </>
+    </Container>
   );
 
   if (isWrapped) {
@@ -82,6 +88,13 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
 
   return <Aside>{inner}</Aside>;
 }
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+`;
 
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);

@@ -8,14 +8,7 @@ import { InputSelect } from "~/components/InputSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { CommentSortType } from "~/types";
 
-type Props = {
-  /** Callback when the sort type changes */
-  onChange?: (sortType: CommentSortType | "resolved") => void;
-  /** Whether resolved comments are being viewed */
-  viewingResolved?: boolean;
-};
-
-const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
+const CommentSortMenu = () => {
   const { t } = useTranslation();
   const user = useCurrentUser();
 
@@ -25,23 +18,17 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
     ? CommentSortType.OrderInDocument
     : CommentSortType.MostRecent;
 
-  const value = viewingResolved ? "resolved" : preferredSortType;
-
   const handleChange = React.useCallback(
-    (val: CommentSortType | "resolved") => {
-      if (val !== "resolved") {
-        if (val !== preferredSortType) {
-          user.setPreference(
-            UserPreference.SortCommentsByOrderInDocument,
-            val === CommentSortType.OrderInDocument
-          );
-          void user.save();
-        }
+    (val: CommentSortType) => {
+      if (val !== preferredSortType) {
+        user.setPreference(
+          UserPreference.SortCommentsByOrderInDocument,
+          val === CommentSortType.OrderInDocument
+        );
+        void user.save();
       }
-
-      onChange?.(val);
     },
-    [user, onChange, preferredSortType]
+    [user, preferredSortType]
   );
 
   const options: Option[] = React.useMemo(
@@ -49,21 +36,13 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
       [
         {
           type: "item",
-          label: t("Most recent"),
+          label: t("Recent"),
           value: CommentSortType.MostRecent,
         },
         {
           type: "item",
           label: t("Order in doc"),
           value: CommentSortType.OrderInDocument,
-        },
-        {
-          type: "separator",
-        },
-        {
-          type: "item",
-          label: t("Resolved"),
-          value: "resolved",
         },
       ] satisfies Option[],
     [t]
@@ -72,7 +51,7 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
   return (
     <Select
       options={options}
-      value={value}
+      value={preferredSortType}
       onChange={handleChange}
       label={t("Sort comments")}
       labelHidden
@@ -82,6 +61,7 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
 };
 
 const Select = styled(InputSelect)`
+  min-width: 0;
   color: ${s("textSecondary")};
 `;
 

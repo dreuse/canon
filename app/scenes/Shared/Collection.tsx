@@ -20,6 +20,7 @@ import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { collectionPath } from "~/utils/routeHelpers";
+import { CollectionOrder } from "../Collection/components/Navigation";
 import Overview from "../Collection/components/Overview";
 import { AppearanceAction } from "~/components/Sharing/components/Actions";
 
@@ -84,7 +85,12 @@ function SharedCollection({ collection }: Props) {
             </SharedMeta>
           ) : null}
         </Flex>
-        <Overview collection={collection} key={collection.id} readOnly />
+        <Overview
+          collection={collection}
+          key={collection.id}
+          order={CollectionOrder.Structure}
+          readOnly
+        />
       </CenteredContent>
     </Scene>
   );

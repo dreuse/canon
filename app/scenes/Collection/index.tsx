@@ -1,31 +1,24 @@
 import { observer } from "mobx-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useParams,
-  Switch,
-  Route,
   useHistory,
   useRouteMatch,
   useLocation,
-  Redirect,
 } from "react-router-dom";
 import styled from "styled-components";
 import { toError } from "@shared/utils/error";
-import { s } from "@shared/styles";
-import { StatusFilter } from "@shared/types";
-import type Collection from "~/models/Collection";
-import type DocumentsStore from "~/stores/DocumentsStore";
+import { hairline, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";
-import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
-import Scene from "~/components/Scene";
+import Scene, { SceneMeasure } from "~/components/Scene";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
@@ -35,23 +28,19 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { NotFoundError } from "~/utils/errors";
 import {
-  collectionEditPath,
-  collectionPath,
   matchCollectionEdit,
   updateCollectionPath,
 } from "~/utils/routeHelpers";
 import Error404 from "../Errors/Error404";
 import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
-import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
-import Navigation, { CollectionTab } from "./components/Navigation";
+import Navigation, { CollectionOrder } from "./components/Navigation";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 
 const CollectionScene = observer(function CollectionScene_() {
   const params = useParams<{ collectionSlug?: string }>();
@@ -72,18 +61,20 @@ const CollectionScene = observer(function CollectionScene_() {
 
   const collection = collections.get(id);
   const can = usePolicy(collection);
-  const hasDescription = collection?.data
-    ? !ProsemirrorDataHelper.isEmpty(collection.data)
-    : false;
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
 
-  const [collectionTab, setCollectionTab] = usePersistedState<CollectionTab>(
-    `collection-tab:${collection?.id}`,
-    hasDescription ? CollectionTab.Overview : CollectionTab.Recent,
+  const [order, setOrder] = usePersistedState<CollectionOrder>(
+    `collection-order:${collection?.id}`,
+    CollectionOrder.Structure,
     {
       listen: false,
     }
+  );
+
+  const handleShowOldest = useCallback(
+    () => setOrder(CollectionOrder.Old),
+    [setOrder]
   );
 
   useEffect(() => {
@@ -121,6 +112,10 @@ const CollectionScene = observer(function CollectionScene_() {
   }, []);
 
   useEffect(() => {
+    void collection?.fetchDocuments();
+  }, [collection]);
+
+  useEffect(() => {
     if (collection) {
       shares.fetchOne({ collectionId: collection.id }).catch((err) => {
         if (!(err instanceof NotFoundError)) {
@@ -138,8 +133,6 @@ const CollectionScene = observer(function CollectionScene_() {
   if (!collection) {
     return <Loading />;
   }
-
-  const showOverview = can.update || hasDescription;
 
   return (
     <Scene
@@ -179,160 +172,32 @@ const CollectionScene = observer(function CollectionScene_() {
         disabled={!can.createDocument}
         collectionId={collection.id}
       >
-        <CenteredContent withStickyHeader>
+        <CenteredContent withStickyHeader maxWidth={SceneMeasure.index}>
           <Notices collection={collection} />
-          <Header
-            collection={collection}
-            isEditing={isEditRoute || !user?.separateEditMode}
-          />
+          <HeaderRow>
+            <Header
+              collection={collection}
+              isEditing={isEditRoute || !user?.separateEditMode}
+            />
+            <Navigation
+              collection={collection}
+              order={order}
+              onChangeOrder={setOrder}
+            />
+          </HeaderRow>
 
           <PinnedDocuments pins={pins} placeholderCount={count} />
 
           <Content>
-            <Navigation
+            <Overview
               collection={collection}
-              onChangeTab={setCollectionTab}
-              showOverview={showOverview}
-              sidebarContext={sidebarContext}
+              order={order}
+              showStatus
+              onShowOldest={handleShowOldest}
+              readOnly={
+                !can.update || (!isEditRoute && !!user?.separateEditMode)
+              }
             />
-            <Switch>
-              <Route path={collectionPath(collection)} exact>
-                <Redirect
-                  to={{
-                    pathname: collectionPath(collection!, collectionTab),
-                    state: { sidebarContext },
-                  }}
-                />
-              </Route>
-              <Route
-                path={[
-                  collectionPath(collection, CollectionTab.Overview),
-                  collectionEditPath(collection),
-                ]}
-              >
-                {showOverview ? (
-                  <Overview
-                    collection={collection}
-                    readOnly={
-                      !can.update || (!isEditRoute && !!user?.separateEditMode)
-                    }
-                  />
-                ) : (
-                  <Redirect
-                    to={{
-                      pathname: collectionPath(
-                        collection,
-                        CollectionTab.Recent
-                      ),
-                      state: { sidebarContext },
-                    }}
-                  />
-                )}
-              </Route>
-              {collection.isEmpty ? (
-                <Empty collection={collection} />
-              ) : !collection.isArchived ? (
-                <>
-                  <Route
-                    path={collectionPath(
-                      collection,
-                      CollectionTab.Alphabetical
-                    )}
-                  >
-                    <PaginatedDocumentList
-                      key="alphabetical"
-                      documents={documents.alphabeticalInCollection(
-                        collection.id
-                      )}
-                      fetch={documents.fetchAlphabetical}
-                      options={{
-                        collectionId: collection.id,
-                      }}
-                    />
-                  </Route>
-                  <Route path={collectionPath(collection, CollectionTab.Old)}>
-                    <PaginatedDocumentList
-                      key="old"
-                      documents={documents.leastRecentlyUpdatedInCollection(
-                        collection.id
-                      )}
-                      fetch={documents.fetchLeastRecentlyUpdated}
-                      options={{
-                        collectionId: collection.id,
-                      }}
-                    />
-                  </Route>
-                  <Route
-                    path={collectionPath(collection, CollectionTab.Published)}
-                  >
-                    <PaginatedDocumentList
-                      key="published"
-                      documents={documents.recentlyPublishedInCollection(
-                        collection.id
-                      )}
-                      fetch={documents.fetchRecentlyPublished}
-                      options={{
-                        collectionId: collection.id,
-                      }}
-                      showPublished
-                    />
-                  </Route>
-                  <Route
-                    path={collectionPath(collection, CollectionTab.Updated)}
-                  >
-                    <PaginatedDocumentList
-                      key="updated"
-                      documents={documents.recentlyUpdatedInCollection(
-                        collection.id
-                      )}
-                      fetch={documents.fetchRecentlyUpdated}
-                      options={{
-                        collectionId: collection.id,
-                      }}
-                    />
-                  </Route>
-                  <Route
-                    path={collectionPath(collection, CollectionTab.Popular)}
-                  >
-                    <PaginatedDocumentList
-                      key="popular"
-                      documents={documents.popularInCollection(collection.id)}
-                      fetch={documents.fetchPopular}
-                      options={{
-                        collectionId: collection.id,
-                      }}
-                    />
-                  </Route>
-                  <Route
-                    path={collectionPath(collection, CollectionTab.Recent)}
-                    exact
-                  >
-                    <RecentDocuments
-                      collection={collection}
-                      documents={documents}
-                    />
-                  </Route>
-                </>
-              ) : (
-                <Route
-                  path={collectionPath(collection, CollectionTab.Recent)}
-                  exact
-                >
-                  <PaginatedDocumentList
-                    documents={documents.archivedInCollection(collection.id)}
-                    fetch={documents.fetchPage}
-                    options={{
-                      collectionId: collection.id,
-                      parentDocumentId: null,
-                      sort: collection.sort.field,
-                      direction: collection.sort.direction,
-                      statusFilter: [StatusFilter.Archived],
-                    }}
-                    showParentDocuments
-                  />
-                </Route>
-              )}
-            </Switch>
           </Content>
         </CenteredContent>
       </DropToImport>
@@ -350,44 +215,26 @@ const Loading = () => (
 );
 
 const KeyedCollection = () => {
-  const params = useParams<{ id?: string }>();
+  const params = useParams<{ collectionSlug?: string }>();
 
   // Forced mount prevents animation of pinned documents when navigating
   // _between_ collections, speeds up perceived performance.
-  return <CollectionScene key={params.id} />;
+  return <CollectionScene key={params.collectionSlug?.split("-").pop()} />;
 };
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
+  margin: 28px 0 16px;
+  border-bottom: 1px solid ${hairline};
+`;
 
 const Content = styled.div`
   position: relative;
   background: ${s("background")};
 `;
-
-const RecentDocuments = observer(
-  ({
-    collection,
-    documents,
-  }: {
-    collection: Collection;
-    documents: DocumentsStore;
-  }) => {
-    useEffect(() => {
-      void collection.fetchDocuments();
-    }, [collection]);
-
-    return (
-      <PaginatedDocumentList
-        documents={documents.rootInCollection(collection.id)}
-        fetch={documents.fetchPage}
-        options={{
-          collectionId: collection.id,
-          parentDocumentId: null,
-          sort: collection.sort.field,
-          direction: collection.sort.direction,
-        }}
-        showParentDocuments
-      />
-    );
-  }
-);
 
 export default KeyedCollection;

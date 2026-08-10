@@ -2,10 +2,10 @@ import { observer } from "mobx-react";
 import { useEffect, useRef, Fragment, useMemo, useState } from "react";
 import { Trans } from "react-i18next";
 import styled from "styled-components";
+import { hover, s } from "@shared/styles";
 import type Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import { determineSidebarContext } from "~/components/Sidebar/components/SidebarContext";
-import { Tab, Tabs } from "~/components/Tabs";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
@@ -44,32 +44,33 @@ function References({ document }: Props) {
   const showChildDocuments = !!children.length;
   const shouldFade = useRef(!showBacklinks && !showChildDocuments);
   const isBacklinksTab = activeTab === "backlinks" || !showChildDocuments;
-  const height = Math.max(backlinks.length, children.length) * 40;
   const Component = shouldFade.current ? Fade : Fragment;
 
   return showBacklinks || showChildDocuments ? (
     <Component>
-      <Tabs>
+      <SectionHeader>
         {showChildDocuments && (
-          <Tab
-            active={!isBacklinksTab}
+          <SectionTab
+            type="button"
+            $active={!isBacklinksTab}
             onClick={() => setActiveTab("children")}
           >
             <Trans>Documents</Trans>
-          </Tab>
+          </SectionTab>
         )}
         {showBacklinks && (
-          <Tab
-            active={isBacklinksTab}
+          <SectionTab
+            type="button"
+            $active={isBacklinksTab}
             onClick={() => setActiveTab("backlinks")}
           >
             <Trans>Backlinks</Trans>
-          </Tab>
+          </SectionTab>
         )}
-      </Tabs>
-      <Content style={{ height }}>
-        {showBacklinks && (
-          <List $active={isBacklinksTab}>
+      </SectionHeader>
+      <Content>
+        {showBacklinks && isBacklinksTab && (
+          <List>
             {backlinks.map((node) => {
               // If we have the document in the store already then use it to get the extra
               // contextual info, otherwise the collection node will do (only has title and id)
@@ -96,8 +97,8 @@ function References({ document }: Props) {
             })}
           </List>
         )}
-        {showChildDocuments && (
-          <List $active={!isBacklinksTab}>
+        {showChildDocuments && !isBacklinksTab && (
+          <List>
             {children.map((node) => {
               // If we have the document in the store already then use it to get the extra
               // contextual info, otherwise the collection node will do (only has title and id)
@@ -175,12 +176,33 @@ const Content = styled.div`
   position: relative;
 `;
 
-const List = styled.ul<{ $active: boolean }>`
-  visibility: ${({ $active }) => ($active ? "visible" : "hidden")};
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+const SectionHeader = styled.div`
+  display: flex;
+  gap: 20px;
+  margin-block: 0 4px;
+  padding-block-end: 8px;
+  border-block-end: 1px solid ${s("divider")};
+`;
+
+const SectionTab = styled.button<{ $active: boolean }>`
+  padding: 0;
+  border: 0;
+  background: none;
+  color: ${(props) =>
+    props.$active ? props.theme.text : props.theme.textTertiary};
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: var(--pointer);
+
+  &: ${hover} {
+    color: ${s("text")};
+  }
+`;
+
+const List = styled.ul`
   list-style: none;
   margin: 0;
   padding: 0;

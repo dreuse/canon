@@ -1,7 +1,6 @@
 import { differenceInMilliseconds } from "date-fns";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
-import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -17,21 +16,17 @@ import type Comment from "~/models/Comment";
 import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
-import NudeButton from "~/components/NudeButton";
 import ReactionList from "~/components/Reactions/ReactionList";
 import ReactionPicker from "~/components/Reactions/ReactionPicker";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import Tooltip from "~/components/Tooltip";
-import { resolveCommentActionFactory } from "~/actions/definitions/comments";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
-import { HighlightedText } from "./HighlightText";
 import { useDocumentContext } from "~/components/DocumentContext";
 
 /**
@@ -87,8 +82,7 @@ type Props = {
   onDelete?: (id: string) => void;
   /** Callback when the comment has been updated */
   onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
-  /** Text to highlight at the top of the comment */
-  highlightedText?: string;
+  hideActions?: boolean;
   /** Whether to force the comment into edit mode */
   forceEdit?: boolean;
   /** Callback when edit mode starts */
@@ -106,7 +100,7 @@ function CommentThreadItem({
   canReply,
   onDelete,
   onUpdate,
-  highlightedText,
+  hideActions,
   forceEdit,
   onEditStart,
   onEditEnd,
@@ -204,7 +198,7 @@ function CommentThreadItem({
           <Avatar model={comment.createdBy} size={24} />
         </AvatarSpacer>
       )}
-      <Bubble
+      <Message
         $firstOfThread={firstOfThread}
         $firstOfAuthor={firstOfAuthor}
         $lastOfThread={lastOfThread}
@@ -225,9 +219,6 @@ function CommentThreadItem({
               </>
             )}
           </Meta>
-        )}
-        {highlightedText && (
-          <HighlightedText>{highlightedText}</HighlightedText>
         )}
         <Body ref={formRef} onSubmit={handleSubmit}>
           <React.Suspense fallback={null}>
@@ -275,19 +266,14 @@ function CommentThreadItem({
           </ResizingHeightContainer>
         </Body>
         <EventBoundary>
-          {!isEditing && (
+          {!isEditing && !hideActions && (
             <Actions gap={4}>
               {!comment.isResolved && (
-                <>
-                  {firstOfThread && (
-                    <ResolveButton onUpdate={handleUpdate} comment={comment} />
-                  )}
-                  <Action
-                    as={ReactionPicker}
-                    onSelect={handleAddReaction}
-                    $rounded
-                  />
-                </>
+                <Action
+                  as={ReactionPicker}
+                  onSelect={handleAddReaction}
+                  $rounded
+                />
               )}
               <Action
                 as={CommentMenu}
@@ -302,41 +288,16 @@ function CommentThreadItem({
             </Actions>
           )}
         </EventBoundary>
-      </Bubble>
+      </Message>
     </Flex>
   );
 }
-
-const ResolveButton = ({
-  comment,
-  onUpdate,
-}: {
-  comment: Comment;
-  onUpdate: (attrs: { resolved: boolean }) => void;
-}) => {
-  const { t } = useTranslation();
-
-  return (
-    <Tooltip content={t("Mark as resolved")} placement="top">
-      <Action
-        as={NudeButton}
-        action={resolveCommentActionFactory({
-          comment,
-          onResolve: () => onUpdate({ resolved: true }),
-        })}
-        $rounded
-      >
-        <DoneIcon size={22} outline />
-      </Action>
-    </Tooltip>
-  );
-};
 
 const StyledCommentEditor = styled(CommentEditor)`
   ${(props) =>
     !props.readOnly &&
     css`
-      box-shadow: 0 0 0 2px ${props.theme.accent};
+      box-shadow: 0 0 0 2px ${props.theme.inputBorderFocused};
       border-radius: 2px;
       padding: 2px;
       margin: 2px;
@@ -390,7 +351,7 @@ const Actions = styled(Flex)`
   inset-inline-end: 4px;
   top: 4px;
   transition: opacity 100ms ease-in-out;
-  background: ${s("backgroundSecondary")};
+  background: ${s("commentCardBackground")};
   padding-inline-start: 4px;
 
   ${breakpoint("tablet")`
@@ -426,24 +387,14 @@ export const Bubble = styled(Flex)<{
   flex-grow: 1;
   font-size: 16px;
   color: ${s("text")};
-  background: ${s("backgroundSecondary")};
+  background: ${s("commentCardBackground")};
+  border: 1px solid ${s("divider")};
+  border-radius: 10px;
   min-width: 2em;
-  margin-bottom: 1px;
   padding: 8px 12px;
   transition:
     color 100ms ease-out,
     background 100ms ease-out;
-
-  ${({ $lastOfThread, $canReply }) =>
-    $lastOfThread &&
-    !$canReply &&
-    "border-end-start-radius: 8px; border-end-end-radius: 8px"};
-
-  ${({ $firstOfThread }) =>
-    $firstOfThread &&
-    "border-start-start-radius: 8px; border-start-end-radius: 8px"};
-
-  margin-inline-start: ${(props) => (props.$firstOfAuthor ? 0 : 32)}px;
 
   p:last-child {
     margin-bottom: 0;
@@ -456,6 +407,14 @@ export const Bubble = styled(Flex)<{
   ${breakpoint("tablet")`
     font-size: 15px;
   `}
+`;
+
+const Message = styled(Bubble)`
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding-block: 2px 6px;
+  margin-inline-start: ${(props) => (props.$firstOfAuthor ? 0 : 32)}px;
 `;
 
 export default observer(CommentThreadItem);

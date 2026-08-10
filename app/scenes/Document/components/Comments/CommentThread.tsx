@@ -1,11 +1,12 @@
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { darken } from "polished";
+import { DoneIcon } from "outline-icons";
+import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -15,7 +16,13 @@ import { AvatarSize } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
+import ReactionPicker from "~/components/Reactions/ReactionPicker";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import Tooltip from "~/components/Tooltip";
+import { resolveCommentActionFactory } from "~/actions/definitions/comments";
+import CommentMenu from "~/menus/CommentMenu";
 import useBoolean from "~/hooks/useBoolean";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
@@ -25,6 +32,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
+import { HighlightedText } from "./HighlightText";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 type Props = {
@@ -119,6 +127,21 @@ function CommentThread({
   const handleClickThread = () => {
     setFocusedCommentId(thread.id);
   };
+
+  const handleThreadUpdate = React.useCallback(
+    (attrs: { resolved: boolean }) => {
+      editor?.updateComment(thread.id, attrs);
+      setFocusedCommentId(null);
+    },
+    [editor, thread.id, setFocusedCommentId]
+  );
+
+  const handleAddReaction = React.useCallback(
+    async (emoji: string) => {
+      await thread.addReaction({ emoji, user });
+    },
+    [thread, user]
+  );
 
   const handleClickExpand = (ev: React.SyntheticEvent) => {
     ev.stopPropagation();
@@ -239,6 +262,21 @@ function CommentThread({
       {/* The entrance transform lives on an inner element so it does not
           conflict with the layout projection transform on Thread, which
           would otherwise skew the thread during layout animations. */}
+      {thread.isResolved && (
+        <ResolvedBanner align="center" gap={6}>
+          <DoneIcon size={18} />
+          {thread.resolvedBy
+            ? t("Resolved by {{ userName }}", {
+                userName: thread.resolvedBy.name,
+              })
+            : t("Resolved")}
+        </ResolvedBanner>
+      )}
+      {highlightedText && (
+        <HighlightedText $expanded={focused}>
+          <span>{highlightedText}</span>
+        </HighlightedText>
+      )}
       <ThreadInner
         initial={animateIn ? { opacity: 0, y: 10 } : false}
         animate={{ opacity: 1, y: 0 }}
@@ -263,7 +301,7 @@ function CommentThread({
 
           return (
             <CommentThreadItem
-              highlightedText={index === 0 ? highlightedText : undefined}
+              hideActions={index === 0}
               comment={comment}
               onDelete={editor?.removeComment}
               onUpdate={editor?.updateComment}
@@ -292,17 +330,50 @@ function CommentThread({
                 thread={thread}
                 standalone={commentsInThread.length === 0}
                 autoFocus={autoFocus}
-                highlightedText={
-                  commentsInThread.length === 0 ? highlightedText : undefined
-                }
                 onUpArrowAtStart={handleUpArrowAtStart}
               />
             </Fade>
           )}
         </ResizingHeightContainer>
       </ThreadInner>
-      {!focused && !recessed && !draft && canReply && (
-        <Reply onClick={setAutoFocusOn}>{t("Reply")}…</Reply>
+      {!focused && !draft && commentsInThread.length > 0 && (
+        <Footer align="center" justify="space-between" gap={8}>
+          {canReply ? (
+            <Reply onClick={setAutoFocusOn}>{t("Reply")}…</Reply>
+          ) : (
+            <span />
+          )}
+          <EventBoundary>
+            <Flex gap={2}>
+              {!thread.isResolved && (
+                <>
+                  <Tooltip content={t("Mark as resolved")} placement="top">
+                    <ThreadAction
+                      as={NudeButton}
+                      action={resolveCommentActionFactory({
+                        comment: thread,
+                        onResolve: () => handleThreadUpdate({ resolved: true }),
+                      })}
+                    >
+                      <DoneIcon size={20} outline />
+                    </ThreadAction>
+                  </Tooltip>
+                  <ThreadAction
+                    as={ReactionPicker}
+                    onSelect={handleAddReaction}
+                  />
+                </>
+              )}
+              <ThreadAction
+                as={CommentMenu}
+                comment={thread}
+                onEdit={() => handleCommentEditStart(thread.id)}
+                onDelete={() => editor?.removeComment(thread.id)}
+                onUpdate={handleThreadUpdate}
+              />
+            </Flex>
+          </EventBoundary>
+        </Footer>
       )}
     </Thread>
   );
@@ -310,44 +381,77 @@ function CommentThread({
 
 const Reply = styled.button`
   border: 0;
-  padding: 8px;
+  padding: 0;
   margin: 0;
   background: none;
   color: ${s("textTertiary")};
   font-size: 14px;
   -webkit-appearance: none;
   cursor: var(--pointer);
-  transition: opacity 100ms ease-out;
-  position: absolute;
   text-align: start;
-  width: 100%;
-  bottom: -30px;
-  inset-inline-start: 32px;
+  flex-grow: 1;
 
-  ${breakpoint("tablet")`
-    opacity: 0;
-  `}
+  &: ${hover} {
+    color: ${s("textSecondary")};
+  }
+`;
+
+const Footer = styled(Flex)`
+  padding: 6px 8px 6px 14px;
+  border-top: 1px solid ${s("divider")};
+`;
+
+const ThreadAction = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: ${s("textTertiary")};
+
+  svg {
+    fill: currentColor;
+  }
+
+  &[aria-expanded="true"],
+  &:${hover} {
+    background: ${s("sidebarHoverBackground")};
+    color: ${s("textSecondary")};
+  }
+`;
+
+const ResolvedBanner = styled(Flex)`
+  padding: 7px 12px;
+  background: ${s("sidebarBackground")};
+  color: ${s("freshText")};
+  font-size: 13px;
+  font-weight: 500;
+
+  svg {
+    fill: currentColor;
+    flex-shrink: 0;
+  }
 `;
 
 const ShowMore = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1px;
+  margin-block: 4px;
   margin-inline-start: 32px;
-  padding: 8px 12px;
-  color: ${s("textTertiary")};
-  background: ${(props) => darken(0.015, props.theme.backgroundSecondary)};
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: ${s("textTertiaryOnTint")};
+  background: ${s("sidebarBackground")};
   cursor: var(--pointer);
   font-size: 13px;
 
   &: ${hover} {
     color: ${s("textSecondary")};
-    background: ${s("backgroundTertiary")};
+    background: ${s("sidebarHoverBackground")};
   }
 
   * {
-    border-color: ${(props) => darken(0.015, props.theme.backgroundSecondary)};
+    border-color: ${s("sidebarBackground")};
   }
 `;
 
@@ -355,26 +459,33 @@ const Thread = styled(m.div)<{
   $focused: boolean;
   $recessed: boolean;
 }>`
-  margin: 12px 12px 32px;
-  margin-inline-end: 18px;
-  margin-inline-start: 12px;
+  margin-block: 0 10px;
+  margin-inline: 12px 18px;
   position: relative;
-  transition: opacity 100ms ease-out;
+  background: ${s("commentCardBackground")};
+  border: 1px solid ${s("divider")};
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    opacity 100ms ease-out,
+    box-shadow 100ms ease-out;
 
-  &: ${hover} {
-    ${Reply} {
-      opacity: 1;
-    }
-  }
+  ${(props) =>
+    props.$focused &&
+    css`
+      box-shadow: 0 2px 10px ${transparentize(0.94, props.theme.text)};
+    `}
 
   ${(props) =>
     props.$recessed &&
     css`
-      opacity: 0.35;
+      opacity: 0.5;
       cursor: default;
     `}
 `;
 
-const ThreadInner = styled(m.div)``;
+const ThreadInner = styled(m.div)`
+  padding: 10px 12px;
+`;
 
 export default observer(CommentThread);

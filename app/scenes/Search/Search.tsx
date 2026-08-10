@@ -8,6 +8,8 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
+import { s } from "@shared/styles";
+import { metaDisplay } from "@shared/utils/keyboard";
 import type {
   SortFilter as TSortFilter,
   DirectionFilter as TDirectionFilter,
@@ -32,6 +34,7 @@ import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
+import { queryIsInTitle } from "~/utils/searchContext";
 import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
@@ -153,6 +156,29 @@ function Search() {
     limit: Pagination.defaultLimit,
   });
 
+  // A title match and a passing mention answer the query differently, so they
+  // are shown as two groups rather than one ranked list.
+  // ponytail: regrouping runs over every page loaded so far, which can move an
+  // earlier row down as the next page arrives. Fix by grouping per page if it
+  // proves distracting.
+  const [titleMatches, textMatches] = React.useMemo(() => {
+    const inTitle: SearchResult[] = [];
+    const inText: SearchResult[] = [];
+    for (const result of data ?? []) {
+      (queryIsInTitle(result.document.title, query) ? inTitle : inText).push(
+        result
+      );
+    }
+    return [inTitle, inText];
+  }, [data, query]);
+
+  const isGrouped = titleMatches.length > 0 && textMatches.length > 0;
+  const groupedData = React.useMemo(
+    () => [...titleMatches, ...textMatches],
+    [titleMatches, textMatches]
+  );
+  const total = documents.searchTotal ?? data?.length;
+
   // Only updatable documents are selectable, matching the per-item checkboxes.
   const itemIds = React.useMemo(
     () =>
@@ -245,7 +271,7 @@ function Search() {
         }
       }
 
-      const firstItem = (resultListRef.current?.firstElementChild ??
+      const firstItem = (resultListRef.current?.querySelector("a") ??
         recentSearchesRef.current?.firstElementChild) as HTMLAnchorElement;
 
       firstItem?.focus();
@@ -254,6 +280,17 @@ function Search() {
 
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
+
+  const renderResult = (result: SearchResult) => (
+    <DocumentListItem
+      key={result.document.id}
+      document={result.document}
+      highlight={query}
+      context={result.context}
+      showCollection
+      showPath
+    />
+  );
 
   const sortInput = filterVisibility.sort ? (
     <SortInput
@@ -265,6 +302,7 @@ function Search() {
 
   return (
     <Scene
+      measure="index"
       textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
       actions={isMobile ? sortInput : null}
     >
@@ -284,10 +322,16 @@ function Search() {
                   : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
+            onClear={() => updateLocation("")}
             defaultValue={query ?? ""}
           />
           <Filters>
             <Flex align="center" gap={4} wrap>
+              {isSearchable && data && (
+                <ResultCount>
+                  {t("{{count}} result", { count: total ?? 0 })}
+                </ResultCount>
+              )}
               {filterVisibility.document && (
                 <DocumentFilter
                   document={document!}
@@ -372,20 +416,27 @@ function Search() {
                   ref={resultListRef}
                   onEscape={handleEscape}
                   aria-label={t("Search Results")}
-                  items={data ?? []}
+                  items={groupedData}
                 >
                   {() =>
-                    data?.length && !error
-                      ? data.map((result) => (
-                          <DocumentListItem
-                            key={result.document.id}
-                            document={result.document}
-                            highlight={query}
-                            context={result.context}
-                            showCollection
-                          />
-                        ))
-                      : null
+                    groupedData.length && !error ? (
+                      <>
+                        {isGrouped && (
+                          <GroupHeading>
+                            {t("In the title")}
+                            <GroupCount>{titleMatches.length}</GroupCount>
+                          </GroupHeading>
+                        )}
+                        {titleMatches.map(renderResult)}
+                        {isGrouped && (
+                          <GroupHeading>
+                            {t("Mentioned in the text")}
+                            <GroupCount>{textMatches.length}</GroupCount>
+                          </GroupHeading>
+                        )}
+                        {textMatches.map(renderResult)}
+                      </>
+                    ) : null
                   }
                 </StyledArrowKeyNavigation>
                 <Waypoint
@@ -393,6 +444,22 @@ function Search() {
                   onEnter={end || loading ? undefined : next}
                   debug={env.ENVIRONMENT === "development"}
                 />
+                {groupedData.length > 0 && !error && (
+                  <Footer align="center" justify="space-between">
+                    <span>
+                      {total !== undefined && groupedData.length < total
+                        ? t("Showing {{shown}} of {{total}}", {
+                            shown: groupedData.length,
+                            total,
+                          })
+                        : null}
+                    </span>
+                    <span>
+                      {t("↑ ↓ to move")} · {t("↵ to open")} ·{" "}
+                      {t("{{meta}}↵ in a new tab", { meta: metaDisplay })}
+                    </span>
+                  </Footer>
+                )}
               </ResultList>
             </ModelSelectionProvider>
           </>
@@ -437,6 +504,45 @@ const Filters = styled(HStack)`
   ${breakpoint("tablet")`
     padding: 0;
   `};
+`;
+
+const ResultCount = styled.span`
+  color: ${s("textTertiary")};
+  font-size: 14px;
+  white-space: nowrap;
+  margin-inline-end: 8px;
+`;
+
+const GroupHeading = styled.h2`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 4px;
+  padding: 0 8px;
+  color: ${s("textTertiary")};
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &:first-child {
+    margin-top: 8px;
+  }
+`;
+
+const GroupCount = styled.span`
+  font-weight: 400;
+  letter-spacing: 0;
+`;
+
+const Footer = styled(Flex)`
+  margin-top: 16px;
+  padding: 12px 8px 0;
+  border-top: 1px solid ${s("divider")};
+  color: ${s("textTertiary")};
+  font-size: 13px;
+  gap: 8px;
+  flex-wrap: wrap;
 `;
 
 const SearchTitlesFilter = styled(Switch)`

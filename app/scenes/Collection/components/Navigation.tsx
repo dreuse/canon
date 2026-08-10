@@ -1,13 +1,11 @@
 import { observer } from "mobx-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type Collection from "~/models/Collection";
-import { Tab, Tabs } from "~/components/Tabs";
-import { collectionPath } from "~/utils/routeHelpers";
-import { type SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
+import FilterOptions from "~/components/FilterOptions";
 
-export enum CollectionTab {
-  Overview = "overview",
-  Recent = "recent",
+export enum CollectionOrder {
+  Structure = "structure",
   Popular = "popular",
   Updated = "updated",
   Published = "published",
@@ -16,61 +14,44 @@ export enum CollectionTab {
 }
 
 type Props = {
-  /** The collection for which to render navigation tabs */
   collection: Collection;
-  /** Callback when the tab is changed */
-  onChangeTab: (tab: CollectionTab) => void;
-  /** Whether to show the overview tab */
-  showOverview?: boolean;
-  /** Contextual information for the sidebar */
-  sidebarContext: SidebarContextType;
+  order: CollectionOrder;
+  onChangeOrder: (order: CollectionOrder) => void;
 };
 
-/**
- * Navigation component for collection tabs, providing navigation between
- * different views of collection documents.
- */
 const Navigation = observer(function Navigation({
   collection,
-  onChangeTab,
-  showOverview,
-  sidebarContext,
+  order,
+  onChangeOrder,
 }: Props) {
   const { t } = useTranslation();
 
-  const tabProps = (path: CollectionTab) => ({
-    exact: true,
-    onClick: () => onChangeTab(path),
-    to: {
-      pathname: collectionPath(collection, path),
-      state: { sidebarContext },
-    },
-  });
+  const options = useMemo(
+    () => [
+      { key: CollectionOrder.Structure, label: t("Collection order") },
+      { key: CollectionOrder.Updated, label: t("Recently updated") },
+      { key: CollectionOrder.Published, label: t("Recently published") },
+      { key: CollectionOrder.Old, label: t("Least recently updated") },
+      { key: CollectionOrder.Popular, label: t("Popular") },
+      { key: CollectionOrder.Alphabetical, label: t("A–Z") },
+    ],
+    [t]
+  );
+
+  if (collection.isArchived) {
+    return null;
+  }
 
   return (
-    <Tabs>
-      {showOverview && (
-        <Tab {...tabProps(CollectionTab.Overview)} exact={false}>
-          {t("Overview")}
-        </Tab>
-      )}
-      <Tab {...tabProps(CollectionTab.Recent)}>{t("Documents")}</Tab>
-      {!collection.isArchived && (
-        <>
-          <Tab {...tabProps(CollectionTab.Popular)}>{t("Popular")}</Tab>
-          <Tab {...tabProps(CollectionTab.Updated)}>
-            {t("Recently updated")}
-          </Tab>
-          <Tab {...tabProps(CollectionTab.Published)}>
-            {t("Recently published")}
-          </Tab>
-          <Tab {...tabProps(CollectionTab.Old)}>
-            {t("Least recently updated")}
-          </Tab>
-          <Tab {...tabProps(CollectionTab.Alphabetical)}>{t("A–Z")}</Tab>
-        </>
-      )}
-    </Tabs>
+    <FilterOptions
+      showFilter={false}
+      showIcons={false}
+      disclosure={false}
+      options={options}
+      selectedKeys={[order]}
+      onSelect={(key) => onChangeOrder(key as CollectionOrder)}
+      defaultLabel={t("Collection order")}
+    />
   );
 });
 

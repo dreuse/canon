@@ -1,18 +1,23 @@
-import { SearchIcon } from "outline-icons";
+import { CloseIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import Flex from "~/components/Flex";
+import { VoSearchIcon } from "~/components/Icons/VobysIcons";
+import NudeButton from "~/components/NudeButton";
 
 interface Props extends React.HTMLAttributes<HTMLInputElement> {
   name: string;
   defaultValue: string;
+  onClear?: () => void;
 }
 
 function SearchInput(
-  { defaultValue, ...rest }: Props,
+  { defaultValue, onClear, ...rest }: Props,
   ref: React.RefObject<HTMLInputElement>
 ) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const focusInput = React.useCallback(() => {
     ref.current?.focus();
@@ -33,7 +38,7 @@ function SearchInput(
 
   return (
     <Wrapper align="center">
-      <StyledIcon size={46} color={theme.placeholder} onClick={focusInput} />
+      <StyledIcon size={18} color={theme.textTertiary} onClick={focusInput} />
       <StyledInput
         {...rest}
         defaultValue={defaultValue}
@@ -42,26 +47,37 @@ function SearchInput(
         type="search"
         autoFocus
       />
+      {defaultValue && onClear && (
+        <ClearButton aria-label={t("Clear")} onClick={onClear}>
+          <CloseIcon size={18} />
+        </ClearButton>
+      )}
     </Wrapper>
   );
 }
 
 const Wrapper = styled(Flex)`
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 `;
 
 const StyledInput = styled.input`
   width: 100%;
-  padding-block: 10px 10px;
-  padding-inline: 60px 10px;
-  font-size: 30px;
+  height: 44px;
+  padding-block: 0;
+  padding-inline: 42px 40px;
+  font-size: 16px;
   font-weight: 400;
   outline: none;
-  border: 0;
-  background: ${s("inputBackground")};
-  border-radius: 4px;
+  border: 1px solid ${s("inputBorder")};
+  background: ${s("background")};
+  border-radius: 10px;
   color: ${s("text")};
+  transition: border-color 100ms ease;
+
+  &:focus {
+    border-color: ${s("inputBorderFocused")};
+  }
 
   ::-webkit-search-cancel-button {
     -webkit-appearance: none;
@@ -80,10 +96,26 @@ const StyledInput = styled.input`
   }
 `;
 
-const StyledIcon = styled(SearchIcon)`
+const StyledIcon = styled(VoSearchIcon)`
   position: absolute;
-  inset-inline-start: 8px;
-  opacity: 0.7;
+  inset-inline-start: 13px;
+`;
+
+const ClearButton = styled(NudeButton)`
+  position: absolute;
+  inset-inline-end: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: ${s("textTertiary")};
+
+  &: ${hover} {
+    color: ${s("text")};
+    background: ${s("sidebarControlHoverBackground")};
+  }
 `;
 
 export default React.forwardRef(SearchInput);

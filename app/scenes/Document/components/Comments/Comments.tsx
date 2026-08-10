@@ -1,9 +1,11 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
+import { CommentIcon } from "outline-icons";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { s, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { UserPreference } from "@shared/types";
 import ButtonSmall from "~/components/ButtonSmall";
@@ -74,11 +76,13 @@ function Comments() {
       }
     : { type: CommentSortType.MostRecent };
 
-  const threads = !document
-    ? []
-    : viewingResolved
-      ? comments.resolvedThreadsInDocument(document.id, sortOption)
-      : comments.unresolvedThreadsInDocument(document.id, sortOption);
+  const openThreads = document
+    ? comments.unresolvedThreadsInDocument(document.id, sortOption)
+    : [];
+  const resolvedThreads = document
+    ? comments.resolvedThreadsInDocument(document.id, sortOption)
+    : [];
+  const threads = viewingResolved ? resolvedThreads : openThreads;
   const hasComments = threads.length > 0;
 
   const scrollToBottom = () => {
@@ -155,11 +159,23 @@ function Comments() {
               ))
             ) : (
               <NoComments align="center" justify="center" auto>
-                <PositionedEmpty>
-                  {viewingResolved
-                    ? t("No resolved comments")
-                    : t("No comments yet")}
-                </PositionedEmpty>
+                <EmptyState align="center" gap={8} column>
+                  <EmptyIcon>
+                    <CommentIcon size={24} />
+                  </EmptyIcon>
+                  <EmptyTitle>
+                    {viewingResolved
+                      ? t("No resolved comments")
+                      : t("No comments yet")}
+                  </EmptyTitle>
+                  {!viewingResolved && (
+                    <EmptyHint>
+                      {t(
+                        "Select any text in the document to start a thread, or leave a general note below."
+                      )}
+                    </EmptyHint>
+                  )}
+                </EmptyState>
               </NoComments>
             )}
             {showJumpToRecentBtn && (
@@ -191,18 +207,12 @@ function Comments() {
     );
 
   return (
-    <Sidebar
+    <TintedSidebar
       title={
         <Flex align="center" justify="space-between" gap={8} auto>
           <div style={isMobile ? { padding: "0 8px" } : undefined}>
             {t("Comments")}
           </div>
-          <CommentSortMenu
-            viewingResolved={viewingResolved}
-            onChange={(val) => {
-              setViewingResolved(val === "resolved");
-            }}
-          />
         </Flex>
       }
       onClose={() => {
@@ -211,25 +221,113 @@ function Comments() {
       }}
       scrollable={false}
     >
+      <Filters align="center" justify="space-between" gap={8}>
+        <Segmented role="group">
+          <Segment
+            $active={!viewingResolved}
+            onClick={() => setViewingResolved(false)}
+            aria-pressed={!viewingResolved}
+          >
+            {t("Open")} <Count>{openThreads.length}</Count>
+          </Segment>
+          <Segment
+            $active={viewingResolved}
+            onClick={() => setViewingResolved(true)}
+            aria-pressed={viewingResolved}
+          >
+            {t("Resolved")} <Count>{resolvedThreads.length}</Count>
+          </Segment>
+        </Segmented>
+        <CommentSortMenu />
+      </Filters>
       {content}
-    </Sidebar>
+    </TintedSidebar>
   );
 }
 
-const PositionedEmpty = styled(Empty)`
-  position: absolute;
-  top: calc(50vh - 30px);
-  transform: translateY(-50%);
+const TintedSidebar = styled(Sidebar)`
+  background: ${s("commentsBackground")};
+`;
+
+const Filters = styled(Flex)`
+  flex-shrink: 0;
+  padding: 0 12px 10px;
+`;
+
+const Segmented = styled(Flex)`
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: ${s("sidebarHoverBackground")};
+`;
+
+const Count = styled.span`
+  font-variant-numeric: tabular-nums;
+`;
+
+const Segment = styled.button<{ $active: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: var(--pointer);
+  background: ${(props) =>
+    props.$active ? props.theme.commentCardBackground : "transparent"};
+  border: 1px solid
+    ${(props) => (props.$active ? props.theme.divider : "transparent")};
+  color: ${(props) =>
+    props.$active ? props.theme.text : props.theme.textTertiaryOnTint};
+
+  ${Count} {
+    opacity: ${(props) => (props.$active ? 0.65 : 1)};
+  }
+
+  &: ${hover} {
+    color: ${s("text")};
+  }
 `;
 
 const NoComments = styled(Flex)`
-  padding-bottom: 65px;
+  padding: 0 32px 65px;
   height: 100%;
+`;
+
+const EmptyState = styled(Flex)`
+  text-align: center;
+`;
+
+const EmptyIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  background: ${s("commentCardBackground")};
+  border: 1px solid ${s("divider")};
+  color: ${s("textTertiary")};
+`;
+
+const EmptyTitle = styled(Empty)`
+  font-size: 15px;
+  font-weight: 500;
+  color: ${s("text")};
+`;
+
+const EmptyHint = styled(Empty)`
+  font-size: 13px;
+  line-height: 1.5;
 `;
 
 const Wrapper = styled.div<{ $hasComments: boolean }>`
   height: ${(props) => (props.$hasComments ? "auto" : "100%")};
-  padding-bottom: 60px;
+  padding-bottom: 12px;
 `;
 
 const JumpToRecent = styled(ButtonSmall)`
@@ -247,9 +345,9 @@ const JumpToRecent = styled(ButtonSmall)`
 `;
 
 const NewCommentForm = styled(CommentForm)`
-  padding: 12px;
-  padding-inline-end: 18px;
-  padding-inline-start: 12px;
+  flex-shrink: 0;
+  padding: 10px 18px 12px 12px;
+  border-top: 1px solid ${s("divider")};
 `;
 
 export default observer(Comments);

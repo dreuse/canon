@@ -42,6 +42,21 @@ import SharedHeader from "./SharedHeader";
 
 const PROSE_MEASURE = "70ch";
 
+const EDITOR_PADDING = 44;
+
+const BLOCK_GUTTER = 32;
+
+const CONTENT_EDGE = 32;
+
+const TOC_GUTTER_INSET =
+  EditorStyleHelper.tocWidth + EDITOR_PADDING + BLOCK_GUTTER + CONTENT_EDGE;
+
+const FULL_WIDTH_MAX = 900;
+
+function fullWidthSize(inset: number) {
+  return `max(100%, min(calc(var(--container-width) - ${inset}px), ${FULL_WIDTH_MAX}px))`;
+}
+
 type LocationState = {
   title?: string;
   restore?: boolean;
@@ -291,6 +306,9 @@ function DocumentScene({
     : document.titleWithDefault;
   const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
 
+  const hasTocGutter =
+    showContents && tocPos === TOCPosition.Left && !document.fullWidth;
+
   const fullWidthTransformOffsetStyle = {
     ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
   } as React.CSSProperties;
@@ -352,6 +370,7 @@ function DocumentScene({
             fullWidth={document.fullWidth}
             tocPosition={tocPos}
             showContents={showContents}
+            hasTocGutter={hasTocGutter}
             style={fullWidthTransformOffsetStyle}
           >
             <React.Suspense
@@ -385,7 +404,7 @@ function DocumentScene({
 
                     {showContents && (
                       <PrintContentsContainer>
-                        <Contents />
+                        <Contents document={document} />
                       </PrintContentsContainer>
                     )}
                     <Editor
@@ -424,7 +443,7 @@ function DocumentScene({
                   docFullWidth={document.fullWidth}
                   position={tocPos}
                 >
-                  <Contents />
+                  <Contents document={document} />
                 </ContentsContainer>
               )}
             </React.Suspense>
@@ -440,12 +459,38 @@ type MainProps = {
   fullWidth: boolean;
   tocPosition: TOCPosition | false;
   showContents: boolean;
+  hasTocGutter: boolean;
 };
+
+function columns(width: string) {
+  return ({ fullWidth, tocPosition, hasTocGutter }: MainProps) => {
+    if (fullWidth) {
+      return tocPosition === TOCPosition.Left
+        ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
+        : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`;
+    }
+
+    const content = `minmax(0, calc(${width} + ${EditorStyleHelper.documentGutter}))`;
+
+    return hasTocGutter
+      ? `${EditorStyleHelper.tocWidth}px ${content} 1fr`
+      : `1fr ${content} 1fr`;
+  };
+}
 
 const Main = styled.div<MainProps>`
   margin-top: 4px;
 
   ${breakpoint("tablet")`
+    ${({ hasTocGutter }: MainProps) =>
+      hasTocGutter
+        ? css`
+            --full-width-shift: 0px;
+            --full-width-size: ${fullWidthSize(TOC_GUTTER_INSET)};
+          `
+        : css`
+            --full-width-size: ${fullWidthSize(EditorStyleHelper.padding * 2)};
+          `}
     display: grid;
     transform: translateX(${({
       fullWidth,
@@ -455,21 +500,11 @@ const Main = styled.div<MainProps>`
       !fullWidth && showContents && tocPosition === TOCPosition.Right
         ? `-${EditorStyleHelper.tocWidth / 2}px`
         : "0"});
-    grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
-      fullWidth
-        ? tocPosition === TOCPosition.Left
-          ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
-          : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(46em + ${EditorStyleHelper.documentGutter})`}) 1fr`};
+    grid-template-columns: ${columns("46em")};
   `};
 
   ${breakpoint("desktopLarge")`
-    grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
-      fullWidth
-        ? tocPosition === TOCPosition.Left
-          ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
-          : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
+    grid-template-columns: ${columns(EditorStyleHelper.documentWidth)};
   `};
 
   @media print {

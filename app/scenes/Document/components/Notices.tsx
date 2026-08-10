@@ -105,18 +105,6 @@ function Notices({ document }: Props) {
           )}
         </FreshnessBanner>
       )}
-      {!document.archivedAt &&
-        !document.deletedAt &&
-        !document.isStale &&
-        document.verifiedAt && (
-          <FreshMeta>
-            {t("Verified by {{userName}}", {
-              userName: document.verifiedBy?.name ?? t("Unknown"),
-            })}
-            &nbsp;
-            <Time dateTime={document.verifiedAt} addSuffix />
-          </FreshMeta>
-        )}
     </ErrorBoundary>
   );
 }
@@ -151,13 +139,6 @@ const FreshnessAction = styled.button`
     cursor: default;
     opacity: 0.6;
   }
-`;
-
-const FreshMeta = styled.div`
-  margin-block: 0 2em;
-  color: ${s("freshText")};
-  font-size: 13px;
-  font-weight: 500;
 `;
 
 export default observer(Notices);

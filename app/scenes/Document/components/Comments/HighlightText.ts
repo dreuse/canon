@@ -5,24 +5,28 @@ import Text from "~/components/Text";
 /**
  * Highlighted text associated with a comment.
  */
-export const HighlightedText = styled(Text)`
+export const HighlightedText = styled(Text)<{ $expanded?: boolean }>`
+  display: block;
   position: relative;
-  color: ${s("textSecondary")};
-  font-size: 14px;
-  padding: 0 8px;
-  margin: 4px 0;
-  display: inline-block;
+  color: ${s("textTertiaryOnTint")};
+  background: ${s("sidebarBackground")};
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 8px 12px;
+  padding-inline-start: 14px;
+  margin: 0;
 
-  ${truncateMultiline(3)}
+  > span {
+    ${(props) => truncateMultiline(props.$expanded ? 3 : 1)}
+  }
 
   &:after {
     content: "";
     width: 2px;
     position: absolute;
     inset-inline-start: 0;
-    top: 2px;
-    bottom: 2px;
+    top: 0;
+    bottom: 0;
     background: ${s("commentMarkBackground")};
-    border-radius: 2px;
   }
 `;
