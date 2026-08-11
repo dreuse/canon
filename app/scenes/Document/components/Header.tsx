@@ -158,6 +158,7 @@ function DocumentHeader({
             pathname: documentEditPath(document),
             state: { sidebarContext },
           }}
+          borderOnHover={isMobile}
           neutral
         >
           {isMobile ? null : t("Edit")}

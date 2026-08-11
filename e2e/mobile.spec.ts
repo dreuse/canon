@@ -28,13 +28,38 @@ const SCREENS = [
       page.getByRole("heading", { name: seed.collectionName }),
   },
   {
-    name: "editor",
+    name: "document",
     url: seed.documentUrl,
-    ready: (page: Page) => page.getByRole("textbox", { name: "Document title" }),
+    ready: (page: Page) => page.locator(".ProseMirror").first(),
   },
 ];
 
 test.use({ viewport: PHONE });
+
+test("the edit action matches the other header icons on a phone", async ({
+  page,
+}) => {
+  await page.goto(seed.documentUrl);
+  await expect(page.getByText(seed.documentTitle).first()).toBeVisible();
+
+  const chrome = await page.evaluate(() => {
+    const read = (node: Element | null) =>
+      node ? window.getComputedStyle(node).boxShadow : null;
+    return {
+      edit: read(document.querySelector('a[href*="/edit"]')),
+      siblingMenu: read(
+        document.querySelector('header [aria-label="Document options"]') ??
+          document.querySelector('[aria-label="Table of contents"]')
+      ),
+    };
+  });
+
+  expect(
+    chrome.edit,
+    "the edit action draws a permanent box the sibling header icons do not"
+  ).toBe("none");
+  expect(chrome.siblingMenu).toBe("none");
+});
 
 test("the collection order control sits below the title on a phone", async ({
   page,

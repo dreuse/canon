@@ -1,4 +1,5 @@
 import "./bootstrap";
+import { UserPreference } from "@shared/types";
 import {
   buildAdmin,
   buildCollection,
@@ -34,7 +35,10 @@ export default async function main() {
   }
 
   const team = await buildTeam();
-  const user = await buildAdmin({ teamId: team.id });
+  const user = await buildAdmin({
+    teamId: team.id,
+    preferences: { [UserPreference.SeamlessEdit]: false },
+  });
   const collection = await buildCollection({
     teamId: team.id,
     userId: user.id,
