@@ -15,6 +15,9 @@ export interface Seed {
   userName: string;
   collectionId: string;
   collectionName: string;
+  documentId: string;
+  documentUrl: string;
+  documentTitle: string;
 }
 
 function runSeed(): Seed {

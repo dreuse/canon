@@ -8,6 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { toError } from "@shared/utils/error";
 import { hairline, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
@@ -224,12 +225,19 @@ const KeyedCollection = () => {
 
 const HeaderRow = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   padding-bottom: 8px;
   margin: 28px 0 16px;
   border-bottom: 1px solid ${hairline};
+
+  ${breakpoint("tablet")`
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  `}
 `;
 
 const Content = styled.div`

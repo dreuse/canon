@@ -1,5 +1,10 @@
 import "./bootstrap";
-import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
+import {
+  buildAdmin,
+  buildCollection,
+  buildDocument,
+  buildTeam,
+} from "@server/test/factories";
 
 const ALLOW_FLAG = "ALLOW_E2E_SEED";
 
@@ -23,6 +28,12 @@ export default async function main() {
     teamId: team.id,
     userId: user.id,
   });
+  const document = await buildDocument({
+    teamId: team.id,
+    userId: user.id,
+    collectionId: collection.id,
+    title: "Seeded document",
+  });
 
   console.log(
     JSON.stringify({
@@ -32,6 +43,9 @@ export default async function main() {
       userName: user.name,
       collectionId: collection.id,
       collectionName: collection.name,
+      documentId: document.id,
+      documentUrl: document.url,
+      documentTitle: document.title,
     })
   );
   process.exit(0);
