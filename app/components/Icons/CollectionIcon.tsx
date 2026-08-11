@@ -1,13 +1,13 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
-import { getLuminance } from "polished";
+import { useTheme } from "styled-components";
 import DotIcon from "@shared/components/DotIcon";
 import Icon from "@shared/components/Icon";
 import LetterIcon from "@shared/components/LetterIcon";
 import { colorPalette } from "@shared/constants";
 import { CollectionIconStyle } from "@shared/types";
+import { resolveIconColor } from "@shared/utils/iconColor";
 import type Collection from "~/models/Collection";
-import useStores from "~/hooks/useStores";
 
 type Props = {
   /** The collection to show an icon for */
@@ -28,18 +28,17 @@ function ResolvedCollectionIcon({
   size,
   className,
 }: Props) {
-  const { ui } = useStores();
+  const theme = useTheme();
   const identityColor =
-    inputColor ?? collection.color ?? colorPalette[0] ?? undefined;
+    inputColor ??
+    resolveIconColor(collection.color ?? colorPalette[0], theme.background);
 
   if (collection.iconStyle === CollectionIconStyle.None) {
     return null;
   }
 
   if (collection.iconStyle === CollectionIconStyle.Dot) {
-    return (
-      <DotIcon color={identityColor} size={size} className={className} />
-    );
+    return <DotIcon color={identityColor} size={size} className={className} />;
   }
 
   if (collection.iconStyle === CollectionIconStyle.Letter) {
@@ -51,23 +50,12 @@ function ResolvedCollectionIcon({
   }
 
   if (!collection.icon || collection.icon === "collection") {
-    // If the chosen icon color is very dark then we invert it in dark mode
-    // otherwise it will be impossible to see against the dark background.
-    const collectionColor = collection.color ?? colorPalette[0];
-    const color =
-      inputColor ||
-      (ui.resolvedTheme === "dark" && collectionColor !== "currentColor"
-        ? getLuminance(collectionColor) > 0.09
-          ? collectionColor
-          : "currentColor"
-        : collectionColor);
-
     const Component = collection.isPrivate
       ? PrivateCollectionIcon
       : CollectionIcon;
     return (
       <Component
-        color={color}
+        color={identityColor}
         expanded={expanded}
         size={size}
         className={className}
