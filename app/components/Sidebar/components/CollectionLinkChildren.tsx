@@ -13,7 +13,7 @@ import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import {
-  SEE_ALL_THRESHOLD,
+  exceedsSeeAllThreshold,
   useTruncatedNodes,
 } from "../hooks/useTruncatedNodes";
 import SidebarExpansionContext, {
@@ -58,7 +58,7 @@ function CollectionLinkChildren({
     expanded
   );
   const total = childDocuments?.length ?? 0;
-  const seeAll = total > SEE_ALL_THRESHOLD;
+  const seeAll = exceedsSeeAllThreshold(total);
 
   const expansion = useSidebarExpansionState(
     childDocuments,

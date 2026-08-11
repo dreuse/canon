@@ -32,7 +32,7 @@ import {
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
 import {
-  SEE_ALL_THRESHOLD,
+  exceedsSeeAllThreshold,
   useTruncatedNodes,
 } from "../hooks/useTruncatedNodes";
 import { useIsDragActive, useSidebarScrollElement } from "./DragActiveContext";
@@ -141,7 +141,7 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
     showMore: showMoreChildren,
   } = useTruncatedNodes(nodeChildren, expanded);
   const seeAllChildren =
-    !!collection && nodeChildren.length > SEE_ALL_THRESHOLD;
+    !!collection && exceedsSeeAllThreshold(nodeChildren.length);
 
   // Flip mount state during render (not in an effect) so the first paint
   // already contains the row content when the placeholder is on screen,
