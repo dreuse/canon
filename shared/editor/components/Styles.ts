@@ -2140,6 +2140,26 @@ mark {
     font-family: ${props.theme.fontFamily};
   }
 
+  ${props.theme.isDark
+    ? `
+  .nodeLabel,
+  .edgeLabel,
+  .cluster-label,
+  .actor-box + text,
+  .messageText,
+  .titleText {
+    color: ${props.theme.text} !important;
+    fill: ${props.theme.text} !important;
+  }
+
+  .edgeLabel .labelBkg,
+  .edgeLabel rect {
+    background-color: ${props.theme.codeBackground} !important;
+    fill: ${props.theme.codeBackground} !important;
+  }
+  `
+    : ""}
+
   &.empty {
     font-family: ${props.theme.fontFamilyMono};
     font-size: 14px;

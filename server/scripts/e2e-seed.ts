@@ -8,6 +8,17 @@ import {
 
 const ALLOW_FLAG = "ALLOW_E2E_SEED";
 
+const MERMAID_TEXT = [
+  "A diagram to measure contrast against.",
+  "",
+  "```mermaid",
+  "graph TD;",
+  "  Start-->Middle;",
+  "  Middle-->Finish;",
+  "```",
+  "",
+].join("\n");
+
 /**
  * Creates the team, admin user and collection that the end-to-end suite signs
  * in as, then prints them as JSON on stdout for the Playwright global setup.
@@ -34,6 +45,13 @@ export default async function main() {
     collectionId: collection.id,
     title: "Seeded document",
   });
+  const diagramDocument = await buildDocument({
+    teamId: team.id,
+    userId: user.id,
+    collectionId: collection.id,
+    title: "Seeded diagram",
+    text: MERMAID_TEXT,
+  });
 
   console.log(
     JSON.stringify({
@@ -46,6 +64,7 @@ export default async function main() {
       documentId: document.id,
       documentUrl: document.url,
       documentTitle: document.title,
+      diagramDocumentUrl: diagramDocument.url,
     })
   );
   process.exit(0);

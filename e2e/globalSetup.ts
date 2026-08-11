@@ -18,6 +18,7 @@ export interface Seed {
   documentId: string;
   documentUrl: string;
   documentTitle: string;
+  diagramDocumentUrl: string;
 }
 
 function runSeed(): Seed {
