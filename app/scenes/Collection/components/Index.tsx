@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { hairline, s } from "@shared/styles";
+import { cardBorder, hairline, s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
@@ -196,7 +196,8 @@ const Card = styled.section`
   flex-direction: column;
   margin-bottom: 16px;
   padding: 16px 20px;
-  border: 1px solid ${hairline};
+  background: ${s("backgroundSecondary")};
+  border: 1px solid ${cardBorder};
   border-radius: 8px;
   break-inside: avoid;
 `;

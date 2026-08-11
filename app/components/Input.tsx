@@ -74,7 +74,7 @@ export const NativeInput = styled.input<{
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px ${s("background")} inset;
+    -webkit-box-shadow: 0 0 0px 1000px ${s("inputBackground")} inset;
   }
 
   &::-webkit-search-cancel-button {
@@ -135,7 +135,7 @@ export const Outline = styled(Flex)<{
   font-weight: normal;
   align-items: center;
   overflow: hidden;
-  background: ${s("background")};
+  background: ${s("inputBackground")};
 
   ${(props) =>
     props.$focused &&

@@ -37,6 +37,17 @@ export const hairline = (props: { theme: DefaultTheme }) =>
   transparentize(0.55, props.theme.divider);
 
 /**
+ * Mixin for the edge of a card. The dark theme separates surfaces by fill, so
+ * the card needs no edge there; the light theme has no room above white and
+ * separates by hairline instead. Kept as a transparent border in dark so the
+ * box model does not change between themes.
+ *
+ * @returns a border color.
+ */
+export const cardBorder = (props: { theme: DefaultTheme }) =>
+  props.theme.isDark ? "transparent" : transparentize(0.5, props.theme.divider);
+
+/**
  * Mixin to hide scrollbars.
  *
  * @returns string of CSS

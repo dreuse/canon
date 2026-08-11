@@ -223,9 +223,9 @@ const AnimatePresence = styled(m.div)`
 `;
 
 const Fold = styled.svg`
-  fill: ${s("background")};
+  fill: ${s("backgroundSecondary")};
   stroke: ${s("inputBorder")};
-  background: ${s("background")};
+  background: ${s("backgroundSecondary")};
 
   position: absolute;
   top: -1px;
@@ -294,7 +294,7 @@ const DocumentLink = styled(Link)<{
   height: 100%;
   border-radius: 8px;
   cursor: var(--pointer);
-  background: ${s("background")};
+  background: ${s("backgroundSecondary")};
   transition: transform 50ms ease-in-out;
   border: 1px solid ${s("inputBorder")};
   border-bottom-width: 2px;

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { transparentize } from "polished";
 import styled, { css, type DefaultTheme } from "styled-components";
-import { s } from "@shared/styles";
+import { cardBorder, s } from "@shared/styles";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -611,7 +611,8 @@ const Page = styled.div`
 `;
 
 const cardSurface = css`
-  border: 1px solid ${(props) => transparentize(0.5, props.theme.divider)};
+  background: ${s("backgroundSecondary")};
+  border: 1px solid ${cardBorder};
   border-radius: 10px;
   box-shadow: ${(props) =>
     props.theme.isDark ? "none" : "0 1px 2px rgba(16, 24, 40, 0.04)"};
