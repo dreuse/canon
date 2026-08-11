@@ -24,6 +24,11 @@ data/*
 .yarn/releases
 !.yarn/sdks
 
+# Playwright
+e2e/.auth/
+test-results/
+playwright-report/
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
