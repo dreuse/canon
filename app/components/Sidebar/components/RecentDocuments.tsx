@@ -7,7 +7,6 @@ import type Document from "~/models/Document";
 import { VoHistoryIcon } from "~/components/Icons/VobysIcons";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
-import { useDocumentIcon } from "../hooks/useSidebarLabelAndIcon";
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
 
@@ -18,13 +17,10 @@ const RecentDocumentLink = observer(function RecentDocumentLink({
 }: {
   document: Document;
 }) {
-  const icon = useDocumentIcon(document);
-
   return (
     <SidebarLink
       to={documentPath(document)}
       label={document.titleWithDefault}
-      icon={icon}
     />
   );
 });
