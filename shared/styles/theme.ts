@@ -17,6 +17,18 @@ const solarizedLight = {
   green: "#859900",
 };
 
+/**
+ * Dark theme surfaces, each a fixed 1.30:1 over the plane below it. Near black
+ * an equal step in lightness yields an ever smaller contrast ratio, so the
+ * ladder is defined by ratio rather than by step. The sidebar is the floor and
+ * sits below the content plane.
+ */
+const darkSidebar = "#1D1F25";
+const darkContent = "#23252C";
+const darkRaised = "#35383F";
+const darkOverlay = "#464950";
+const darkHairline = "#454C59";
+
 const intellijDark = {
   background: "#1E1F22",
   border: "#35353B",
@@ -173,13 +185,13 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     cursor: colors.almostBlack,
     text: colors.almostBlack,
     textSecondary: colors.slateDark,
-    textTertiary: colors.slate,
+    textTertiary: "#596A81",
     textTertiaryOnTint: "#5A6980",
     textDiffInserted: colors.almostBlack,
     textDiffInsertedBackground: "rgba(18, 138, 41, 0.16)",
     textDiffDeleted: colors.slateDark,
     textDiffDeletedBackground: "rgba(255, 180, 173, 0.25)",
-    placeholder: "#a2b2c3",
+    placeholder: "#687786",
     sidebarBackground,
     sidebarHoverBackground,
     sidebarActiveBackground,
@@ -192,12 +204,12 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     modalBackdrop: "rgba(0, 0, 0, 0.25)",
     modalBackground: colors.white,
     modalShadow:
-      "0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
+      "0 0 0 1px rgb(0 0 0 / 10%), 0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
 
     menuItemSelected: colors.warmGrey,
     menuBackground: colors.white,
     menuShadow:
-      "0 0 0 1px rgb(0 0 0 / 2%), 0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
+      "0 0 0 1px rgb(0 0 0 / 10%), 0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
     divider: sidebarHoverBackground,
     titleBarDivider: sidebarActiveBackground,
     inputBorder: sidebarActiveBackground,
@@ -232,30 +244,30 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
 
 export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
   const colors = buildBaseTheme(input);
-  const sidebarBackground = colors.veryDarkBlue;
-  const sidebarHoverBackground = lighten(0.04, colors.veryDarkBlue);
-  const sidebarActiveBackground = lighten(0.07, colors.veryDarkBlue);
+  const sidebarBackground = darkSidebar;
+  const sidebarHoverBackground = darkContent;
+  const sidebarActiveBackground = darkRaised;
 
   return {
     ...colors,
     isDark: true,
-    background: colors.almostBlack,
-    backgroundSecondary: "#1f232e",
-    backgroundTertiary: "#2a2f3e",
-    backgroundQuaternary: lighten(0.1, "#2a2f3e"),
+    background: darkContent,
+    backgroundSecondary: darkRaised,
+    backgroundTertiary: darkOverlay,
+    backgroundQuaternary: lighten(0.06, darkOverlay),
     commentsBackground: sidebarBackground,
-    commentCardBackground: sidebarActiveBackground,
-    link: "#137FFB",
-    text: colors.almostWhite,
+    commentCardBackground: darkRaised,
+    link: "#5AA8FF",
+    text: "#F2F3F5",
     cursor: colors.almostWhite,
-    textSecondary: lighten(0.1, colors.slate),
-    textTertiary: "#7e8da3",
+    textSecondary: "#C2C9D4",
+    textTertiary: "#9AA4B3",
     textTertiaryOnTint: "#8B95A5",
     textDiffInserted: colors.almostWhite,
     textDiffInsertedBackground: "rgba(63,185,80,0.25)",
     textDiffDeleted: darken(0.1, colors.almostWhite),
     textDiffDeletedBackground: "rgba(248,81,73,0.15)",
-    placeholder: "hsl(215 17% 30% / 1)",
+    placeholder: "#7C8598",
     sidebarBackground,
     sidebarHoverBackground,
     sidebarActiveBackground,
@@ -266,35 +278,35 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     shadow: "rgba(0, 0, 0, 0.6)",
 
     modalBackdrop: colors.black50,
-    modalBackground: "#181c25",
+    modalBackground: darkOverlay,
     modalShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
 
-    menuItemSelected: lighten(0.09, "#181c25"),
-    menuBackground: "#181c25",
+    menuItemSelected: darkOverlay,
+    menuBackground: darkRaised,
     menuShadow:
       "0 0 0 1px rgb(34 40 52), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
-    divider: lighten(0.07, colors.almostBlack),
+    divider: darkHairline,
     titleBarDivider: darken(0.4, colors.slate),
-    inputBorder: colors.slateDark,
+    inputBorder: darkHairline,
     inputBorderFocused: colors.slate,
-    inputBackground: "#262d36",
+    inputBackground: darkRaised,
     listItemHoverBackground: colors.white10,
     mentionBackground: lighten(0.09, colors.veryDarkBlue),
     mentionHoverBackground: lighten(0.15, colors.veryDarkBlue),
     tableSelected: colors.accent,
-    buttonNeutralBackground: colors.almostBlack,
-    buttonNeutralHoverBackground: lighten(0.09, colors.veryDarkBlue),
+    buttonNeutralBackground: darkRaised,
+    buttonNeutralHoverBackground: darkOverlay,
     buttonNeutralText: colors.white,
-    buttonNeutralBorder: colors.slateDark,
+    buttonNeutralBorder: darkHairline,
     tooltipBackground: colors.white,
     tooltipText: colors.lightBlack,
-    toastBackground: colors.veryDarkBlue,
+    toastBackground: darkRaised,
     toastText: colors.almostWhite,
     quote: colors.almostWhite,
     code: intellijDark.text,
     codeBackground: intellijDark.background,
-    codeBorder: intellijDark.border,
+    codeBorder: darkRaised,
     codeComment: intellijDark.comment,
     codePunctuation: intellijDark.text,
     codeProperty: intellijDark.field,
@@ -316,7 +328,7 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     codeAttrValue: intellijDark.string,
     codePlaceholder: intellijDark.text,
     embedBorder: colors.black50,
-    horizontalRule: lighten(0.1, colors.almostBlack),
+    horizontalRule: darkHairline,
     noticeInfoText: colors.white,
     noticeTipText: colors.white,
     noticeWarningText: colors.white,
