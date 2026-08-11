@@ -39,6 +39,13 @@ const MARKDOWN_DESTINATION_UNSAFE_REGEX = /[()<>\s]/g;
 
 const MARKDOWN_LABEL_UNSAFE_REGEX = /[[\]\\]/g;
 
+const LINKED_MENTION_TYPES = new Set<string>([
+  MentionType.URL,
+  MentionType.Issue,
+  MentionType.PullRequest,
+  MentionType.Project,
+]);
+
 function percentEncode(character: string) {
   return `%${character.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`;
 }
@@ -389,7 +396,7 @@ export default class Mention extends Node {
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
-    } else if (mType === MentionType.URL && safeHref) {
+    } else if (LINKED_MENTION_TYPES.has(mType) && safeHref) {
       const safeLabel = String(label).replace(
         MARKDOWN_LABEL_UNSAFE_REGEX,
         "\\$&"

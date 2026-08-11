@@ -100,6 +100,55 @@ describe("Mention markdown serialization", () => {
     expect(hrefs[0]).toMatch(/^https:\/\/easyretro\.io\/x%29/);
   });
 
+  it.each([MentionType.Issue, MentionType.PullRequest, MentionType.Project])(
+    "serializes a %s mention as a regular link so the target survives",
+    (type) => {
+      const markdown = serializer.serialize(
+        docWithMention({
+          type,
+          label: "Fix the sidebar",
+          href: "https://github.com/dreuse/canon/issues/42",
+          modelId: "6f1d0a4e-8d5a-4a7f-9c8b-1f2a3b4c5d6e",
+          id: "0c9f7f2a-1b3c-4d5e-8f90-a1b2c3d4e5f6",
+        })
+      );
+
+      expect(markdown.trim()).toBe(
+        "[Fix the sidebar](https://github.com/dreuse/canon/issues/42)"
+      );
+    }
+  );
+
+  it.each([MentionType.Issue, MentionType.PullRequest, MentionType.Project])(
+    "falls back to the mention form when a %s mention has no href",
+    (type) => {
+      const markdown = serializer.serialize(
+        docWithMention({
+          type,
+          label: "Fix the sidebar",
+          modelId: "6f1d0a4e-8d5a-4a7f-9c8b-1f2a3b4c5d6e",
+          id: "0c9f7f2a-1b3c-4d5e-8f90-a1b2c3d4e5f6",
+        })
+      );
+
+      expect(markdown.trim()).toBe(
+        `@[Fix the sidebar](mention://0c9f7f2a-1b3c-4d5e-8f90-a1b2c3d4e5f6/${type}/6f1d0a4e-8d5a-4a7f-9c8b-1f2a3b4c5d6e)`
+      );
+    }
+  );
+
+  it("stops an issue label from closing the link and injecting a second one", () => {
+    expect(
+      hrefsAfterRoundTrip({
+        type: MentionType.Issue,
+        label: "safe](javascript:alert(1)) [",
+        href: "https://github.com/dreuse/canon/issues/42",
+        modelId: "6f1d0a4e-8d5a-4a7f-9c8b-1f2a3b4c5d6e",
+        id: "0c9f7f2a-1b3c-4d5e-8f90-a1b2c3d4e5f6",
+      })
+    ).toEqual(["https://github.com/dreuse/canon/issues/42"]);
+  });
+
   it("keeps the mention form for a user mention", () => {
     const markdown = serializer.serialize(
       docWithMention({
