@@ -846,6 +846,49 @@ describe("PostgresSearchProvider", () => {
       expect(documents[0]?.id).toBe(document.id);
     });
 
+    it("should still find a title when the query has a typo", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: team.id,
+      });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "Onboarding checklist",
+      });
+
+      const documents = await provider.searchTitlesForUser(user, {
+        query: "onbarding",
+      });
+
+      expect(documents.length).toBe(1);
+      expect(documents[0]?.id).toBe(document.id);
+    });
+
+    it("should not match an unrelated title", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: team.id,
+      });
+      await buildDocument({
+        userId: user.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "Onboarding checklist",
+      });
+
+      const documents = await provider.searchTitlesForUser(user, {
+        query: "quarterly revenue forecast",
+      });
+
+      expect(documents.length).toBe(0);
+    });
+
     it("should filter to specific collection", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });

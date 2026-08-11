@@ -6,6 +6,7 @@ import type {
   FindAttributeOptions,
   FindOptions,
   Order,
+  OrderItem,
   WhereOptions,
 } from "sequelize";
 import { Op, Sequelize } from "sequelize";
@@ -47,6 +48,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
    * The maximum length of a search query.
    */
   public static maxQueryLength = 1000;
+
+  /**
+   * How close a title must be to the query for a fuzzy match to count, on the
+   * pg_trgm word_similarity scale where 0 shares nothing and 1 is identical.
+   * Low enough to forgive a typo, high enough to reject an unrelated title.
+   */
+  public static titleSimilarityThreshold = 0.6;
 
   /**
    * Cached regex pattern for single quotes to avoid recompilation.
@@ -283,23 +291,35 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   ): Promise<Document[]> {
     const { limit = 15, offset = 0, query, ...rest } = options;
     const where = await PostgresSearchProvider.buildWhere(user, rest);
+    const titleSimilarity = query
+      ? Sequelize.fn("word_similarity", query, Sequelize.col("title"))
+      : undefined;
 
-    if (query) {
+    if (query && titleSimilarity) {
       where[Op.and].push({
-        title: { [Op.iLike]: QueryHelper.likeContains(query) },
+        [Op.or]: [
+          { title: { [Op.iLike]: QueryHelper.likeContains(query) } },
+          Sequelize.where(titleSimilarity, {
+            [Op.gte]: PostgresSearchProvider.titleSimilarityThreshold,
+          }),
+        ],
       });
     }
+
+    const sortOrder: OrderItem[] = [
+      [
+        options.sort ?? SortFilter.UpdatedAt,
+        options.direction ?? DirectionFilter.DESC,
+      ],
+    ];
 
     return Document.withMembershipScope(user.id, {
       includeDrafts: true,
     }).findAll({
       where,
-      order: [
-        [
-          options.sort ?? SortFilter.UpdatedAt,
-          options.direction ?? DirectionFilter.DESC,
-        ],
-      ],
+      order: titleSimilarity
+        ? [[titleSimilarity, "DESC"], ...sortOrder]
+        : sortOrder,
       offset,
       limit,
     });
