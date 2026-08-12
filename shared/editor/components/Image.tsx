@@ -1,9 +1,4 @@
-import {
-  DownloadIcon,
-  GlobeIcon,
-  ImageIcon,
-  ZoomInIcon,
-} from "outline-icons";
+import { DownloadIcon, GlobeIcon, ImageIcon, ZoomInIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";

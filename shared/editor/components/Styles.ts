@@ -2140,8 +2140,9 @@ mark {
     font-family: ${props.theme.fontFamily};
   }
 
-  ${props.theme.isDark
-    ? `
+  ${
+    props.theme.isDark
+      ? `
   .nodeLabel,
   .edgeLabel,
   .cluster-label,
@@ -2158,7 +2159,8 @@ mark {
     fill: ${props.theme.codeBackground} !important;
   }
   `
-    : ""}
+      : ""
+  }
 
   &.empty {
     font-family: ${props.theme.fontFamilyMono};
