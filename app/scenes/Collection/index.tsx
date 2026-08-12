@@ -24,6 +24,7 @@ import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useMobile from "~/hooks/useMobile";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -56,6 +57,7 @@ const CollectionScene = observer(function CollectionScene_() {
   useTrackLastVisitedPath(currentPath);
   const sidebarContext = useLocationSidebarContext();
   const isEditRoute = match.path === matchCollectionEdit;
+  const isMobile = useMobile();
 
   const id = params.collectionSlug || "";
   const urlId = id.split("-").pop() ?? "";
@@ -135,6 +137,15 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Loading />;
   }
 
+  const headerSearch = isMobile ? undefined : (
+    <InputSearchPage
+      source="collection"
+      placeholder={`${t("Search in collection")}…`}
+      label={t("Search in collection")}
+      collectionId={collection.id}
+    />
+  );
+
   return (
     <Scene
       centered={false}
@@ -143,12 +154,7 @@ const CollectionScene = observer(function CollectionScene_() {
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
         ) : (
-          <InputSearchPage
-            source="collection"
-            placeholder={`${t("Search in collection")}…`}
-            label={t("Search in collection")}
-            collectionId={collection.id}
-          />
+          headerSearch
         )
       }
       title={
