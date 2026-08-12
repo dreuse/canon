@@ -4,16 +4,30 @@ import {
   PrivateCollectionIcon,
 } from "outline-icons";
 import { observer } from "mobx-react";
-import { getLuminance } from "polished";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { toError } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
+import { useSurface } from "@shared/components/SurfaceContext";
 import { colorPalette } from "@shared/constants";
+import { resolveIconColor } from "@shared/utils/iconColor";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import useStores from "~/hooks/useStores";
+
+function OptionCollectionIcon({
+  color,
+  isPrivate,
+}: {
+  color: string;
+  isPrivate: boolean;
+}) {
+  const surface = useSurface();
+  const Component = isPrivate ? PrivateCollectionIcon : CollectionIconComponent;
+
+  return <Component color={resolveIconColor(color, surface)} />;
+}
 
 type DefaultCollectionInputSelectProps = {
   onSelectCollection: (collection: string) => void;
@@ -32,7 +46,7 @@ const DefaultCollectionInputSelect = observer(
     leadingOption,
   }: DefaultCollectionInputSelectProps) => {
     const { t } = useTranslation();
-    const { collections, ui } = useStores();
+    const { collections } = useStores();
     const [fetching, setFetching] = useState(false);
     const [fetchError, setFetchError] = useState<Error>();
 
@@ -61,8 +75,6 @@ const DefaultCollectionInputSelect = observer(
       return null;
     }
 
-    const isDark = ui.resolvedTheme === "dark";
-
     const firstOption = leadingOption ?? {
       label: t("Home"),
       value: "home",
@@ -78,31 +90,18 @@ const DefaultCollectionInputSelect = observer(
 
         let icon: React.ReactElement;
         if (!collectionIcon || collectionIcon === "collection") {
-          const color =
-            isDark && rawColor !== "currentColor"
-              ? getLuminance(rawColor) > 0.09
-                ? rawColor
-                : "currentColor"
-              : rawColor;
-          const Component = collection.isPrivate
-            ? PrivateCollectionIcon
-            : CollectionIconComponent;
-          icon = <Component color={color} />;
+          icon = (
+            <OptionCollectionIcon
+              color={rawColor}
+              isPrivate={collection.isPrivate}
+            />
+          );
         } else {
-          let color = rawColor;
-          if (color !== "currentColor") {
-            if (isDark) {
-              color = getLuminance(color) > 0.09 ? color : "currentColor";
-            } else {
-              color = getLuminance(color) < 0.9 ? color : "currentColor";
-            }
-          }
           icon = (
             <Icon
               value={collectionIcon}
-              color={color}
+              color={rawColor}
               initial={collection.initial}
-              forceColor
             />
           );
         }

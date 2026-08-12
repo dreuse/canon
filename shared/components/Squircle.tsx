@@ -1,6 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
+import { resolveIconColor } from "../utils/iconColor";
 import Flex from "./Flex";
+import { useSurface } from "./SurfaceContext";
 
 type Props = {
   /** The width and height of the squircle */
@@ -16,6 +18,10 @@ type Props = {
  * Squircle is a component that renders a square with rounded corners (squircle shape).
  * It's commonly used for app icons, avatars, and other UI elements where a softer
  * square shape is desired.
+ *
+ * The fill is the graphic that has to stay visible against the page, so it is
+ * adapted to the surface it sits on. A color that already reaches 3:1 is used
+ * unchanged.
  */
 const Squircle: React.FC<Props> = ({
   color,
@@ -23,26 +29,31 @@ const Squircle: React.FC<Props> = ({
   children,
   className,
   style,
-}: Props) => (
-  <Wrapper
-    size={size}
-    align="center"
-    justify="center"
-    className={className}
-    style={style}
-  >
-    <svg
-      width={size}
-      height={size}
-      fill={color}
-      viewBox="0 0 28 28"
-      data-fixed-color
+}: Props) => {
+  const surface = useSurface();
+  const fill = color ? resolveIconColor(color, surface) : color;
+
+  return (
+    <Wrapper
+      size={size}
+      align="center"
+      justify="center"
+      className={className}
+      style={style}
     >
-      <path d="M0 11.1776C0 1.97285 1.97285 0 11.1776 0H16.8224C26.0272 0 28 1.97285 28 11.1776V16.8224C28 26.0272 26.0272 28 16.8224 28H11.1776C1.97285 28 0 26.0272 0 16.8224V11.1776Z" />
-    </svg>
-    <Content>{children}</Content>
-  </Wrapper>
-);
+      <svg
+        width={size}
+        height={size}
+        fill={fill}
+        viewBox="0 0 28 28"
+        data-fixed-color
+      >
+        <path d="M0 11.1776C0 1.97285 1.97285 0 11.1776 0H16.8224C26.0272 0 28 1.97285 28 11.1776V16.8224C28 26.0272 26.0272 28 16.8224 28H11.1776C1.97285 28 0 26.0272 0 16.8224V11.1776Z" />
+      </svg>
+      <Content>{children}</Content>
+    </Wrapper>
+  );
+};
 
 const Wrapper = styled(Flex)<{ size: number }>`
   position: relative;

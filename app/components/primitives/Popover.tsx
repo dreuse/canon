@@ -1,7 +1,8 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
+import { SurfaceProvider } from "@shared/components/SurfaceContext";
 import { depths, s } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
 import { usePortalContext } from "../Portal";
@@ -43,6 +44,7 @@ const PopoverContent = React.forwardRef<
   const ref = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content>>();
   const timeoutRef = React.useRef<NodeJS.Timeout>();
   const container = usePortalContext();
+  const theme = useTheme();
   const {
     width,
     minWidth,
@@ -88,7 +90,9 @@ const PopoverContent = React.forwardRef<
         onAnimationEnd={enablePointerEvents}
         {...rest}
       >
-        {children}
+        <SurfaceProvider value={theme.menuBackground}>
+          {children}
+        </SurfaceProvider>
       </StyledContent>
     </PopoverPrimitive.Portal>
   );

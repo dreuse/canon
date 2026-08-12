@@ -3,8 +3,9 @@ import { observer } from "mobx-react";
 import { CloseIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { SurfaceProvider } from "@shared/components/SurfaceContext";
 import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -42,6 +43,7 @@ const Modal: React.FC<Props> = ({
   const { t } = useTranslation();
   const resolvedTitle = title ?? t("Untitled");
   const dialog = useDialogContext();
+  const theme = useTheme();
 
   const onClose = React.useCallback(() => {
     dialog.setAnimating(false); // Reset
@@ -96,7 +98,11 @@ const Modal: React.FC<Props> = ({
                   overflow={dialog.animating ? "hidden" : undefined}
                   onAnimationEnd={() => dialog.setAnimating(false)}
                 >
-                  <ErrorBoundary component="div">{children}</ErrorBoundary>
+                  <ErrorBoundary component="div">
+                    <SurfaceProvider value={theme.modalBackground}>
+                      {children}
+                    </SurfaceProvider>
+                  </ErrorBoundary>
                 </DesktopContent>
                 <Header>
                   <Dialog.Title asChild>

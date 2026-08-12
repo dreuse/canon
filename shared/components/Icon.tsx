@@ -1,10 +1,11 @@
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { IconType } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
 import { colorPalette } from "../constants";
 import { determineIconType } from "../utils/icon";
 import { resolveIconColor } from "../utils/iconColor";
+import { useSurface } from "./SurfaceContext";
 import EmojiIcon from "./EmojiIcon";
 import Flex from "./Flex";
 import { CustomEmoji } from "./CustomEmoji";
@@ -82,9 +83,9 @@ const SVGIcon = ({
   className,
   forceColor,
 }: Props) => {
-  const theme = useTheme();
+  const surface = useSurface();
   const raw = inputColor ?? colorPalette[0];
-  const color = forceColor ? raw : resolveIconColor(raw, theme.background);
+  const color = forceColor ? raw : resolveIconColor(raw, surface);
 
   const Component = IconLibrary.getComponent(icon);
 

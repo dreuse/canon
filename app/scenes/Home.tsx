@@ -5,7 +5,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { transparentize } from "polished";
-import styled, { css, type DefaultTheme } from "styled-components";
+import styled, { css, useTheme, type DefaultTheme } from "styled-components";
+import { SurfaceProvider } from "@shared/components/SurfaceContext";
 import { cardBorder, s } from "@shared/styles";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
@@ -116,6 +117,7 @@ function Home() {
     auth,
     ui,
   } = useStores();
+  const theme = useTheme();
   const user = useCurrentUser();
   const { t } = useTranslation();
   const { pins, count } = usePinnedDocuments("home");
@@ -454,7 +456,9 @@ function Home() {
                 {collections.orderedData.map((collection) => (
                   <CollectionCard key={collection.id} to={collection.path}>
                     <CollectionHead>
-                      <CollectionIcon collection={collection} size={18} />
+                      <SurfaceProvider value={theme.backgroundSecondary}>
+                        <CollectionIcon collection={collection} size={18} />
+                      </SurfaceProvider>
                       <CollectionName>{collection.name}</CollectionName>
                       {collection.documentCount !== undefined && (
                         <CollectionCount>

@@ -3,8 +3,10 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import * as Components from "../components/Menu";
 import type { LocationDescriptor } from "history";
 import * as React from "react";
+import { useTheme } from "styled-components";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
+import { SurfaceProvider } from "@shared/components/SurfaceContext";
 import { normalizeKeyDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import { useMenuContext } from "./MenuContext";
 
@@ -77,6 +79,7 @@ const MenuContent = React.forwardRef<
 >((props, ref) => {
   const { variant } = useMenuContext();
   const { children, ...rest } = props;
+  const theme = useTheme();
 
   const Portal =
     variant === "dropdown"
@@ -106,7 +109,9 @@ const MenuContent = React.forwardRef<
     <Portal>
       <Content ref={ref} {...offsetProp} {...rest} collisionPadding={6} asChild>
         <Components.MenuContent {...contentProps} hiddenScrollbars>
-          {children}
+          <SurfaceProvider value={theme.menuBackground}>
+            {children}
+          </SurfaceProvider>
         </Components.MenuContent>
       </Content>
     </Portal>
@@ -153,6 +158,7 @@ const SubMenuContent = React.forwardRef<
 >((props, ref) => {
   const { variant } = useMenuContext();
   const { children, ...rest } = props;
+  const theme = useTheme();
 
   const Portal =
     variant === "dropdown"
@@ -179,7 +185,9 @@ const SubMenuContent = React.forwardRef<
     <Portal>
       <Content ref={ref} {...rest} collisionPadding={6} asChild>
         <Components.MenuContent {...contentProps} hiddenScrollbars>
-          {children}
+          <SurfaceProvider value={theme.menuBackground}>
+            {children}
+          </SurfaceProvider>
         </Components.MenuContent>
       </Content>
     </Portal>

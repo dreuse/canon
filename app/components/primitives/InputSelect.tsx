@@ -1,6 +1,7 @@
 import * as InputSelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
+import { SurfaceProvider } from "@shared/components/SurfaceContext";
 import Text from "@shared/components/Text";
 import { depths, s } from "@shared/styles";
 import type { Props as ButtonProps } from "~/components/Button";
@@ -61,12 +62,15 @@ const InputSelectContent = React.forwardRef<
   ContentProps
 >((props, ref) => {
   const { children, ...rest } = props;
+  const theme = useTheme();
 
   return (
     <InputSelectPrimitive.Portal>
       <StyledContent ref={ref} position={"popper"} {...rest}>
         <InputSelectPrimitive.Viewport style={{ overscrollBehavior: "none" }}>
-          {children}
+          <SurfaceProvider value={theme.menuBackground}>
+            {children}
+          </SurfaceProvider>
         </InputSelectPrimitive.Viewport>
       </StyledContent>
     </InputSelectPrimitive.Portal>

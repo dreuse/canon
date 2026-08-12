@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
-import { useTheme } from "styled-components";
 import DotIcon from "@shared/components/DotIcon";
 import Icon from "@shared/components/Icon";
 import LetterIcon from "@shared/components/LetterIcon";
 import { colorPalette } from "@shared/constants";
+import { useSurface } from "@shared/components/SurfaceContext";
 import { CollectionIconStyle } from "@shared/types";
 import { resolveIconColor } from "@shared/utils/iconColor";
 import type Collection from "~/models/Collection";
@@ -28,10 +28,10 @@ function ResolvedCollectionIcon({
   size,
   className,
 }: Props) {
-  const theme = useTheme();
+  const surface = useSurface();
   const identityColor =
     inputColor ??
-    resolveIconColor(collection.color ?? colorPalette[0], theme.background);
+    resolveIconColor(collection.color ?? colorPalette[0], surface);
 
   if (collection.iconStyle === CollectionIconStyle.None) {
     return null;
