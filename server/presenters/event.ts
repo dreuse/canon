@@ -16,6 +16,8 @@ export default function presentEvent(event: Event, isAdmin = false) {
     data: event.data,
     changes: event.changes || undefined,
     actor: presentUser(event.actor),
+    documentTitle: event.document?.titleWithDefault,
+    documentUrl: event.document?.deletedAt ? undefined : event.document?.path,
   };
 
   if (!isAdmin) {

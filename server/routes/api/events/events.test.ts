@@ -3,6 +3,7 @@ import {
   buildCollection,
   buildDocument,
   buildEvent,
+  buildGuestUser,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -126,7 +127,7 @@ describe("#events.list", () => {
     expect(body.data[0].id).toEqual(auditEvent.id);
   });
 
-  it("should not allow members to filter by actorId", async () => {
+  it("should allow members to filter by actorId in activity mode", async () => {
     const user = await buildUser();
     const admin = await buildAdmin({ teamId: user.teamId });
     const collection = await buildCollection({
@@ -138,14 +139,22 @@ describe("#events.list", () => {
       collectionId: collection.id,
       teamId: user.teamId,
     });
-    // audit event
+    // audit event, never visible in the activity stream
     await buildEvent({
       name: "users.promote",
       teamId: user.teamId,
       actorId: admin.id,
       userId: user.id,
     });
-    // event viewable in activity stream
+    // activity event by the admin, the one the filter should return
+    const adminEvent = await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: admin.id,
+    });
+    // activity event by someone else, which the filter should exclude
     await buildEvent({
       name: "documents.publish",
       collectionId: collection.id,
@@ -156,6 +165,48 @@ describe("#events.list", () => {
     const res = await server.post("/api/events.list", user, {
       body: {
         actorId: admin.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(adminEvent.id);
+  });
+
+  it("should not allow members to filter by actorId in audit mode", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    await buildEvent({
+      name: "users.promote",
+      teamId: user.teamId,
+      actorId: admin.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/events.list", user, {
+      body: {
+        auditLog: true,
+        actorId: admin.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow filtering by an actorId in another team", async () => {
+    const user = await buildUser();
+    const other = await buildUser();
+    const res = await server.post("/api/events.list", user, {
+      body: {
+        actorId: other.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow filtering by a nonexistent actorId", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/events.list", user, {
+      body: {
+        actorId: "8d1b0a1c-2c1f-4a5e-9c3d-6f7a8b9c0d1e",
       },
     });
     expect(res.status).toEqual(403);
@@ -641,5 +692,288 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(event.id);
+  });
+});
+
+describe("#events.counts", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/events.counts");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should allow a member to count a teammate's activity", async () => {
+    const user = await buildUser();
+    const actor = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: actor.id,
+    });
+
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: actor.id, timezone: "UTC" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.total).toEqual(1);
+    expect(body.data.stats.documentsPublished).toEqual(1);
+  });
+
+  it("should reject an actor in another team", async () => {
+    const user = await buildUser();
+    const other = await buildUser();
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: other.id, timezone: "UTC" },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should reject a nonexistent actor without revealing it", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/events.counts", user, {
+      body: {
+        actorId: "8d1b0a1c-2c1f-4a5e-9c3d-6f7a8b9c0d1e",
+        timezone: "UTC",
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should reject a guest", async () => {
+    const guest = await buildGuestUser();
+    const actor = await buildUser({ teamId: guest.teamId });
+    const res = await server.post("/api/events.counts", guest, {
+      body: { actorId: actor.id, timezone: "UTC" },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not count events in collections the requester cannot see", async () => {
+    const user = await buildUser();
+    const actor = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: actor.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: actor.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: actor.id,
+    });
+
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: actor.id, timezone: "UTC" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.total).toEqual(0);
+  });
+
+  it("should not count events on unpublished documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const draft = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      publishedAt: null,
+    });
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: draft.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: user.id, timezone: "UTC" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.total).toEqual(0);
+  });
+
+  it("should never count audit-only events", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    await buildEvent({
+      name: "users.promote",
+      teamId: user.teamId,
+      actorId: admin.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: admin.id, timezone: "UTC" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.total).toEqual(0);
+  });
+
+  it("buckets an event into the requester's timezone, not UTC", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      createdAt: new Date("2026-01-01T02:00:00Z"),
+    });
+
+    const inSaoPaulo = await server.post("/api/events.counts", user, {
+      body: {
+        actorId: user.id,
+        timezone: "America/Sao_Paulo",
+        days: 366,
+      },
+    });
+    const saoPaulo = await inSaoPaulo.json();
+    const saoPauloDay = saoPaulo.data.days.find(
+      (day: { date: string; count: number }) => day.count > 0
+    );
+
+    const inUtc = await server.post("/api/events.counts", user, {
+      body: { actorId: user.id, timezone: "UTC", days: 366 },
+    });
+    const utc = await inUtc.json();
+    const utcDay = utc.data.days.find(
+      (day: { date: string; count: number }) => day.count > 0
+    );
+
+    expect(saoPauloDay.date).toEqual("2025-12-31");
+    expect(utcDay.date).toEqual("2026-01-01");
+  });
+
+  it("returns a zero-filled, ascending, gapless window", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: user.id, timezone: "UTC", days: 30 },
+    });
+    const body = await res.json();
+    const days: { date: string; count: number }[] = body.data.days;
+
+    expect(res.status).toEqual(200);
+    expect(days.length).toEqual(30);
+    expect(days.every((day) => day.count === 0)).toBe(true);
+
+    days.forEach((day, index) => {
+      if (index === 0) {
+        return;
+      }
+      const previous = Date.parse(`${days[index - 1].date}T00:00:00Z`);
+      const expected = new Date(previous + 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      expect(day.date).toEqual(expected);
+    });
+  });
+
+  it("keeps the totals consistent with the daily counts", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    await buildEvent({
+      name: "revisions.create",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    const res = await server.post("/api/events.counts", user, {
+      body: { actorId: user.id, timezone: "UTC" },
+    });
+    const body = await res.json();
+    const summed = body.data.days.reduce(
+      (total: number, day: { count: number }) => total + day.count,
+      0
+    );
+
+    expect(body.data.stats.total).toEqual(summed);
+    expect(body.data.stats.edits).toEqual(1);
+    expect(body.data.stats.documentsPublished).toEqual(1);
+  });
+
+  it("rejects a malformed timezone", async () => {
+    const user = await buildUser();
+
+    for (const timezone of [
+      "Not/AZone",
+      "'; DROP TABLE events; --",
+      "+05:00",
+    ]) {
+      const res = await server.post("/api/events.counts", user, {
+        body: { actorId: user.id, timezone },
+      });
+      expect(res.status).toEqual(400);
+    }
+
+    const after = await server.post("/api/events.counts", user, {
+      body: { actorId: user.id, timezone: "UTC" },
+    });
+    expect(after.status).toEqual(200);
+  });
+
+  it("rejects an out of range window", async () => {
+    const user = await buildUser();
+
+    for (const days of [0, 400]) {
+      const res = await server.post("/api/events.counts", user, {
+        body: { actorId: user.id, timezone: "UTC", days },
+      });
+      expect(res.status).toEqual(400);
+    }
   });
 });

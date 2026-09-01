@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { EventHelper } from "@shared/utils/EventHelper";
 import { BaseSchema } from "@server/routes/api/schema";
+import { zodTimezone } from "@server/utils/zod";
 
 export const EventsListSchema = BaseSchema.extend({
   body: z.object({
@@ -46,3 +47,26 @@ export const EventsListSchema = BaseSchema.extend({
 });
 
 export type EventsListReq = z.infer<typeof EventsListSchema>;
+
+/** IANA `Area/Location` timezone names, plus the bare `UTC` alias. */
+const IANATimezoneRegex =
+  /^(UTC|[A-Za-z][A-Za-z0-9_+-]*(\/[A-Za-z0-9_+-]+){1,2})$/;
+
+export const EventsCountsSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the user whose activity is being counted */
+    actorId: z.uuid(),
+
+    /**
+     * IANA timezone used to assign each event to a calendar day, for example
+     * "America/Sao_Paulo". Bucketing in UTC would place an evening edit in
+     * UTC-3 on the following day.
+     */
+    timezone: z.string().regex(IANATimezoneRegex).pipe(zodTimezone()),
+
+    /** Number of calendar days to return, ending today in `timezone` */
+    days: z.int().min(1).max(366).prefault(365),
+  }),
+});
+
+export type EventsCountsReq = z.infer<typeof EventsCountsSchema>;
