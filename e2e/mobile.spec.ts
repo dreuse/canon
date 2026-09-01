@@ -59,6 +59,12 @@ const SCREENS = [
     ready: (page: Page) => page.getByRole("heading", { name: "Trash" }),
   },
   {
+    name: "profile",
+    url: `/users/${seed.userId}`,
+    ready: (page: Page) =>
+      page.getByRole("heading", { name: seed.userName }).first(),
+  },
+  {
     name: "settings",
     url: "/settings",
     ready: (page: Page) =>
