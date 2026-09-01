@@ -3,8 +3,10 @@ import { observer } from "mobx-react";
 import { ClockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
+import { userPath } from "@shared/utils/routeHelpers";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
@@ -65,31 +67,34 @@ const Profile = observer(function Profile_({
 
   return (
     <>
-      <Flex gap={12} align="center">
-        <Avatar model={user} size={AvatarSize.XLarge} />
-        <Flex column justify="center">
-          <NameRow>
-            <Name>{user.name}</Name>
-            {user.isAdmin ? (
-              <RoleBadge primary>{t("Admin")}</RoleBadge>
-            ) : user.isGuest ? (
-              <RoleBadge>{t("Guest")}</RoleBadge>
-            ) : null}
-            {user.isSuspended && <RoleBadge>{t("Suspended")}</RoleBadge>}
-          </NameRow>
-          <Info>
-            {user.isInvited ? (
-              t("Invited")
-            ) : user.isRecentlyActive ? (
-              t("Online")
-            ) : (
-              <>
-                {t("Last seen")} <Time dateTime={user.lastActiveAt} addSuffix />
-              </>
-            )}
-          </Info>
+      <ProfileLink to={userPath(user.id)}>
+        <Flex gap={12} align="center">
+          <Avatar model={user} size={AvatarSize.XLarge} showHoverCard={false} />
+          <Flex column justify="center">
+            <NameRow>
+              <Name>{user.name}</Name>
+              {user.isAdmin ? (
+                <RoleBadge primary>{t("Admin")}</RoleBadge>
+              ) : user.isGuest ? (
+                <RoleBadge>{t("Guest")}</RoleBadge>
+              ) : null}
+              {user.isSuspended && <RoleBadge>{t("Suspended")}</RoleBadge>}
+            </NameRow>
+            <Info>
+              {user.isInvited ? (
+                t("Invited")
+              ) : user.isRecentlyActive ? (
+                t("Online")
+              ) : (
+                <>
+                  {t("Last seen")}{" "}
+                  <Time dateTime={user.lastActiveAt} addSuffix />
+                </>
+              )}
+            </Info>
+          </Flex>
         </Flex>
-      </Flex>
+      </ProfileLink>
       {(localTime || info) && (
         <>
           <Divider />
@@ -107,6 +112,15 @@ const Profile = observer(function Profile_({
     </>
   );
 });
+
+const ProfileLink = styled(Link)`
+  color: inherit;
+  display: block;
+
+  &:hover ${"h3"} {
+    text-decoration: underline;
+  }
+`;
 
 const NameRow = styled(Flex).attrs({ align: "center", gap: 4 })`
   min-width: 0;

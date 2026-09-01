@@ -3,7 +3,9 @@ import { observer } from "mobx-react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 import { s } from "@shared/styles";
+import { userPath } from "@shared/utils/routeHelpers";
 import Text from "@shared/components/Text";
 import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -88,19 +90,25 @@ export function UsersTable({ canManage, ...rest }: Props) {
           header: t("Name"),
           accessor: (user) => user.name,
           component: (user) => (
-            <HStack>
-              <Avatar model={user} size={AvatarSize.Large} />
-              <VStack align="flex-start" spacing={0}>
-                <Text selectable>
-                  {user.name} {currentUser.id === user.id && `(${t("You")})`}
-                </Text>
-                {isMobile && canManage && (
-                  <Text type="tertiary" selectable>
-                    {user.email}
+            <RowLink to={userPath(user.id)}>
+              <HStack>
+                <Avatar
+                  model={user}
+                  size={AvatarSize.Large}
+                  showHoverCard={false}
+                />
+                <VStack align="flex-start" spacing={0}>
+                  <Text selectable>
+                    {user.name} {currentUser.id === user.id && `(${t("You")})`}
                   </Text>
-                )}
-              </VStack>
-            </HStack>
+                  {isMobile && canManage && (
+                    <Text type="tertiary" selectable>
+                      {user.email}
+                    </Text>
+                  )}
+                </VStack>
+              </HStack>
+            </RowLink>
           ),
           width: "4fr",
         },
@@ -213,4 +221,14 @@ const Role = styled.span<{ $strong?: boolean }>`
   font-weight: ${(props) => (props.$strong ? 600 : 500)};
   color: ${(props) =>
     props.$strong ? props.theme.text : s("textSecondary")(props)};
+`;
+
+const RowLink = styled(Link)`
+  display: flex;
+  min-width: 0;
+  color: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;

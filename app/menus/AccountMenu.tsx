@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import {
+  navigateToProfile,
   navigateToWorkspaceSettings,
   openKeyboardShortcuts,
 } from "~/actions/definitions/navigation";
@@ -33,6 +34,7 @@ const AccountMenu: React.FC = ({ children }: Props) => {
 
   const actions = React.useMemo(
     () => [
+      navigateToProfile,
       navigateToWorkspaceSettings,
       inviteUser,
       ActionSeparator,

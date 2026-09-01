@@ -16,6 +16,7 @@ import {
   ImportIcon,
 } from "outline-icons";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { userPath } from "@shared/utils/routeHelpers";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";
 import type SearchQuery from "~/models/SearchQuery";
@@ -128,6 +129,15 @@ export const navigateToImport = createInternalLinkAction({
     stores.collections.all.length === 1 &&
     stores.documents.all.length < 10,
   to: settingsPath("import"),
+});
+
+export const navigateToProfile = createInternalLinkAction({
+  name: ({ t }) => t("View profile"),
+  analyticsName: "Navigate to profile",
+  section: NavigationSection,
+  icon: <ProfileIcon />,
+  visible: () => !!stores.auth.user,
+  to: () => userPath(stores.auth.user?.id ?? ""),
 });
 
 export const navigateToProfileSettings = createInternalLinkAction({

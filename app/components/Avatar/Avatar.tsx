@@ -49,6 +49,11 @@ export type AvatarProps = {
   showTooltip?: boolean;
   /** Whether to show a profile card on hover for users, defaults to true */
   showHoverCard?: boolean;
+  /**
+   * Whether the avatar links to the user's profile. Off by default, because
+   * avatars are frequently rendered inside another link.
+   */
+  linkToProfile?: boolean;
 } & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "onClick" | "className" | "style"
@@ -66,6 +71,7 @@ const Avatar = React.forwardRef(function Avatar_(
     className,
     showTooltip,
     showHoverCard: _showHoverCard,
+    linkToProfile: _linkToProfile,
     src: srcProp,
     alt,
     onClick,

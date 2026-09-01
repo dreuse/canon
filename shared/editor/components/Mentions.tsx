@@ -15,6 +15,7 @@ import {
   hasTimeComponent,
   parseISODate,
 } from "../../utils/date";
+import { userPath } from "../../utils/routeHelpers";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
@@ -66,15 +67,16 @@ export const MentionUser = observer(function MentionUser_(
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   return (
-    <span
+    <Link
       {...attrs}
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
+      to={userPath(node.attrs.modelId)}
     >
       <EmailIcon size={18} />
       {user?.name || node.attrs.label}
-    </span>
+    </Link>
   );
 });
 

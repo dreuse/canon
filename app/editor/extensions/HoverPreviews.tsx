@@ -2,6 +2,7 @@ import { action, observable } from "mobx";
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
+import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import stores from "~/stores";
 import HoverPreview from "~/components/HoverPreview";
@@ -60,8 +61,12 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
                   action(async () => {
                     const element = target as HTMLElement;
 
+                    const mentionType = element?.dataset.type;
                     const url =
-                      element?.getAttribute("href") || element?.dataset.url;
+                      mentionType === MentionType.User ||
+                      mentionType === MentionType.Group
+                        ? element?.dataset.url
+                        : element?.getAttribute("href") || element?.dataset.url;
                     const documentId = parseDocumentSlug(
                       window.location.pathname
                     );
