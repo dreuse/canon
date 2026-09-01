@@ -18,4 +18,13 @@ export default class EventsStore extends Store<Event<any>> {
    */
   getByDocumentId = (documentId: string): Event<any>[] =>
     this.orderedData.filter((event) => event.documentId === documentId);
+
+  /**
+   * Retrieves all events performed by a given actor, most recent first.
+   *
+   * @param actorId - The ID of the user who performed the actions
+   * @returns An array of events performed by the specified actor
+   */
+  getByActorId = (actorId: string): Event<any>[] =>
+    this.orderedData.filter((event) => event.actorId === actorId);
 }

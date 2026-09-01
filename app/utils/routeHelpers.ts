@@ -346,3 +346,7 @@ export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 /** Route matcher for the document history screen. */
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
+
+/** Route matcher for a user id. */
+export const matchUserId =
+  ":userId([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})";

@@ -344,3 +344,29 @@ export enum CommentSortType {
 export type CommentSortOption =
   | { type: CommentSortType.MostRecent }
   | { type: CommentSortType.OrderInDocument; referencedCommentIds: string[] };
+
+export interface UserContributionStats {
+  /** The number of documents the user published in the window. */
+  documentsPublished: number;
+  /** The number of document revisions the user created in the window. */
+  edits: number;
+  /** The number of collections the user created in the window. */
+  collectionsCreated: number;
+  /** The total number of contributions in the window. */
+  total: number;
+}
+
+export interface UserContributions {
+  /** The IANA timezone the days were bucketed in. */
+  timezone: string;
+  /** The first day of the window, as `yyyy-MM-dd`. */
+  startDate: string;
+  /** The last day of the window, as `yyyy-MM-dd`. */
+  endDate: string;
+  /** The total number of contributions in the window. */
+  total: number;
+  /** Contribution counts keyed by local `yyyy-MM-dd` date. */
+  counts: Record<string, number>;
+  /** Aggregate counts for the header. */
+  stats: UserContributionStats;
+}

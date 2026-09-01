@@ -24,6 +24,7 @@ import {
   settingsPath,
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
+  matchUserId as userId,
   trashPath,
   debugPath,
 } from "~/utils/routeHelpers";
@@ -151,6 +152,11 @@ function AuthenticatedRoutes() {
                   component={Changesets}
                 />
               )}
+              <Route
+                exact
+                path={`/users/${userId}/:tab?`}
+                component={Scenes.UserProfile.Component}
+              />
               <Route exact path="/404" component={Error404} />
               <SettingsRoutes />
               <Route component={Error404} />

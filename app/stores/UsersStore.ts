@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { deburr, differenceWith, filter, orderBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
 import type { UserRole } from "@shared/types";
+import type { UserContributions } from "~/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
@@ -21,6 +22,29 @@ export default class UsersStore extends Store<User> {
   constructor(rootStore: RootStore) {
     super(rootStore, User);
   }
+
+  /**
+   * Retrieves the daily contribution counts and totals for a user over a
+   * trailing window, bucketed in the viewer's own timezone so that the days
+   * line up with the dates the browser renders.
+   *
+   * @param userId The user to retrieve contributions for.
+   * @returns The counts keyed by local date, alongside the header totals.
+   */
+  fetchContributions = async (userId: string): Promise<UserContributions> => {
+    const res = await client.post("/events.counts", {
+      actorId: userId,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+    invariant(res?.data, "Contributions not available");
+
+    const days: { date: string; count: number }[] = res.data.days;
+
+    return {
+      ...res.data,
+      counts: Object.fromEntries(days.map((day) => [day.date, day.count])),
+    };
+  };
 
   @computed
   get active(): User[] {

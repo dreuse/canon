@@ -38,6 +38,12 @@ class Event<T extends Model> extends Model {
 
   data: Partial<T> | null;
 
+  /** The title of the document this event refers to, denormalized at read time. */
+  documentTitle: string | undefined;
+
+  /** The path of the document this event refers to, absent once it is deleted. */
+  documentUrl: string | undefined;
+
   changes: {
     attributes: Partial<T>;
     previous: Partial<T>;
