@@ -22,9 +22,8 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
 import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
-import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
-
+import { SettingsSection } from "./components/SettingsSection";
 import { SettingsTitle } from "./components/SettingsTitle";
 
 function Preferences() {
@@ -59,8 +58,7 @@ function Preferences() {
 
   const handleUseCursorPointerChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.UseCursorPointer, checked);
-      await user.save();
+      await user.savePreference(UserPreference.UseCursorPointer, checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -68,8 +66,7 @@ function Preferences() {
 
   const handleCodeBlockLineNumbersChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.CodeBlockLineNumers, checked);
-      await user.save();
+      await user.savePreference(UserPreference.CodeBlockLineNumers, checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -77,8 +74,7 @@ function Preferences() {
 
   const handleCommentsInGutterChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.CommentsInGutter, checked);
-      await user.save();
+      await user.savePreference(UserPreference.CommentsInGutter, checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -86,8 +82,7 @@ function Preferences() {
 
   const handleShowDocumentStatsChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.ShowDocumentStats, checked);
-      await user.save();
+      await user.savePreference(UserPreference.ShowDocumentStats, checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -95,8 +90,7 @@ function Preferences() {
 
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.SeamlessEdit, !checked);
-      await user.save();
+      await user.savePreference(UserPreference.SeamlessEdit, !checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -104,8 +98,7 @@ function Preferences() {
 
   const handleRememberLastPathChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.RememberLastPath, checked);
-      await user.save();
+      await user.savePreference(UserPreference.RememberLastPath, checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -113,8 +106,7 @@ function Preferences() {
 
   const handleEnableSmartTextChange = React.useCallback(
     async (checked: boolean) => {
-      user.setPreference(UserPreference.EnableSmartText, checked);
-      await user.save();
+      await user.savePreference(UserPreference.EnableSmartText, checked);
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -143,11 +135,10 @@ function Preferences() {
 
   const handleNotificationBadgeChange = React.useCallback(
     async (value: string) => {
-      user.setPreference(
+      await user.savePreference(
         UserPreference.NotificationBadge,
         value as NotificationBadgeType
       );
-      await user.save();
       toast.success(t("Preferences saved"));
     },
     [user, t]
@@ -182,177 +173,176 @@ function Preferences() {
         <Trans>Manage settings that affect your personal experience.</Trans>
       </SettingsTitle>
 
-      <SettingGroup>{t("Display")}</SettingGroup>
-      <SettingRow
-        label={t("Language")}
-        name="language"
-        description={
-          <>
-            {UrlHelper.translations ? (
-              <Trans>
-                Choose the interface language. Community translations are
-                accepted through our{" "}
-                <a
-                  href={UrlHelper.translations}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  translation portal
-                </a>
-                .
-              </Trans>
-            ) : (
-              <Trans>Choose the interface language.</Trans>
-            )}
-          </>
-        }
-      >
-        <InputSelect
-          options={languageOptions}
-          value={user.language}
-          onChange={handleLanguageChange}
+      <SettingsSection title={t("Display")}>
+        <SettingRow
           label={t("Language")}
-          labelHidden
-        />
-      </SettingRow>
-      <SettingRow
-        name="theme"
-        label={t("Theme")}
-        description={t("Choose your preferred interface color scheme.")}
-      >
-        <InputSelect
-          options={themeOptions}
-          value={ui.theme}
-          onChange={handleThemeChange}
-          label={t("Theme")}
-          labelHidden
-        />
-      </SettingRow>
-      <SettingRow
-        name={UserPreference.UseCursorPointer}
-        label={t("Use pointer cursor")}
-        description={t(
-          "Show a hand cursor when hovering over interactive elements."
-        )}
-      >
-        <Switch
-          id={UserPreference.UseCursorPointer}
-          name={UserPreference.UseCursorPointer}
-          checked={user.getPreference(UserPreference.UseCursorPointer)}
-          onChange={handleUseCursorPointerChange}
-        />
-      </SettingRow>
-      <SettingRow
-        name={UserPreference.CodeBlockLineNumers}
-        label={t("Show line numbers")}
-        description={t("Show line numbers on code blocks in documents.")}
-      >
-        <Switch
-          id={UserPreference.CodeBlockLineNumers}
-          name={UserPreference.CodeBlockLineNumers}
-          checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
-          onChange={handleCodeBlockLineNumbersChange}
-        />
-      </SettingRow>
-      <SettingRow
-        name={UserPreference.CommentsInGutter}
-        label={t("Show comment marker")}
-        description={t(
-          "Display a marker beside lines in the editor that contain comments."
-        )}
-      >
-        <Switch
-          id={UserPreference.CommentsInGutter}
-          name={UserPreference.CommentsInGutter}
-          checked={user.getPreference(UserPreference.CommentsInGutter)}
-          onChange={handleCommentsInGutterChange}
-        />
-      </SettingRow>
-      <SettingRow
-        name={UserPreference.ShowDocumentStats}
-        label={t("Show editing stats")}
-        description={t(
-          "Display live word, character, and paragraph counts while editing."
-        )}
-        border={false}
-      >
-        <Switch
-          id={UserPreference.ShowDocumentStats}
-          name={UserPreference.ShowDocumentStats}
-          checked={user.getPreference(UserPreference.ShowDocumentStats)}
-          onChange={handleShowDocumentStatsChange}
-        />
-      </SettingRow>
-
-      <SettingGroup>{t("Behavior")}</SettingGroup>
-      <SettingRow
-        name={UserPreference.SeamlessEdit}
-        label={t("Separate editing")}
-        description={t(
-          `When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.`
-        )}
-      >
-        <Switch
-          id={UserPreference.SeamlessEdit}
-          name={UserPreference.SeamlessEdit}
-          checked={
-            !user.getPreference(
-              UserPreference.SeamlessEdit,
-              team.getPreference(TeamPreference.SeamlessEdit)
-            )
+          name="language"
+          description={
+            <>
+              {UrlHelper.translations ? (
+                <Trans>
+                  Choose the interface language. Community translations are
+                  accepted through our{" "}
+                  <a
+                    href={UrlHelper.translations}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    translation portal
+                  </a>
+                  .
+                </Trans>
+              ) : (
+                <Trans>Choose the interface language.</Trans>
+              )}
+            </>
           }
-          onChange={handleSeamlessEditChange}
-        />
-      </SettingRow>
-      <SettingRow
-        name={UserPreference.RememberLastPath}
-        label={t("Remember previous location")}
-        description={t(
-          "Automatically return to the document you were last viewing when the app is reopened."
-        )}
-      >
-        <Switch
-          id={UserPreference.RememberLastPath}
+        >
+          <InputSelect
+            options={languageOptions}
+            value={user.language}
+            onChange={handleLanguageChange}
+            label={t("Language")}
+            labelHidden
+          />
+        </SettingRow>
+        <SettingRow
+          name="theme"
+          label={t("Theme")}
+          description={t("Choose your preferred interface color scheme.")}
+        >
+          <InputSelect
+            options={themeOptions}
+            value={ui.theme}
+            onChange={handleThemeChange}
+            label={t("Theme")}
+            labelHidden
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.UseCursorPointer}
+          label={t("Use pointer cursor")}
+          description={t(
+            "Show a hand cursor when hovering over interactive elements."
+          )}
+        >
+          <Switch
+            id={UserPreference.UseCursorPointer}
+            name={UserPreference.UseCursorPointer}
+            checked={user.getPreference(UserPreference.UseCursorPointer)}
+            onChange={handleUseCursorPointerChange}
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.CodeBlockLineNumers}
+          label={t("Show line numbers")}
+          description={t("Show line numbers on code blocks in documents.")}
+        >
+          <Switch
+            id={UserPreference.CodeBlockLineNumers}
+            name={UserPreference.CodeBlockLineNumers}
+            checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
+            onChange={handleCodeBlockLineNumbersChange}
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.CommentsInGutter}
+          label={t("Show comment marker")}
+          description={t(
+            "Display a marker beside lines in the editor that contain comments."
+          )}
+        >
+          <Switch
+            id={UserPreference.CommentsInGutter}
+            name={UserPreference.CommentsInGutter}
+            checked={user.getPreference(UserPreference.CommentsInGutter)}
+            onChange={handleCommentsInGutterChange}
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.ShowDocumentStats}
+          label={t("Show editing stats")}
+          description={t(
+            "Display live word, character, and paragraph counts while editing."
+          )}
+        >
+          <Switch
+            id={UserPreference.ShowDocumentStats}
+            name={UserPreference.ShowDocumentStats}
+            checked={user.getPreference(UserPreference.ShowDocumentStats)}
+            onChange={handleShowDocumentStatsChange}
+          />
+        </SettingRow>
+      </SettingsSection>
+
+      <SettingsSection title={t("Behavior")}>
+        <SettingRow
+          name={UserPreference.SeamlessEdit}
+          label={t("Separate editing")}
+          description={t(
+            `When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.`
+          )}
+        >
+          <Switch
+            id={UserPreference.SeamlessEdit}
+            name={UserPreference.SeamlessEdit}
+            checked={
+              !user.getPreference(
+                UserPreference.SeamlessEdit,
+                team.getPreference(TeamPreference.SeamlessEdit)
+              )
+            }
+            onChange={handleSeamlessEditChange}
+          />
+        </SettingRow>
+        <SettingRow
           name={UserPreference.RememberLastPath}
-          checked={!!user.getPreference(UserPreference.RememberLastPath)}
-          onChange={handleRememberLastPathChange}
-        />
-      </SettingRow>
-      <SettingRow
-        name={UserPreference.EnableSmartText}
-        label={t("Smart text replacements")}
-        description={t(
-          "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements."
-        )}
-      >
-        <Switch
-          id={UserPreference.EnableSmartText}
+          label={t("Remember previous location")}
+          description={t(
+            "Automatically return to the document you were last viewing when the app is reopened."
+          )}
+        >
+          <Switch
+            id={UserPreference.RememberLastPath}
+            name={UserPreference.RememberLastPath}
+            checked={!!user.getPreference(UserPreference.RememberLastPath)}
+            onChange={handleRememberLastPathChange}
+          />
+        </SettingRow>
+        <SettingRow
           name={UserPreference.EnableSmartText}
-          checked={!!user.getPreference(UserPreference.EnableSmartText)}
-          onChange={handleEnableSmartTextChange}
-        />
-      </SettingRow>
-      <AutoLaunchSetting />
-      <SettingRow
-        border={false}
-        name={UserPreference.NotificationBadge}
-        label={t("Notification badge")}
-        description={t(
-          "Choose how unread notifications are indicated on the app icon."
-        )}
-      >
-        <InputSelect
-          options={notificationBadgeOptions}
-          value={user.getPreference(UserPreference.NotificationBadge)}
-          onChange={handleNotificationBadgeChange}
+          label={t("Smart text replacements")}
+          description={t(
+            "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements."
+          )}
+        >
+          <Switch
+            id={UserPreference.EnableSmartText}
+            name={UserPreference.EnableSmartText}
+            checked={!!user.getPreference(UserPreference.EnableSmartText)}
+            onChange={handleEnableSmartTextChange}
+          />
+        </SettingRow>
+        <AutoLaunchSetting />
+        <SettingRow
+          name={UserPreference.NotificationBadge}
           label={t("Notification badge")}
-          labelHidden
-        />
-      </SettingRow>
+          description={t(
+            "Choose how unread notifications are indicated on the app icon."
+          )}
+        >
+          <InputSelect
+            options={notificationBadgeOptions}
+            value={user.getPreference(UserPreference.NotificationBadge)}
+            onChange={handleNotificationBadgeChange}
+            label={t("Notification badge")}
+            labelHidden
+          />
+        </SettingRow>
+      </SettingsSection>
 
       {can.delete && (
-        <>
-          <SettingGroup>{t("Danger")}</SettingGroup>
+        <SettingsSection title={t("Danger")} danger>
           <SettingRow
             name="delete"
             label={t("Delete account")}
@@ -366,7 +356,7 @@ function Preferences() {
               </Button>
             </span>
           </SettingRow>
-        </>
+        </SettingsSection>
       )}
     </Scene>
   );

@@ -106,12 +106,12 @@ export const UserProfileScene = observer(function UserProfileScene_() {
 
           {tab === "documents" ? (
             <PaginatedDocumentList
-              documents={documents.createdByUser(user.id)}
+              documents={documents.editedByUser(user.id)}
               fetch={fetchDocuments}
               options={{ userId: user.id }}
               empty={
                 <Empty>
-                  {t("{{ name }} hasn't created any documents yet", {
+                  {t("{{ name }} hasn't edited any documents yet", {
                     name: user.name,
                   })}
                 </Empty>

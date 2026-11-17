@@ -3,7 +3,7 @@ import stores from "~/stores";
 
 describe("Document model", () => {
   describe("isStale", () => {
-    test("should be false when the collection has no reviewIntervalDays", () => {
+    it("should be false when the collection has no reviewIntervalDays", () => {
       const collection = stores.collections.add({
         id: "collection-no-interval",
         name: "Engineering",
@@ -23,7 +23,7 @@ describe("Document model", () => {
       expect(document.isStale).toBe(false);
     });
 
-    test("should be false when the reference date is within the interval", () => {
+    it("should be false when the reference date is within the interval", () => {
       const collection = stores.collections.add({
         id: "collection-recent",
         name: "Engineering",
@@ -43,7 +43,7 @@ describe("Document model", () => {
       expect(document.isStale).toBe(false);
     });
 
-    test("should be true when publishedAt is older than the interval and verifiedAt is unset", () => {
+    it("should be true when publishedAt is older than the interval and verifiedAt is unset", () => {
       const collection = stores.collections.add({
         id: "collection-published-old",
         name: "Engineering",
@@ -63,7 +63,7 @@ describe("Document model", () => {
       expect(document.isStale).toBe(true);
     });
 
-    test("should prefer verifiedAt over publishedAt as the reference date", () => {
+    it("should prefer verifiedAt over publishedAt as the reference date", () => {
       const collection = stores.collections.add({
         id: "collection-verified",
         name: "Engineering",
@@ -86,7 +86,7 @@ describe("Document model", () => {
       expect(document.isStale).toBe(false);
     });
 
-    test("should be false when there is no reference date at all", () => {
+    it("should be false when there is no reference date at all", () => {
       const collection = stores.collections.add({
         id: "collection-no-dates",
         name: "Engineering",

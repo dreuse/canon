@@ -4,7 +4,7 @@ import { PlusIcon, SmileyIcon } from "outline-icons";
 import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
@@ -23,7 +23,6 @@ import type EmojisStore from "~/stores/EmojiStore";
 import { SettingsTitle } from "./components/SettingsTitle";
 
 function Emojis() {
-  const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
   const { emojis } = useStores();
@@ -70,11 +69,11 @@ function Emojis() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleSearch = useCallback(

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { extraArea, s } from "@shared/styles";
+import { extraArea, hover, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 import {
   VoChevronDownIcon,
@@ -50,7 +50,7 @@ const Button = styled(NudeButton)`
     opacity: 0.2;
   }
 
-  &:hover {
+  &:${hover} {
     opacity: 1;
     color: ${s("text")};
     background: ${s("sidebarControlHoverBackground")};

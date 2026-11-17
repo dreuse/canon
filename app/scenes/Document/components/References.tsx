@@ -193,11 +193,11 @@ function useChildren(
 function useBacklinks(
   document: Document,
   sharedTree: NavigationNode | undefined
-): Document[] {
+): (Document | NavigationNode)[] {
   if (sharedTree) {
     return flattenTree(sharedTree).filter((node) =>
       document.backlinkIds?.includes(node.id)
-    ) as Document[];
+    );
   }
   return document.backlinks;
 }

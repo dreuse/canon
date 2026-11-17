@@ -201,7 +201,7 @@ router.post(
     const { where: visibilityWhere, include: documentInclude } =
       await buildVisibilityScope(user, ["id", "title", "urlId", "deletedAt"]);
 
-    if (!hasExplicitScope) {
+    if (!hasExplicitScope && !auditLog) {
       where = { ...where, ...visibilityWhere };
     }
 

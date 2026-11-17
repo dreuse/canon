@@ -21,11 +21,10 @@ const CommentSortMenu = () => {
   const handleChange = React.useCallback(
     (val: CommentSortType) => {
       if (val !== preferredSortType) {
-        user.setPreference(
+        void user.savePreference(
           UserPreference.SortCommentsByOrderInDocument,
           val === CommentSortType.OrderInDocument
         );
-        void user.save();
       }
     },
     [user, preferredSortType]

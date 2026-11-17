@@ -16,7 +16,7 @@ import * as T from "./schema";
 import { getTeamFromContext } from "@server/utils/passport";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { loadPublicShare } from "@server/commands/shareLoader";
-import { AuthorizationError } from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 
 const router = new Router();
 
@@ -173,12 +173,17 @@ router.post(
     const { name, attachmentId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
+    authorize(user, "createEmoji", user.team);
 
     const attachment = await Attachment.findByPk(attachmentId, {
       transaction,
       rejectOnEmpty: true,
     });
     authorize(user, "read", attachment);
+
+    if (attachment.documentId) {
+      throw ValidationError("Attachment cannot be used as an emoji");
+    }
 
     const emoji = await Emoji.createWithCtx(ctx, {
       name,
@@ -219,6 +224,10 @@ router.post(
       rejectOnEmpty: true,
     });
     authorize(user, "read", attachment);
+
+    if (attachment.documentId) {
+      throw ValidationError("Attachment cannot be used as an emoji");
+    }
 
     // Capture old attachment before reassigning so we can clean it up.
     const oldAttachmentId = emoji.attachmentId;

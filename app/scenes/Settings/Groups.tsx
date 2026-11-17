@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import type Group from "~/models/Group";
 import Empty from "~/components/Empty";
@@ -43,7 +43,6 @@ function GroupsPanel() {
   const { t } = useTranslation();
   const { groups } = useStores();
   const history = useHistory();
-  const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
 
@@ -89,11 +88,11 @@ function GroupsPanel() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleSourceFilter = useCallback(

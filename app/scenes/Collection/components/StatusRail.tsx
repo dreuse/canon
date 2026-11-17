@@ -138,8 +138,8 @@ export const StatusRail = observer(function StatusRail_({
           {count !== undefined && (
             <Value>
               {t("{{ documents }} in {{ levels }}", {
-                documents: t("{{ count }} documents", { count }),
-                levels: t("{{ count }} levels", { count: levels }),
+                documents: t("{{ count }} document", { count }),
+                levels: t("{{ count }} level", { count: levels }),
               })}
             </Value>
           )}
@@ -156,7 +156,7 @@ export const StatusRail = observer(function StatusRail_({
             <Label>{t("Needs attention")}</Label>
             <Value>
               {t(
-                "{{ count }} documents have not been reviewed in over {{ period }}",
+                "{{ count }} document has not been reviewed in over {{ period }}",
                 {
                   count: staleCount,
                   period: t("{{ count }} days", { count: reviewIntervalDays }),

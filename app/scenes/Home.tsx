@@ -257,7 +257,7 @@ function Home() {
               {today}
               {" · "}
               {changedCount
-                ? t("{{ count }} things changed since {{ day }}", {
+                ? t("{{ count }} thing changed since {{ day }}", {
                     count: changedCount,
                     day: sinceDay,
                   })
@@ -524,7 +524,7 @@ function Home() {
               {drafts.length > 0 && (
                 <RailCard>
                   <ModuleLabel>
-                    {t("{{ count }} drafts", { count: drafts.length })}
+                    {t("{{ count }} draft", { count: drafts.length })}
                   </ModuleLabel>
                   {drafts.slice(0, DRAFT_LIMIT).map((draft) => (
                     <RailDraft key={draft.id} to={documentPath(draft)}>

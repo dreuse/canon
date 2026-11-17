@@ -190,7 +190,7 @@ export function ContributionGraph({
       </Scroller>
       <VisuallyHidden.Root>
         {busiest && busiest.count > 0
-          ? t("Busiest day: {{count}} contributions on {{date}}", {
+          ? t("Busiest day: {{count}} contribution on {{date}}", {
               count: busiest.count,
               date: busiest.date,
             })

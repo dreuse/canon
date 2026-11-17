@@ -25,6 +25,7 @@ import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import type { NotificationMetadata } from "@server/types";
 import { BrandingContext } from "./components/BrandingContext";
+import { BodyNoticeContext } from "./components/Body";
 import { DirectionContext } from "./components/Direction";
 
 export enum EmailMessageCategory {
@@ -167,24 +168,22 @@ export default abstract class BaseEmail<
       ? await Notification.emailReferences(notification)
       : undefined;
 
-    // Check if notification is considerably delayed and annotate
-    // the subject. This is in case of extended downtime or queue backlogs
-    let subject = this.subject(data);
-    if (notification) {
-      if (notification.createdAt < subMinutes(new Date(), 30)) {
-        subject = `${this.t("Delayed notification")}: ${subject}`;
-      }
-    }
+    // Note a considerable delay in the body, as a subject change breaks threading.
+    const delayedNotice =
+      notification && notification.createdAt < subMinutes(new Date(), 30)
+        ? this.t("This notification was delayed and may be out of date.")
+        : undefined;
 
     const lang = this.locale;
     const dir = isRTLLanguage(lang) ? "rtl" : "ltr";
 
     try {
+      const text = this.renderAsText(data);
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
         from: this.from(data),
-        subject,
+        subject: this.subject(data),
         messageId,
         references,
         previewText: this.preview(data),
@@ -193,13 +192,15 @@ export default abstract class BaseEmail<
         component: (
           <BrandingContext.Provider value={branding}>
             <DirectionContext.Provider value={dir}>
-              {this.render(data)}
-              {notification ? this.pixel(notification) : null}
+              <BodyNoticeContext.Provider value={delayedNotice}>
+                {this.render(data)}
+                {notification ? this.pixel(notification) : null}
+              </BodyNoticeContext.Provider>
             </DirectionContext.Provider>
           </BrandingContext.Provider>
         ),
         hasCustomLogo: !!branding.logoUrl,
-        text: this.renderAsText(data),
+        text: delayedNotice ? `${delayedNotice}\n\n${text}` : text,
         headCSS: this.headCSS?.(data),
         unsubscribeUrl: this.unsubscribeUrl?.(data),
         tags: { category: this.category, template: templateName },
@@ -385,6 +386,7 @@ export default abstract class BaseEmail<
 
     let content = await ProsemirrorHelper.toHTML(processedNode, {
       centered: false,
+      baseUrl: team.url,
     });
 
     content = await TextHelper.attachmentsToSignedUrls(

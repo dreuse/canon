@@ -154,7 +154,7 @@ const useSettingsConfig = () => {
         path: settingsPath("appearance"),
         component: Appearance.Component,
         preload: Appearance.preload,
-        description: t("Theme, accent colour, fonts, text size and code."),
+        description: t("Theme, accent color, fonts, text size and code."),
         enabled: can.update,
         group: t("Workspace"),
         icon: PaletteIcon,

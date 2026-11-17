@@ -439,7 +439,7 @@ function Appearance() {
       <Scene title={t("Appearance")} icon={<PaletteIcon />}>
         <SettingsTitle title={t("Appearance")}>
           <Trans>
-            Theme, accent colour, fonts and text size. Everyone on the team sees
+            Theme, accent color, fonts and text size. Everyone on the team sees
             these.
           </Trans>
         </SettingsTitle>

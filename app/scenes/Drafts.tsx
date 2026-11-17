@@ -70,7 +70,7 @@ function Drafts() {
         title={t("Drafts")}
         caption={
           <>
-            {t("{{ count }} drafts", { count: drafts.length })} &middot;{" "}
+            {t("{{ count }} draft", { count: drafts.length })} &middot;{" "}
             {t("only you can see these")}
           </>
         }
@@ -108,7 +108,7 @@ function Drafts() {
           <Empty>
             {isFiltered
               ? t("No documents found for your filters.")
-              : t("You’ve not got any drafts at the moment.")}
+              : t("You don’t have any drafts at the moment.")}
           </Empty>
         }
         fetch={documents.fetchDrafts}

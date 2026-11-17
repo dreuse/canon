@@ -12,21 +12,31 @@ import {
 } from "@shared/editor/lib/code";
 import { isMermaid } from "@shared/editor/lib/isCode";
 import { t } from "i18next";
-import type { MenuItem, SelectionContext } from "@shared/editor/types";
+import type {
+  MenuItem,
+  NodeWithPos,
+  SelectionContext,
+} from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 
 /**
  * Returns menu items for the code block selection toolbar.
  *
  * @param ctx - the current selection context.
+ * @param codeBlock - the code block to act on, defaults to the selected one.
  * @returns an array of menu items.
  */
-export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
+export default function codeMenuItems(
+  ctx: SelectionContext,
+  codeBlock?: NodeWithPos
+): MenuItem[] {
   const { state, readOnly } = ctx;
+  const { selection } = state;
   const node =
-    state.selection instanceof NodeSelection
-      ? state.selection.node
-      : state.selection.$from.node();
+    codeBlock?.node ??
+    (selection instanceof NodeSelection
+      ? selection.node
+      : selection.$from.node());
 
   const frequentLanguages = getFrequentCodeLanguages();
 

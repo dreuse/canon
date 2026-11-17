@@ -36,7 +36,7 @@ function Applications() {
         }
       >
         <Trans
-          defaults="Applications allow you to build internal or public integrations with {{ appName }} and provide secure access via OAuth. For more details see the <em>developer documentation</em>."
+          defaults="Applications allow you to build internal or public integrations with {{ appName }} and provide secure access via OAuth. For more details, see the <em>developer documentation</em>."
           values={{ appName: env.APP_NAME }}
           components={{
             em: (

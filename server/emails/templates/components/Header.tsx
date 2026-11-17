@@ -1,8 +1,8 @@
-import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import env from "@server/env";
 import { useBranding } from "./BrandingContext";
 import EmptySpace from "./EmptySpace";
+import { Table, TBody, TR, TD } from "./Table";
 
 const url = env.CDN_URL ?? env.URL;
 

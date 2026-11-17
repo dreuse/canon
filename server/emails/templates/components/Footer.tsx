@@ -1,8 +1,8 @@
-import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
 import env from "@server/env";
 import { DirectionContext } from "./Direction";
+import { Table, TBody, TR, TD } from "./Table";
 
 type Props = {
   unsubscribeUrl?: string;
@@ -52,6 +52,11 @@ export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
             <Link href={env.URL}>{env.APP_NAME}</Link>
           </TD>
         </TR>
+        {children && (
+          <TR>
+            <TD style={footerLinkStyle}>{children}</TD>
+          </TR>
+        )}
         {unsubscribeUrl && (
           <TR>
             <TD style={footerLinkStyle}>
@@ -59,11 +64,6 @@ export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
                 {unsubscribeText ?? "Unsubscribe from these emails"}
               </Link>
             </TD>
-          </TR>
-        )}
-        {children && (
-          <TR>
-            <TD style={footerLinkStyle}>{children}</TD>
           </TR>
         )}
       </TBody>

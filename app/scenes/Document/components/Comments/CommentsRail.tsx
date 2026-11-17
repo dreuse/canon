@@ -18,7 +18,7 @@ export function CommentsRail({ threadCount, onExpand }: Props) {
       <CommentIcon />
       <Label>
         {threadCount
-          ? t("{{ count }} comments", { count: threadCount })
+          ? t("{{ count }} comment", { count: threadCount })
           : t("No comments yet")}
       </Label>
     </Rail>

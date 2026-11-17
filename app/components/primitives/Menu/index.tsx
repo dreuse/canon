@@ -80,11 +80,15 @@ type ContentProps = React.ComponentPropsWithoutRef<
 > &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> & {
     ref?: React.Ref<React.ComponentRef<typeof DropdownMenuPrimitive.Content>>;
+    /** The largest height of the menu, defaults to 85vh. */
+    maxHeight?: string;
+    /** Show the menu at once, without the opening animation. */
+    skipAnimation?: boolean;
   };
 
 function MenuContent(props: ContentProps) {
   const { variant } = useMenuContext();
-  const { ref, children, ...rest } = props;
+  const { ref, children, maxHeight, skipAnimation, ...rest } = props;
   const theme = useTheme();
 
   const Portal =
@@ -114,7 +118,12 @@ function MenuContent(props: ContentProps) {
   return (
     <Portal>
       <Content ref={ref} {...offsetProp} {...rest} collisionPadding={6} asChild>
-        <Components.MenuContent {...contentProps} hiddenScrollbars>
+        <Components.MenuContent
+          {...contentProps}
+          maxHeight={maxHeight}
+          $skipAnimation={skipAnimation}
+          hiddenScrollbars
+        >
           <SurfaceProvider value={theme.menuBackground}>
             {children}
           </SurfaceProvider>
@@ -240,6 +249,8 @@ type BaseItemProps = {
   icon?: React.ReactElement;
   disabled?: boolean;
   shortcut?: string[];
+  /** Additional content displayed at the end of the item. */
+  badge?: React.ReactNode;
 };
 
 /**
@@ -298,6 +309,7 @@ function MenuButton(props: MenuButtonProps) {
     selected,
     dangerous,
     shortcut,
+    badge,
     onClick,
     ...rest
   } = props;
@@ -316,6 +328,7 @@ function MenuButton(props: MenuButtonProps) {
       >
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        {badge && <Components.MenuBadge>{badge}</Components.MenuBadge>}
         {selected !== undefined && (
           <Components.SelectedIconWrapper aria-hidden>
             {selected ? <CheckmarkIcon size={18} /> : null}
@@ -351,7 +364,7 @@ type MenuInternalLinkProps = BaseItemProps & {
 
 function MenuInternalLink(props: MenuInternalLinkProps) {
   const { variant } = useMenuContext();
-  const { ref, label, icon, disabled, shortcut, to, ...rest } = props;
+  const { ref, label, icon, disabled, shortcut, badge, to, ...rest } = props;
 
   const Item =
     variant === "dropdown"
@@ -363,6 +376,7 @@ function MenuInternalLink(props: MenuInternalLinkProps) {
       <Components.MenuInternalLink to={to} disabled={disabled}>
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        {badge && <Components.MenuBadge>{badge}</Components.MenuBadge>}
         <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuInternalLink>
     </Item>
@@ -386,7 +400,8 @@ type MenuExternalLinkProps = BaseItemProps & {
 
 function MenuExternalLink(props: MenuExternalLinkProps) {
   const { variant } = useMenuContext();
-  const { ref, label, icon, disabled, shortcut, href, target, ...rest } = props;
+  const { ref, label, icon, disabled, shortcut, badge, href, target, ...rest } =
+    props;
 
   const Item =
     variant === "dropdown"
@@ -402,6 +417,7 @@ function MenuExternalLink(props: MenuExternalLinkProps) {
       >
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        {badge && <Components.MenuBadge>{badge}</Components.MenuBadge>}
         <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuExternalLink>
     </Item>

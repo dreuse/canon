@@ -114,7 +114,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
         <Wrapper>
           <Separator />
           <MetaButton action={openDocumentInsights}>
-            {t("{{ count }} contributors", { count: contributorCount })}
+            {t("{{ count }} contributor", { count: contributorCount })}
           </MetaButton>
         </Wrapper>
       )}

@@ -54,9 +54,10 @@ import type {
 import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import slugify from "@shared/utils/slugify";
+import slugify from "@server/utils/slugify";
 import { DeprecationValidation, DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { afterCommit } from "@server/storage/transaction";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
@@ -546,7 +547,13 @@ class Document extends ArchivableModel<
     }
 
     await collection.updateDocument(model, { transaction });
-    model.collection = collection;
+
+    // Keep a loaded collection so that its membership data stays available.
+    if (model.collection?.id === collection.id) {
+      model.collection.documentStructure = collection.documentStructure;
+    } else {
+      model.collection = collection;
+    }
   }
 
   @AfterCreate
@@ -665,12 +672,7 @@ class Document extends ArchivableModel<
         await APIUpdateExtension.notifyUpdate(model.id, actorId);
       };
 
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+      void afterCommit(ctx.transaction, notify);
     }
   }
 
@@ -791,6 +793,7 @@ class Document extends ArchivableModel<
   ) {
     const document = await this.scope("withAllMemberships").findOne({
       where: { id: documentId },
+      attributes: ["id"],
       include: [
         {
           association: "memberships",
@@ -997,6 +1000,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           id,
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -1005,6 +1009,7 @@ class Document extends ArchivableModel<
         ...rest,
         where: {
           urlId: match[1],
+          template: false,
         },
         rejectOnEmpty: false,
       });
@@ -1463,7 +1468,12 @@ class Document extends ArchivableModel<
       await share.updateWithCtx(ctx, { published: false });
     }
 
-    return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
+    // Drafts are excluded from the default scope, so the title cannot be read
+    // from the document association when listing this event.
+    return this.saveWithCtx(ctx, undefined, {
+      name: "unpublish",
+      data: { title: this.title },
+    });
   };
 
   // Moves a document from being visible to the team within a collection
@@ -1572,7 +1582,13 @@ class Document extends ArchivableModel<
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;
-    await this.saveWithCtx(ctx, undefined, { name: "delete", ...eventOpts });
+    // Deleted documents are excluded from the default scope, so the title
+    // cannot be read from the document association when listing this event.
+    await this.saveWithCtx(ctx, undefined, {
+      name: "delete",
+      data: { title: this.title },
+      ...eventOpts,
+    });
   };
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);

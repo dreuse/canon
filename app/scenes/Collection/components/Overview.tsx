@@ -92,7 +92,7 @@ function Overview({
         }
       );
 
-      return newDocument.url;
+      return newDocument.path;
     },
     [collection, documents]
   );

@@ -10,8 +10,8 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { IntegrationScene } from "./components/IntegrationScene";
-import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
+import { SettingsSection } from "./components/SettingsSection";
 import { HStack } from "~/components/primitives/HStack";
 
 /** List of embed providers available for configuration. */
@@ -59,9 +59,11 @@ function Embeds() {
         ? disabledEmbeds.filter((t) => t !== id)
         : [...disabledEmbeds, id];
 
-      team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
-        preferences: { ...team.preferences },
+        preferences: {
+          ...team.preferences,
+          [TeamPreference.DisabledEmbeds]: updated,
+        },
       });
     },
     [team, saveData]
@@ -71,9 +73,11 @@ function Embeds() {
     async (enabled: boolean) => {
       const updated = enabled ? [] : providers.map((e) => e.id);
 
-      team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
-        preferences: { ...team.preferences },
+        preferences: {
+          ...team.preferences,
+          [TeamPreference.DisabledEmbeds]: updated,
+        },
       });
     },
     [team, saveData]
@@ -101,15 +105,16 @@ function Embeds() {
       </SettingRow>
 
       {team.documentEmbeds && (
-        <>
-          <SettingGroup>{t("Providers")}</SettingGroup>
-          <Text as="p" type="secondary">
+        <SettingsSection
+          title={t("Providers")}
+          description={
             <Trans>
               Enabled providers will appear in the editor slash menu and embed
               automatically when a compatible link is pasted. Existing embeds in
               documents will continue to display regardless of these settings.
             </Trans>
-          </Text>
+          }
+        >
           <SettingRow
             name="allEmbeds"
             label={t("All providers")}
@@ -150,7 +155,7 @@ function Embeds() {
               </SettingRow>
             );
           })}
-        </>
+        </SettingsSection>
       )}
     </IntegrationScene>
   );

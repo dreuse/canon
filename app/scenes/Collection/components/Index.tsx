@@ -111,7 +111,7 @@ export const Index = observer(function Index_({ collection, order }: Props) {
         {collection.documentCount !== undefined && (
           <>
             {" "}
-            · {t("{{ count }} documents", { count: collection.documentCount })}
+            · {t("{{ count }} document", { count: collection.documentCount })}
           </>
         )}
       </Label>

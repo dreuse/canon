@@ -105,6 +105,8 @@ export enum TeamPreference {
   CodeTheme = "codeTheme",
   /** Whether users can create documents in a personal collection. */
   PersonalDocs = "personalDocs",
+  /** The number of days until new public share links expire, 0 for no expiry. */
+  DefaultShareExpiryDays = "defaultShareExpiryDays",
 }
 
 /** Workspace preference values, keyed by preference. */
@@ -130,4 +132,5 @@ export type TeamPreferences = {
   [TeamPreference.OnboardingCollectionId]?: string | null;
   [TeamPreference.CodeTheme]?: string | null;
   [TeamPreference.PersonalDocs]?: boolean;
+  [TeamPreference.DefaultShareExpiryDays]?: number;
 };

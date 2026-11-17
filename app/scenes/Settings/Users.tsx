@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -26,7 +26,6 @@ import UserStatusFilter from "./components/UserStatusFilter";
 import { HStack } from "~/components/primitives/HStack";
 
 function UsersPanel() {
-  const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
   const { users } = useStores();
@@ -79,11 +78,11 @@ function UsersPanel() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleStatusFilter = useCallback(

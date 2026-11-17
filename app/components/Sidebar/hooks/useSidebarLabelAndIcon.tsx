@@ -1,9 +1,10 @@
-import { DocumentIcon, QuestionMarkIcon } from "outline-icons";
+import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import Icon from "@shared/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import type Document from "~/models/Document";
+import { DocumentIcon } from "~/components/Icons/DocumentIcon";
 
 interface SidebarItem {
   documentId?: string;
@@ -35,7 +36,7 @@ export function useDocumentIcon(document: Document | undefined) {
   return collection ? (
     <CollectionIcon collection={collection} />
   ) : (
-    <DocumentIcon outline={document.isDraft} />
+    <DocumentIcon empty={document.isEmpty} />
   );
 }
 
@@ -61,7 +62,7 @@ export function useSidebarLabelAndIcon({
   const documentIcon = document?.icon;
   const initial = document?.initial;
   const color = document?.color;
-  const isDraft = document?.isDraft;
+  const isEmpty = document?.isEmpty;
   const collectionName = collection?.displayName;
 
   return React.useMemo(() => {
@@ -75,7 +76,7 @@ export function useSidebarLabelAndIcon({
             color={color ?? undefined}
           />
         ) : groupId ? null : (
-          <DocumentIcon outline={isDraft} />
+          <DocumentIcon empty={isEmpty} />
         ),
       };
     }
@@ -97,7 +98,7 @@ export function useSidebarLabelAndIcon({
     documentIcon,
     initial,
     color,
-    isDraft,
+    isEmpty,
     groupId,
     collection,
     collectionName,

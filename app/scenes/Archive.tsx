@@ -51,7 +51,7 @@ function Archive() {
             <CollectionIcon collection={collection} size={18} />
             <GroupName>{collection.displayName}</GroupName>
             <GroupCount>
-              {t("{{ count }} documents", { count: children.length })}
+              {t("{{ count }} document", { count: children.length })}
             </GroupCount>
           </GroupHeading>
           {children.map((document) => (

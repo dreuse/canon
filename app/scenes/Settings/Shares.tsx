@@ -4,13 +4,14 @@ import { GlobeIcon, WarningIcon } from "outline-icons";
 import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { Link, useHistory, useLocation } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { ConditionalFade } from "~/components/Fade";
 import InputSearch from "~/components/InputSearch";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -22,8 +23,8 @@ import { SettingsIntro, SettingsTitle } from "./components/SettingsTitle";
 
 function Shares() {
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { t } = useTranslation();
-  const location = useLocation();
   const history = useHistory();
   const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
@@ -51,7 +52,7 @@ function Shares() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: shares.findByQuery(reqParams.query ?? ""),
+    data: shares.findListedByQuery(reqParams.query ?? "", user),
     sort,
     reqFn: shares.fetchPage,
     reqParams,
@@ -66,11 +67,11 @@ function Shares() {
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const handleSearch = useCallback(
@@ -113,7 +114,7 @@ function Shares() {
 
       <SettingsIntro as="p" type="secondary">
         <Trans>
-          Documents that have been shared are listed below. Anyone that has the
+          Documents that have been shared are listed below. Anyone with the
           public link can access a read-only version of the document until the
           link has been revoked.
         </Trans>

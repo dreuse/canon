@@ -4,7 +4,7 @@ import { GroupIcon, HiddenIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { toast } from "sonner";
 import type User from "~/models/User";
@@ -75,7 +75,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
   const group = groups.get(groupId)!;
   const currentUser = useCurrentUser();
   const history = useHistory();
-  const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
 
@@ -148,11 +147,11 @@ const GroupMembersPage = observer(function GroupMembersPage({
       }
 
       history.replace({
-        pathname: location.pathname,
+        pathname: history.location.pathname,
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, history]
   );
 
   const updateQuery = useCallback(
