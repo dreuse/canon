@@ -239,6 +239,7 @@ function CommentThread({
 
       setTimeout(
         () => {
+          editor?.revealComment(thread.id);
           getCommentMarkElement()?.scrollIntoView({
             behavior: "smooth",
             block: "center",
@@ -247,7 +248,7 @@ function CommentThread({
         isMarkVisible ? 0 : sidebarAppearDuration
       );
     }
-  }, [focused, scrollOnMount, thread.id]);
+  }, [focused, scrollOnMount, thread.id, editor]);
 
   return (
     <Thread
@@ -347,7 +348,7 @@ function CommentThread({
             <Flex gap={2}>
               {!thread.isResolved && (
                 <>
-                  <Tooltip content={t("Mark as resolved")} placement="top">
+                  <Tooltip content={t("Mark as resolved")} side="top">
                     <ThreadAction
                       as={NudeButton}
                       action={resolveCommentActionFactory({

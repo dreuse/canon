@@ -2,7 +2,8 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled, { css } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { MOBILE_TOUCH_TARGET } from "@shared/constants";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
@@ -83,6 +84,7 @@ export const NativeInput = styled.input<{
 
   ${breakpoint("mobile", "tablet")`
     font-size: 16px;
+    height: ${MOBILE_TOUCH_TARGET - 2}px;
   `};
 `;
 
@@ -133,6 +135,11 @@ export const Outline = styled(Flex)<{
         : props.theme.inputBorder};
   border-radius: ${(props) => (props.$round ? "16px" : "4px")};
   font-weight: normal;
+
+  ${breakpoint("mobile", "tablet")`
+    ${(props: { $round?: boolean }) =>
+      props.$round && `border-radius: ${MOBILE_TOUCH_TARGET / 2}px;`}
+  `};
   align-items: center;
   overflow: hidden;
   background: ${s("inputBackground")};
@@ -217,6 +224,7 @@ function Input(
   const internalRef = React.useRef<
     HTMLInputElement | HTMLTextAreaElement | null
   >(null);
+  const generatedId = React.useId();
   const [focused, setFocused] = React.useState(false);
   const [charCount, setCharCount] = React.useState(() => {
     if (typeof props.value === "string") {
@@ -304,6 +312,7 @@ function Input(
     onRequestSubmit,
     children,
     ref,
+    id = generatedId,
     ...rest
   } = props;
 
@@ -330,7 +339,7 @@ function Input(
 
   return (
     <Wrapper className={className} short={short} flex={flex}>
-      <label>
+      <label htmlFor={id}>
         {label &&
           (labelHidden ? (
             <VisuallyHidden.Root>{wrappedLabel}</VisuallyHidden.Root>
@@ -355,6 +364,7 @@ function Input(
               $maxHeight={maxHeight}
               aria-label={fallbackAriaLabel}
               {...rest}
+              id={id}
               // set it after "rest" to override props from spread.
               maxLength={maxLength}
               onKeyDown={handleKeyDown}
@@ -373,6 +383,7 @@ function Input(
               type={type}
               aria-label={fallbackAriaLabel}
               {...rest}
+              id={id}
               // set it after "rest" to override "onKeyDown" and "onChange" from prop.
               maxLength={maxLength}
               onKeyDown={handleKeyDown}

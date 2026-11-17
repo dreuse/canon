@@ -40,7 +40,7 @@ function FontSizeControl() {
       <Tooltip
         content={`${t("Decrease text size")} (${percent}%)`}
         shortcut="Ctrl+Alt+-"
-        placement="bottom"
+        side="bottom"
       >
         <SizeButton
           aria-label={t("Decrease text size")}
@@ -53,7 +53,7 @@ function FontSizeControl() {
       <Tooltip
         content={`${t("Increase text size")} (${percent}%)`}
         shortcut="Ctrl+Alt+="
-        placement="bottom"
+        side="bottom"
       >
         <SizeButton
           aria-label={t("Increase text size")}

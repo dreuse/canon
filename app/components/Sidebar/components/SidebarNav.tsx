@@ -28,9 +28,9 @@ import {
   settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
+import { useDropRef } from "~/components/DragAndDrop";
 import {
   type DragObject,
-  useDropRef,
   useDropToArchive,
   useDropToUnpublish,
 } from "../hooks/useDragAndDrop";
@@ -158,7 +158,7 @@ function SidebarSystemNav() {
           onPointerEnter={Scenes.Trash.preload}
         />
       )}
-      <Tooltip content={t("Notifications")} placement="top" delay={300}>
+      <Tooltip content={t("Notifications")} side="top" delayDuration={300}>
         <Trigger>
           <NotificationsPopover>
             <IconButton aria-label={t("Notifications")}>
@@ -168,7 +168,7 @@ function SidebarSystemNav() {
           </NotificationsPopover>
         </Trigger>
       </Tooltip>
-      <Tooltip content={t("Help")} placement="top" delay={300}>
+      <Tooltip content={t("Help")} side="top" delayDuration={300}>
         <Trigger>
           <HelpMenu>
             <IconButton aria-label={t("Help")}>
@@ -204,7 +204,7 @@ function NavItem({
 }: NavItemProps) {
   return (
     <div ref={dropRef}>
-      <Tooltip content={label} placement="top" delay={300}>
+      <Tooltip content={label} side="top" delayDuration={300}>
         <Trigger>
           <Item
             to={to}

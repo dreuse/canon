@@ -223,7 +223,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         inlineDisclosure
         icon={icon}
         canEdit={can.update}
-        labelText={document.titleWithDefault}
+        labelText={document.displayTitle}
         onTitleChange={handleTitleChange}
         editableTitleRef={editableTitleRef}
         expanded={expanded}
@@ -296,8 +296,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   const parentRef = React.useRef<HTMLDivElement>(null);
   const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
     collection,
-    handleExpand,
-    parentRef
+    handleExpand
   );
 
   const handleRename = React.useCallback(() => {
@@ -354,7 +353,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           onExpand={handleExpand}
           onClickIntent={handlePrefetch}
           canEdit={can.update}
-          labelText={collection.name}
+          labelText={collection.displayName}
           onTitleChange={handleTitleChange}
           editableTitleRef={editableTitleRef}
           contextAction={contextMenuAction}

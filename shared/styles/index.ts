@@ -4,7 +4,7 @@ import { isTouchDevice } from "../utils/browser";
 
 export { default as depths } from "./depths";
 
-export { default as breakpoints } from "./breakpoints";
+export { breakpoints } from "./breakpoint";
 
 /**
  * Returns "hover" on a non-touch device and "active" on a touch device. To

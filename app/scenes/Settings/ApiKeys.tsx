@@ -99,9 +99,9 @@ function ApiKeys() {
   }, [query, updateParams]);
 
   return (
-    <Scene title={t("API Keys")} icon={<CodeIcon />} measure="full">
+    <Scene title={t("API keys")} icon={<CodeIcon />} measure="full">
       <SettingsTitle
-        title={t("API Keys")}
+        title={t("API keys")}
         actions={
           can.createApiKey ? (
             <Button

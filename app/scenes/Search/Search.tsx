@@ -4,9 +4,8 @@ import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
-import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { Pagination } from "@shared/constants";
 import { s } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
@@ -29,7 +28,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import env from "~/env";
+import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -498,7 +497,6 @@ function Search() {
                 <Waypoint
                   key={data?.length}
                   onEnter={end || loading ? undefined : next}
-                  debug={env.ENVIRONMENT === "development"}
                 />
                 {groupedData.length > 0 && !error && (
                   <Footer align="center" justify="space-between">

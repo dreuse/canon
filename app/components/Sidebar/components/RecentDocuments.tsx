@@ -18,10 +18,7 @@ const RecentDocumentLink = observer(function RecentDocumentLink({
   document: Document;
 }) {
   return (
-    <SidebarLink
-      to={documentPath(document)}
-      label={document.titleWithDefault}
-    />
+    <SidebarLink to={documentPath(document)} label={document.displayTitle} />
   );
 });
 

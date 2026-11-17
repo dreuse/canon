@@ -110,7 +110,7 @@ const DefaultCollectionInputSelect = observer(
           ...acc,
           {
             type: "item" as const,
-            label: collection.name,
+            label: collection.displayName,
             value: collection.id,
             icon,
           },

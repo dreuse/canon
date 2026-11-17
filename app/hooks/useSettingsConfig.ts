@@ -32,6 +32,7 @@ import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 import useStores from "./useStores";
 
+const AI = lazy(() => import("~/scenes/Settings/AI"));
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Appearance = lazy(() => import("~/scenes/Settings/Appearance"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
@@ -39,7 +40,6 @@ const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
-const Features = lazy(() => import("~/scenes/Settings/Features"));
 const Members = lazy(() => import("~/scenes/Settings/Members"));
 const Import = lazy(() => import("~/scenes/Settings/Import"));
 const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
@@ -129,7 +129,7 @@ const useSettingsConfig = () => {
         icon: PadlockIcon,
       },
       {
-        name: t("API Keys"),
+        name: t("API keys"),
         path: settingsPath("api-keys"),
         component: ApiKeys.Component,
         preload: ApiKeys.preload,
@@ -183,9 +183,9 @@ const useSettingsConfig = () => {
       },
       {
         name: t("AI"),
-        path: settingsPath("features"),
-        component: Features.Component,
-        preload: Features.preload,
+        path: settingsPath("ai"),
+        component: AI.Component,
+        preload: AI.preload,
         enabled: can.update,
         group: t("Workspace"),
         icon: SparklesIcon,

@@ -1,6 +1,8 @@
 import styled from "styled-components";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
+import { Wrapper as InputWrapper } from "~/components/Input";
 import { HStack } from "~/components/primitives/HStack";
 
 export const FILTER_HEIGHT = 40;
@@ -12,15 +14,22 @@ export const StickyFilters = styled(HStack)`
   z-index: ${depths.header};
   background: ${s("background")};
 
-  @media (max-width: 768px) {
+  ${breakpoint("mobile", "tablet")`
+    position: static;
     height: auto;
     flex-wrap: wrap;
+    justify-content: flex-start;
     row-gap: 8px;
-    padding-block: 6px;
+    padding-block: 8px;
 
     > * {
       flex-wrap: wrap;
       row-gap: 8px;
     }
-  }
+
+    ${InputWrapper} {
+      flex: 1 1 100%;
+      max-width: none;
+    }
+  `};
 `;

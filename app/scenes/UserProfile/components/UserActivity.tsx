@@ -173,8 +173,8 @@ const UserActivityListItem = observer(function UserActivityListItem_({
 
   const isCollectionEvent = event.name.startsWith("collections.");
   const title = isCollectionEvent
-    ? collection?.name
-    : (document?.titleWithDefault ?? event.documentTitle);
+    ? collection?.displayName
+    : (document?.displayTitle ?? event.documentTitle);
   const path = isCollectionEvent
     ? collection?.path
     : (document?.path ?? event.documentUrl);

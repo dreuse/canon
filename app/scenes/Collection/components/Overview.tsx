@@ -4,7 +4,7 @@ import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -14,7 +14,6 @@ import type Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
-import { MeasuredContainer } from "~/components/MeasuredContainer";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -104,7 +103,7 @@ function Overview({
       <Main>
         <Prose>
           <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-            <MeasuredContainer name="document">
+            <div>
               <Editor
                 defaultValue={collection.data}
                 onChange={handleSave}
@@ -118,7 +117,7 @@ function Overview({
                 editorStyle={editorStyle}
               />
               <div ref={childRef} />
-            </MeasuredContainer>
+            </div>
           </Suspense>
         </Prose>
         <Index collection={collection} order={order} />

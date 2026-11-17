@@ -295,7 +295,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
     <Container ref={containerRef} $background={theme.background} $idle={isIdle}>
       <TopBar $idle={isIdle}>
         <Flex align="center" gap={12}>
-          <Tooltip content={t("Previous slide")} delay={500}>
+          <Tooltip content={t("Previous slide")}>
             <Button onClick={goPrev} disabled={currentSlide === 0}>
               <ArrowLeftIcon />
             </Button>
@@ -303,7 +303,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
           <SlideCounter>
             {currentSlide + 1} / {totalSlides}
           </SlideCounter>
-          <Tooltip content={t("Next slide")} delay={500}>
+          <Tooltip content={t("Next slide")}>
             <Button
               onClick={goNext}
               disabled={currentSlide === totalSlides - 1}
@@ -314,7 +314,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         </Flex>
         <RightButtons>
           {supportsFullscreen && (
-            <Tooltip content={t("Toggle fullscreen")} delay={500}>
+            <Tooltip content={t("Toggle fullscreen")}>
               <Button onClick={toggleFullscreen}>
                 {isFullscreen ? (
                   <ShrinkIcon color="currentColor" />
@@ -324,7 +324,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
               </Button>
             </Tooltip>
           )}
-          <Tooltip content={t("Close")} delay={500}>
+          <Tooltip content={t("Close")}>
             <Button onClick={onClose}>
               <CloseIcon />
             </Button>
@@ -423,8 +423,8 @@ const SlideContent = styled.div`
     font-size: 1.4em;
   }
 
-  .image-wrapper,
-  .image-wrapper img,
+  .${EditorStyleHelper.imageWrapper},
+  .${EditorStyleHelper.imageWrapper} img,
   .${EditorStyleHelper.mermaidDiagram} {
     pointer-events: none !important;
   }
@@ -477,10 +477,9 @@ const TopBar = styled.div<{ $idle: boolean }>`
   transition: opacity 300ms ease;
 `;
 
-const SlideCounter = styled(Text)`
+const SlideCounter = styled(Text).attrs({ size: "small" })`
   font-variant-numeric: tabular-nums;
   color: ${s("textTertiary")};
-  font-size: 14px;
   min-width: 60px;
   text-align: center;
 `;

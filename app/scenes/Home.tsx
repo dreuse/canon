@@ -314,14 +314,14 @@ function Home() {
                 <Cards>
                   {continueReading.map((document) => (
                     <Card key={document.id} to={documentPath(document)}>
-                      <CardTitle>{document.titleWithDefault}</CardTitle>
+                      <CardTitle>{document.displayTitle}</CardTitle>
                       <CardExcerpt>
                         {ProsemirrorDataHelper.toPlainText(
                           document.getSummary(SUMMARY_BLOCKS)
                         )}
                       </CardExcerpt>
                       <CardMeta>
-                        {document.collection?.name}
+                        {document.collection?.displayName}
                         {document.collection && " · "}
                         {document.isDraft ? (
                           t("draft open")
@@ -383,7 +383,7 @@ function Home() {
                           <Dot $tone="stale" />
                           <RowBody>
                             <RowTitle>
-                              <RowName>{document.titleWithDefault}</RowName>
+                              <RowName>{document.displayTitle}</RowName>
                             </RowTitle>
                             <RowWhy>
                               {t(
@@ -403,7 +403,7 @@ function Home() {
                           </RowIcon>
                           <RowBody>
                             <RowTitle>
-                              <RowName>{draft.titleWithDefault}</RowName>
+                              <RowName>{draft.displayTitle}</RowName>
                             </RowTitle>
                             <RowWhy>
                               {t("Draft not updated in over a week")}
@@ -459,7 +459,7 @@ function Home() {
                       <SurfaceProvider value={theme.backgroundSecondary}>
                         <CollectionIcon collection={collection} size={18} />
                       </SurfaceProvider>
-                      <CollectionName>{collection.name}</CollectionName>
+                      <CollectionName>{collection.displayName}</CollectionName>
                       {collection.documentCount !== undefined && (
                         <CollectionCount>
                           {collection.documentCount}
@@ -496,7 +496,7 @@ function Home() {
                   <ModuleLabel>{t("Favorites")}</ModuleLabel>
                   {favourites.map((document) => (
                     <RailRow key={document.id} to={documentPath(document)}>
-                      {document.titleWithDefault}
+                      {document.displayTitle}
                     </RailRow>
                   ))}
                 </RailCard>
@@ -512,7 +512,7 @@ function Home() {
                         templateId: template.id,
                       })}
                     >
-                      {template.titleWithDefault}
+                      {template.displayTitle}
                     </RailRow>
                   ))}
                   <RailFooterLink to={settingsPath("templates")}>
@@ -528,7 +528,7 @@ function Home() {
                   </ModuleLabel>
                   {drafts.slice(0, DRAFT_LIMIT).map((draft) => (
                     <RailDraft key={draft.id} to={documentPath(draft)}>
-                      <RailDraftTitle>{draft.titleWithDefault}</RailDraftTitle>
+                      <RailDraftTitle>{draft.displayTitle}</RailDraftTitle>
                       <RailNote>
                         {t("edited")}{" "}
                         <Time dateTime={draft.updatedAt} addSuffix shorten />

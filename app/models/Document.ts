@@ -137,6 +137,12 @@ export default class Document extends ArchivableModel implements Searchable {
   collection?: Collection;
 
   /**
+   * The owner of the personal collection that this document is in, if any.
+   */
+  @observable
+  ownerId?: string | null;
+
+  /**
    * The title of the document.
    */
   @Field
@@ -514,7 +520,7 @@ export default class Document extends ArchivableModel implements Searchable {
     return path.map((item) => item.asNavigationNode);
   }
 
-  get titleWithDefault(): string {
+  get displayTitle(): string {
     return this.title || i18n.t("Untitled");
   }
 

@@ -1,6 +1,6 @@
-import { darken, lighten, transparentize } from "polished";
+import { darken, lighten, mix, saturate, transparentize } from "polished";
 import type { DefaultTheme, Colors } from "styled-components";
-import breakpoints from "./breakpoints";
+import { breakpoints } from "./breakpoint";
 
 const solarizedLight = {
   base3: "#FDF6E3",
@@ -149,14 +149,23 @@ const buildBaseTheme = (input: ThemeOverride) => {
     codeConstant: solarizedLight.orange,
     codeParameter: solarizedLight.violet,
     codeOperator: colors.slateDark,
-    noticeInfoBackground: colors.brand.blue,
-    noticeInfoText: colors.almostBlack,
-    noticeTipBackground: "#f5be31",
-    noticeTipText: colors.almostBlack,
-    noticeWarningBackground: "#d73a49",
-    noticeWarningText: colors.almostBlack,
+    noticeInfoBackground: colors.slate,
+    noticeInfoText: saturate(0.1, mix(0.5, colors.slate, colors.almostBlack)),
+    noticeTipBackground: colors.brand.blue,
+    noticeTipText: saturate(
+      0.1,
+      mix(0.5, colors.brand.blue, colors.almostBlack)
+    ),
+    noticeWarningBackground: colors.brand.yellow,
+    noticeWarningText: saturate(
+      0.1,
+      mix(0.5, colors.brand.yellow, colors.almostBlack)
+    ),
     noticeSuccessBackground: colors.brand.green,
-    noticeSuccessText: colors.almostBlack,
+    noticeSuccessText: saturate(
+      0.1,
+      mix(0.5, colors.brand.green, colors.almostBlack)
+    ),
     tableSelectedBackground: transparentize(0.9, colors.accent),
     breakpoints,
     ...colors,
@@ -329,10 +338,10 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     codePlaceholder: intellijDark.text,
     embedBorder: colors.black50,
     horizontalRule: darkHairline,
-    noticeInfoText: colors.white,
-    noticeTipText: colors.white,
-    noticeWarningText: colors.white,
-    noticeSuccessText: colors.white,
+    noticeInfoText: mix(0.5, colors.slate, colors.white),
+    noticeTipText: mix(0.5, colors.brand.blue, colors.white),
+    noticeWarningText: mix(0.5, colors.brand.yellow, colors.white),
+    noticeSuccessText: mix(0.5, colors.brand.green, colors.white),
     progressBarBackground: colors.slate,
     scrollbarBackground: colors.black,
     scrollbarThumb: colors.lightBlack,

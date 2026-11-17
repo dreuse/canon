@@ -103,6 +103,8 @@ export enum TeamPreference {
   DisabledEmbeds = "disabledEmbeds",
   OnboardingCollectionId = "onboardingCollectionId",
   CodeTheme = "codeTheme",
+  /** Whether users can create documents in a personal collection. */
+  PersonalDocs = "personalDocs",
 }
 
 /** Workspace preference values, keyed by preference. */
@@ -127,4 +129,5 @@ export type TeamPreferences = {
   [TeamPreference.DisabledEmbeds]?: string[];
   [TeamPreference.OnboardingCollectionId]?: string | null;
   [TeamPreference.CodeTheme]?: string | null;
+  [TeamPreference.PersonalDocs]?: boolean;
 };

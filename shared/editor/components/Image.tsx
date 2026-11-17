@@ -7,6 +7,7 @@ import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
+import { getDisplayUrl } from "../lib/uploadPlaceholder";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -130,6 +131,7 @@ const Image = (props: Props) => {
   const className = imageClassName({ layoutClass, width, error });
 
   const sanitizedSrc = sanitizeImageSrc(src);
+  const displaySrc = sanitizeImageSrc(getDisplayUrl(props.view.state, src));
   const linkMarkType = props.view.state.schema.marks.link;
   const imageLink =
     find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)
@@ -146,6 +148,30 @@ const Image = (props: Props) => {
     : width
       ? { ["--image-width"]: `${width}px` }
       : { width: "auto" };
+
+  const handleImageLoad = React.useCallback((img: HTMLImageElement) => {
+    // For some SVG's Firefox does not provide the naturalWidth, in this
+    // rare case we need to provide a default so that the image can be
+    // seen and is not sized to 0px
+    const nw = img.naturalWidth || 300;
+    const nh = img.naturalHeight;
+    // When no width is set on the node the natural size is what the
+    // image is displayed at, so it feeds straight into useDragResize.
+    setNaturalWidth(nw);
+    setNaturalHeight(nh);
+    setLoaded(true);
+  }, []);
+
+  // An image that is already in the browser cache is shown on the first paint,
+  // rather than after the load event.
+  const handleImageRef = React.useCallback(
+    (img: HTMLImageElement | null) => {
+      if (img?.complete && img.naturalWidth > 0) {
+        handleImageLoad(img);
+      }
+    },
+    [handleImageLoad]
+  );
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
@@ -216,8 +242,8 @@ const Image = (props: Props) => {
         $dragging={!!dragging}
         className={
           isSelected || dragging
-            ? "image-wrapper ProseMirror-selectednode"
-            : "image-wrapper"
+            ? `${EditorStyleHelper.imageWrapper} ProseMirror-selectednode`
+            : EditorStyleHelper.imageWrapper
         }
         style={widthStyle}
       >
@@ -249,30 +275,22 @@ const Image = (props: Props) => {
             rel="noopener noreferrer nofollow"
           >
             <img
+              ref={handleImageRef}
               className={EditorStyleHelper.imageHandle}
               draggable={false}
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
               }}
-              src={sanitizedSrc}
+              src={displaySrc}
               alt={node.attrs.alt || ""}
               onError={() => {
                 setError(true);
                 setLoaded(true);
               }}
-              onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
-                // For some SVG's Firefox does not provide the naturalWidth, in this
-                // rare case we need to provide a default so that the image can be
-                // seen and is not sized to 0px
-                const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-                const nh = (ev.target as HTMLImageElement).naturalHeight;
-                // When no width is set on the node the natural size is what the
-                // image is displayed at, so it feeds straight into useDragResize.
-                setNaturalWidth(nw);
-                setNaturalHeight(nh);
-                setLoaded(true);
-              }}
+              onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) =>
+                handleImageLoad(ev.currentTarget)
+              }
               onClick={handleImageClick}
               onTouchStart={handleImageTouchStart}
             />

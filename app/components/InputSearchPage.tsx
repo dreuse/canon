@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import { VoSearchIcon } from "~/components/Icons/VobysIcons";
@@ -132,6 +132,8 @@ const InputMaxWidth = styled(Input)`
   /* On mobile the input grows to fill the header, so add a gap before the
    * adjacent action button (e.g. "New doc"). */
   ${breakpoint("mobile", "tablet")`
+    flex: 1;
+    min-width: 0;
     margin-inline-end: 8px;
   `}
 `;

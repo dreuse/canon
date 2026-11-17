@@ -5,6 +5,7 @@ The heart of Canon is the document editor. We let you write in whichever way you
 If you’re comfortable writing markdown then all of the shortcuts you are used to are supported, for example type \*\*bold\*\* to instantly create **bold** text. If you forget some syntax or are after a quick refresher hit the keyboard icon in the bottom right hand corner for our guide. Learning some of the key Markdown shortcuts will definitely make using Canon faster and more enjoyable!
 
 \
+
 :::info
 You can also paste markdown, html, or rich text from elsewhere directly into a document.
 :::

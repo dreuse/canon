@@ -25,7 +25,7 @@ import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
-const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
+const viteHost = env.URL.replace(`:${env.PORT}`, `:${env.vitePort}`);
 
 const defaultDescription =
   "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, & more…";
@@ -99,7 +99,7 @@ export const renderApp = async (
     canonical = "",
     content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
-    allowIndexing = true,
+    allowIndexing = false,
   } = options;
 
   if (ctx.request.path === "/realtime/") {
@@ -282,7 +282,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     let markdown = await DocumentHelper.toMarkdown(document || collection!, {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
-      teamId: team?.id,
+      teamId: share?.teamId,
       commonMark: true,
     });
 

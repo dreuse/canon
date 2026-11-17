@@ -194,7 +194,7 @@ function Authentication() {
         </Trans>
       </SettingsTitle>
 
-      <SettingGroup>{t("Sign In")}</SettingGroup>
+      <SettingGroup>{t("Sign in")}</SettingGroup>
 
       {authenticationProviders.orderedData.map((provider) => {
         // Group sync can still be disabled after losing the entitlement.
@@ -341,7 +341,6 @@ function Authentication() {
             ? t("Allow members to sign in using their email address")
             : t("The server must have SMTP configured to enable this setting")
         }
-        border={false}
       >
         <Switch
           id="guestSignin"
@@ -359,6 +358,7 @@ function Authentication() {
         }
         name="passkeysEnabled"
         description={t("Allow members to sign in with a WebAuthn passkey")}
+        border={false}
       >
         <Switch
           id="passkeysEnabled"

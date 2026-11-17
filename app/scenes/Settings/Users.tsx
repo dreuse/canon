@@ -7,6 +7,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { breakpoint } from "@shared/styles/breakpoint";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import type UsersStore from "~/stores/UsersStore";
 import { queriedUsers } from "~/stores/UsersStore";
@@ -119,7 +120,7 @@ function UsersPanel() {
   return (
     <>
       <StickyFilters justify="space-between">
-        <HStack>
+        <FilterGroup>
           <InputSearch
             short
             value={query}
@@ -134,7 +135,7 @@ function UsersPanel() {
             activeKey={role ?? ""}
             onSelect={handleRoleFilter}
           />
-        </HStack>
+        </FilterGroup>
         <HStack spacing={12}>
           <Count>
             {t("{{ count }} member", { count: (data ?? []).length })}
@@ -238,6 +239,12 @@ function getFilteredUsers({
 
   return filteredUsers;
 }
+
+const FilterGroup = styled(HStack)`
+  ${breakpoint("mobile", "tablet")`
+    display: contents;
+  `};
+`;
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;

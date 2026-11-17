@@ -8,7 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { toError } from "@shared/utils/error";
 import { hairlineColor, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
@@ -91,7 +91,7 @@ const CollectionScene = observer(function CollectionScene_() {
   }, [collection, collection?.name, history, id, match.url]);
 
   useEffect(() => {
-    if (collection) {
+    if (collection && !collection.isPersonal) {
       ui.setActiveCollection(collection.id);
     }
 
@@ -111,7 +111,7 @@ const CollectionScene = observer(function CollectionScene_() {
     void fetchData();
     // Fetched once on mount, the slug in `id` also changes when the collection
     // is renamed which must not trigger a refetch.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -137,6 +137,10 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Loading />;
   }
 
+  if (collection.isPersonal) {
+    return <Error404 />;
+  }
+
   const headerSearch = isMobile ? undefined : (
     <InputSearchPage
       source="collection"
@@ -149,7 +153,7 @@ const CollectionScene = observer(function CollectionScene_() {
   return (
     <Scene
       centered={false}
-      textTitle={collection.name}
+      textTitle={collection.displayName}
       left={
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
@@ -160,12 +164,14 @@ const CollectionScene = observer(function CollectionScene_() {
       title={
         <>
           <CollectionIcon collection={collection} expanded />
-          &nbsp;{collection.name}
+          &nbsp;{collection.displayName}
         </>
       }
       actions={
         <>
-          <MembershipPreview collection={collection} />
+          {!collection.isPersonal && (
+            <MembershipPreview collection={collection} />
+          )}
           <Actions
             collection={collection}
             isEditing={isEditRoute}
@@ -175,7 +181,7 @@ const CollectionScene = observer(function CollectionScene_() {
       }
     >
       <DropToImport
-        accept={documents.importFileTypesString}
+        accept={documents.importFileTypesAccept}
         disabled={!can.createDocument}
         collectionId={collection.id}
       >

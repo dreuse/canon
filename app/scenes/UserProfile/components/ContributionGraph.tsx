@@ -5,7 +5,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";

@@ -327,7 +327,7 @@ function MenuButton(props: MenuButtonProps) {
   );
 
   return tooltip ? (
-    <Tooltip content={tooltip} placement="bottom">
+    <Tooltip content={tooltip} side="bottom">
       <div>{button}</div>
     </Tooltip>
   ) : (

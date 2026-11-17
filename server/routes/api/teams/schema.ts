@@ -93,6 +93,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         [TeamPreference.OnboardingCollectionId]: z.uuid().nullable(),
         /** The palette used for code blocks and inline code. */
         [TeamPreference.CodeTheme]: z.enum(Object.keys(codeThemes)).nullable(),
+        /** Whether users can create documents in a personal collection. */
+        [TeamPreference.PersonalDocs]: z.boolean(),
       })
       .partial()
       .optional(),
@@ -108,3 +110,12 @@ export const TeamsDeleteSchema = BaseSchema.extend({
 });
 
 export type TeamsDeleteSchemaReq = z.infer<typeof TeamsDeleteSchema>;
+
+export const TeamsCreateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Name of the new team */
+    name: z.string(),
+  }),
+});
+
+export type TeamsCreateSchemaReq = z.infer<typeof TeamsCreateSchema>;

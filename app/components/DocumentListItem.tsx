@@ -5,7 +5,7 @@ import { mergeRefs } from "react-merge-refs";
 import { Link, useHistory } from "react-router-dom";
 import { CheckmarkIcon, DocumentIcon, EditIcon } from "outline-icons";
 import styled, { css, useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import { breakpoint } from "@shared/styles/breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
@@ -188,7 +188,7 @@ function DocumentListItem(props: Props) {
         pathname: documentPath(document),
         search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
         state: {
-          title: document.titleWithDefault,
+          title: document.displayTitle,
           sidebarContext,
         },
       }}
@@ -231,7 +231,7 @@ function DocumentListItem(props: Props) {
         <Content>
           <Heading dir={document.dir}>
             <Title
-              text={document.titleWithDefault}
+              text={document.displayTitle}
               highlight={highlight}
               dir={document.dir}
             />
@@ -241,7 +241,7 @@ function DocumentListItem(props: Props) {
             {document.isDraft &&
               showDraft &&
               (isInteractive ? (
-                <Tooltip content={t("Only visible to you")} placement="top">
+                <Tooltip content={t("Only visible to you")}>
                   <Badge>{t("Draft")}</Badge>
                 </Tooltip>
               ) : (
@@ -286,7 +286,7 @@ function DocumentListItem(props: Props) {
         {isInteractive && can.update && (
           <NudeButton
             aria-label={t("Edit")}
-            tooltip={{ content: t("Edit"), delay: 500 }}
+            tooltip={{ content: t("Edit"), delayDuration: 500 }}
             onClick={handleEditClick}
           >
             <EditIcon size={18} />

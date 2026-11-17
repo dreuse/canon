@@ -1,13 +1,16 @@
 import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import DotIcon from "@shared/components/DotIcon";
+import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import LetterIcon from "@shared/components/LetterIcon";
 import { colorPalette } from "@shared/constants";
 import { useSurface } from "@shared/components/SurfaceContext";
 import { CollectionIconStyle } from "@shared/types";
 import { resolveIconColor } from "@shared/utils/iconColor";
+import Avatar from "~/components/Avatar/Avatar";
 import type Collection from "~/models/Collection";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   /** The collection to show an icon for */
@@ -32,6 +35,17 @@ function ResolvedCollectionIcon({
   const identityColor =
     inputColor ??
     resolveIconColor(collection.color ?? colorPalette[0], surface);
+  const { users } = useStores();
+  const owner = collection.ownerId ? users.get(collection.ownerId) : undefined;
+
+  if (owner) {
+    const iconSize = size ?? 24;
+    return (
+      <AvatarWrapper $size={iconSize} className={className}>
+        <Avatar model={owner} size={Math.round((iconSize * 2) / 3)} />
+      </AvatarWrapper>
+    );
+  }
 
   if (collection.iconStyle === CollectionIconStyle.None) {
     return null;
@@ -74,5 +88,14 @@ function ResolvedCollectionIcon({
     />
   );
 }
+
+const AvatarWrapper = styled.span<{ $size: number }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: ${(props) => props.$size}px;
+  height: ${(props) => props.$size}px;
+`;
 
 export default observer(ResolvedCollectionIcon);

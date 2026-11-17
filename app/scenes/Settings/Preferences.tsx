@@ -217,14 +217,14 @@ function Preferences() {
       </SettingRow>
       <SettingRow
         name="theme"
-        label={t("Appearance")}
+        label={t("Theme")}
         description={t("Choose your preferred interface color scheme.")}
       >
         <InputSelect
           options={themeOptions}
           value={ui.theme}
           onChange={handleThemeChange}
-          label={t("Appearance")}
+          label={t("Theme")}
           labelHidden
         />
       </SettingRow>
@@ -308,7 +308,7 @@ function Preferences() {
         name={UserPreference.RememberLastPath}
         label={t("Remember previous location")}
         description={t(
-          "Automatically return to the document you were last viewing when the app is re-opened."
+          "Automatically return to the document you were last viewing when the app is reopened."
         )}
       >
         <Switch
@@ -357,7 +357,7 @@ function Preferences() {
             name="delete"
             label={t("Delete account")}
             description={t(
-              "You may delete your account at any time, note that this is unrecoverable"
+              "You may delete your account at any time. Note that this cannot be undone."
             )}
           >
             <span>

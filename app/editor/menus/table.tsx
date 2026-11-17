@@ -38,6 +38,7 @@ export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
       attrs: isFullWidth
         ? { layout: TableLayout.narrow }
         : { layout: TableLayout.fullWidth },
+      visible: !ctx.isInNotice,
     },
     {
       name: "setTableAttr",

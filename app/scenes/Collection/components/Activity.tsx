@@ -78,7 +78,7 @@ export const Activity = observer(function Activity_({ collection }: Props) {
             <DocumentLink
               to={{ pathname: document.path, state: { sidebarContext } }}
             >
-              {document.titleWithDefault}
+              {document.displayTitle}
             </DocumentLink>
           </Sentence>
           <When>
