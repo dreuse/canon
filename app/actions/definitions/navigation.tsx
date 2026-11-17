@@ -20,7 +20,7 @@ import { userPath } from "@shared/utils/routeHelpers";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";
 import type SearchQuery from "~/models/SearchQuery";
-import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
+import KeyboardShortcuts from "~/components/KeyboardShortcuts";
 import {
   createAction,
   createExternalLinkAction,

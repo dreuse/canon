@@ -1,21 +1,16 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import { useEffect, useMemo, useRef } from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
-import NudeButton from "~/components/NudeButton";
 import PaginatedList from "~/components/PaginatedList";
-import Tooltip from "~/components/Tooltip";
 import { createCollection } from "~/actions/definitions/collections";
-import { actionToMenuItem } from "~/actions";
-import useActionContext from "~/hooks/useActionContext";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
-import type { DragObject } from "../hooks/useDragAndDrop";
+import { type DragObject, useDropRef } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
@@ -26,18 +21,14 @@ import SidebarLink from "./SidebarLink";
 import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 
+const headerActions = [createCollection];
+
 function Collections() {
-  const { documents, auth, collections, policies } = useStores();
+  const { auth, collections, policies, ui } = useStores();
+  const activeSidebarContext = useActiveSidebarContext() ?? "collections";
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
   const orderedCollections = collections.allActive;
-  const context = useActionContext({
-    isMenu: false,
-    isCommandBar: false,
-    activeCollectionId: undefined,
-    activeDocumentId: undefined,
-  });
-  const createMenuItem = actionToMenuItem(createCollection, context);
 
   const params = useMemo(
     () => ({
@@ -64,7 +55,7 @@ function Collections() {
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
-  ] = useDrop({
+  ] = useDropRef({
     accept: "collection",
     drop: async (item: DragObject) => {
       void collections.move(
@@ -87,24 +78,19 @@ function Collections() {
         <Header
           id="collections"
           title={t("Collections")}
-          actions={
-            createMenuItem.type === "button" && createMenuItem.visible ? (
-              <Tooltip content={t("New collection")} delay={500}>
-                <NudeButton
-                  aria-label={t("New collection")}
-                  onClick={createMenuItem.onClick}
-                >
-                  <PlusIcon />
-                </NudeButton>
-              </Tooltip>
-            ) : undefined
-          }
+          actions={headerActions}
+          primaryAction={createCollection}
         >
           <Relative>
             <PaginatedList<Collection>
               options={params}
               aria-label={t("Collections")}
               items={orderedCollections}
+              activeItemId={
+                activeSidebarContext === "collections"
+                  ? ui.activeCollectionId
+                  : undefined
+              }
               loading={<PlaceholderCollections />}
               heading={
                 isDraggingAnyCollection ? (
@@ -134,7 +120,6 @@ function Collections() {
                 <DraggableCollectionLink
                   key={item.id}
                   collection={item}
-                  activeDocument={documents.active}
                   belowCollection={orderedCollections[index + 1]}
                 />
               )}

@@ -61,13 +61,14 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     publish?: boolean;
   }) => void;
   children?: React.ReactNode;
+  ref?: React.Ref<SharedEditor>;
 };
 
 /**
  * The main document editor includes an editable title with metadata below it,
  * and support for commenting.
  */
-function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
+function DocumentEditor(props: Props) {
   const editorRef = React.useRef<SharedEditor>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
@@ -90,6 +91,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
     readOnly,
     children,
     multiplayer,
+    ref,
     ...rest
   } = props;
   const can = usePolicy(document);
@@ -263,7 +265,6 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         <EditorComponent
           ref={mergeRefs([ref, editorRef, handleRefChanged])}
           lang={getLangFor(document.language)}
-          autoFocus={!!document.title && !props.defaultValue}
           placeholder={t("Type '/' to insert, or start writing…")}
           scrollTo={decodeURIComponentSafe(location.hash)}
           readOnly={readOnly}
@@ -309,4 +310,4 @@ const SharedMeta = styled(Text)`
   font-size: 14px;
 `;
 
-export default observer(React.forwardRef(DocumentEditor));
+export default observer(DocumentEditor);

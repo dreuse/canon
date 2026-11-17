@@ -11,7 +11,6 @@ import { ConditionalFade } from "~/components/Fade";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import { createEmoji } from "~/actions/definitions/emojis";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -27,7 +26,6 @@ function Emojis() {
   const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const context = useActionContext();
   const { emojis } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
@@ -110,7 +108,6 @@ function Emojis() {
               data-event-category="emoji"
               data-event-action="create"
               action={createEmoji}
-              context={context}
               icon={<PlusIcon />}
             >
               {t("New emoji")}…

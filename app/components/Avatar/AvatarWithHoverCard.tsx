@@ -13,10 +13,13 @@ import Avatar from "./Avatar";
  * An avatar that additionally displays a profile card on hover when the model
  * it represents is a user, and optionally links through to their profile.
  */
-const AvatarWithHoverCard = React.forwardRef(function AvatarWithHoverCard_(
-  { showTooltip, showHoverCard = true, linkToProfile, ...props }: AvatarProps,
-  ref: React.Ref<HTMLDivElement>
-) {
+function AvatarWithHoverCard({
+  showTooltip,
+  showHoverCard = true,
+  linkToProfile,
+  ref,
+  ...props
+}: AvatarProps) {
   const { model } = props;
   const { t } = useTranslation();
 
@@ -40,7 +43,7 @@ const AvatarWithHoverCard = React.forwardRef(function AvatarWithHoverCard_(
       )}
     </UserHoverCard>
   );
-});
+}
 
 const ProfileAnchor = styled(Link)`
   display: flex;

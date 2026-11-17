@@ -187,7 +187,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </HStack>
           ),
-          width: "1.4fr",
+          width: "minmax(160px, 2fr)",
         },
         canManage
           ? {

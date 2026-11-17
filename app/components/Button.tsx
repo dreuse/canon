@@ -163,13 +163,14 @@ export type Props<T> = ActionButtonProps & {
   "data-on"?: string;
   "data-event-category"?: string;
   "data-event-action"?: string;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
-const Button = <T extends React.ElementType = "button">(
-  props: Props<T> & React.ComponentPropsWithoutRef<T>,
-  ref: React.Ref<HTMLButtonElement>
-) => {
+function Button<T extends React.ElementType = "button">(
+  props: Props<T> & React.ComponentPropsWithoutRef<T>
+) {
   const {
+    ref,
     type,
     children,
     value,
@@ -205,10 +206,10 @@ const Button = <T extends React.ElementType = "button">(
       </Inner>
     </RealButton>
   );
-};
+}
 
 const StyledDisclosureIcon = styled(DisclosureIcon)`
   opacity: 0.8;
 `;
 
-export default React.forwardRef(Button);
+export default Button;

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SidebarIcon } from "outline-icons";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   DragActiveProvider,
   SidebarScrollProvider,
@@ -30,6 +30,7 @@ import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
 import SidebarNav, { SidebarSystemActions } from "./components/SidebarNav";
+import { SidebarNavigationProvider } from "./components/SidebarNavigation";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import useMobile from "~/hooks/useMobile";
@@ -42,22 +43,16 @@ function AppSidebar() {
   const isMobile = useMobile();
 
   useEffect(() => {
-    void collections.fetchAll();
+    void collections.fetchAllIfNeeded();
 
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
   }, [documents, collections, user.isViewer]);
 
-  // Scrollable reads ref.current internally for its shadow/ResizeObserver
-  // logic, so we must pass an object ref — a callback ref would leave those
-  // reads undefined. We mirror the attached node into state so the
-  // SidebarScrollProvider can re-render descendants with the scroll element.
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // Hold the scroll element in state so the SidebarScrollProvider can
+  // re-render descendants with it.
   const [scrollArea, setScrollArea] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setScrollArea(scrollRef.current);
-  }, []);
 
   const sectionOrder = normalizeSidebarSectionOrder(
     user.getPreference(UserPreference.SidebarSectionOrder, [])
@@ -111,13 +106,15 @@ function AppSidebar() {
           </SearchField>
           <SidebarNav />
         </Overflow>
-        <Scrollable flex shadow ref={scrollRef}>
+        <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
-            {sectionOrder.map((section) => (
-              <DraggableSection key={section} section={section}>
-                {sectionContent[section]}
-              </DraggableSection>
-            ))}
+            <SidebarNavigationProvider>
+              {sectionOrder.map((section) => (
+                <DraggableSection key={section} section={section}>
+                  {sectionContent[section]}
+                </DraggableSection>
+              ))}
+            </SidebarNavigationProvider>
             <Section auto>
               <DismissableSidebarAction
                 id="sidebar-import-hidden"

@@ -1,14 +1,23 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
+import { ActionSeparator, createRootMenuAction, resolve } from "~/actions";
 import {
   VoChevronDownIcon,
   VoChevronRightIcon,
 } from "~/components/Icons/VobysIcons";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import NudeButton from "~/components/NudeButton";
+import useActionContext from "~/hooks/useActionContext";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
+import type { Action, ActionVariant } from "~/types";
 import SidebarLink from "./SidebarLink";
-import { SectionDragContext } from "./DraggableSection";
+import { SidebarSectionContext } from "./DraggableSection";
+import { hoveredOrMenuOpen } from "./SidebarActions";
 
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
@@ -16,7 +25,10 @@ type Props = {
   title: React.ReactNode;
   icon?: React.ReactNode;
   count?: number;
-  actions?: React.ReactNode;
+  /** Actions shown at the top of the header's context menu */
+  actions?: ActionVariant[];
+  /** Action rendered as an icon button beside the header's menu button */
+  primaryAction?: Action;
   children?: React.ReactNode;
 };
 
@@ -33,10 +45,27 @@ export const Header: React.FC<Props> = ({
   icon,
   count,
   actions,
+  primaryAction,
   children,
 }: Props) => {
+  const { t } = useTranslation();
+  const actionContext = useActionContext({ isButton: true });
   const [firstRender, setFirstRender] = React.useState(true);
-  const dragRef = React.useContext(SectionDragContext);
+  const sectionContext = React.useContext(SidebarSectionContext);
+  const dragRef = sectionContext?.dragRef;
+  const sectionActions = sectionContext?.menuActions;
+  const hasMenu = !!(actions?.length || sectionActions?.length);
+
+  // Dangling separators are trimmed when the menu items are rendered.
+  const menuAction = React.useMemo(
+    () =>
+      createRootMenuAction([
+        ...(actions ?? []),
+        ActionSeparator,
+        ...(sectionActions ?? []),
+      ]),
+    [actions, sectionActions]
+  );
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
     true
@@ -59,6 +88,7 @@ export const Header: React.FC<Props> = ({
         innerRef={dragRef ? (element) => dragRef(element ?? null) : undefined}
         icon={icon}
         label={title}
+        contextAction={hasMenu ? menuAction : undefined}
         trailing={
           <Meta>
             {count !== undefined && count > 0 && <Count>{count}</Count>}
@@ -71,13 +101,42 @@ export const Header: React.FC<Props> = ({
 
   return (
     <>
-      <H3 ref={dragRef}>
-        <Button onClick={handleClick} disabled={!id}>
-          {title}
-          {id && <Disclosure $expanded={expanded} size={16} />}
-        </Button>
-        {actions && <Actions>{actions}</Actions>}
-      </H3>
+      <ContextMenu
+        action={hasMenu ? menuAction : undefined}
+        ariaLabel={t("Section options")}
+      >
+        <H3 ref={dragRef}>
+          <Button onClick={handleClick} disabled={!id}>
+            {title}
+            {id && <Disclosure $expanded={expanded} size={16} />}
+          </Button>
+          {hasMenu && (
+            <Actions>
+              {primaryAction && (
+                <NudeButton
+                  action={primaryAction}
+                  hideOnActionDisabled
+                  tooltip={{
+                    content: resolve<string>(primaryAction.name, actionContext),
+                    delay: 500,
+                  }}
+                >
+                  {resolve<React.ReactNode>(primaryAction.icon, actionContext)}
+                </NudeButton>
+              )}
+              <Overflow>
+                <DropdownMenu
+                  action={menuAction}
+                  align="end"
+                  ariaLabel={t("Section options")}
+                >
+                  <OverflowMenuButton />
+                </DropdownMenu>
+              </Overflow>
+            </Actions>
+          )}
+        </H3>
+      </ContextMenu>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
     </>
   );
@@ -176,8 +235,18 @@ const Actions = styled.span`
     opacity: 0.6;
   }
 
-  &:hover svg {
+  ${NudeButton}:hover svg,
+  ${NudeButton}[aria-expanded="true"] svg {
     opacity: 0.9;
+  }
+`;
+
+const Overflow = styled.span`
+  display: inline-flex;
+  visibility: hidden;
+
+  @media (hover: none) {
+    visibility: visible;
   }
 `;
 
@@ -187,10 +256,14 @@ const H3 = styled.h3`
   justify-content: space-between;
   margin: 0;
 
-  &:hover,
+  ${hoveredOrMenuOpen},
   &:focus-within {
     ${Disclosure} {
       opacity: 1;
+    }
+
+    ${Overflow} {
+      visibility: visible;
     }
   }
 `;

@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
@@ -29,8 +28,12 @@ import {
   settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
-import type { DragObject } from "../hooks/useDragAndDrop";
-import { useDropToArchive, useDropToUnpublish } from "../hooks/useDragAndDrop";
+import {
+  type DragObject,
+  useDropRef,
+  useDropToArchive,
+  useDropToUnpublish,
+} from "../hooks/useDragAndDrop";
 import NavLink from "./NavLink";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
@@ -97,7 +100,7 @@ function SidebarSystemNav() {
   const [{ isOverArchiveSection, isDragging }, dropToArchiveRef] =
     useDropToArchive();
 
-  const [{ isDocumentDropping }, dropToTrashRef] = useDrop({
+  const [{ isDocumentDropping }, dropToTrashRef] = useDropRef({
     accept: "document",
     drop: async (item: DragObject) => {
       const document = documents.get(item.id);

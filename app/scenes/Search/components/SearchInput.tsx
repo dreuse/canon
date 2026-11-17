@@ -11,12 +11,10 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   defaultValue: string;
   onClear?: () => void;
+  ref: React.RefObject<HTMLInputElement | null>;
 }
 
-function SearchInput(
-  { defaultValue, onClear, ...rest }: Props,
-  ref: React.RefObject<HTMLInputElement>
-) {
+function SearchInput({ defaultValue, onClear, ref, ...rest }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const focusInput = React.useCallback(() => {
@@ -79,19 +77,19 @@ const StyledInput = styled.input`
     border-color: ${s("inputBorderFocused")};
   }
 
-  ::-webkit-search-cancel-button {
+  &::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
-  ::-webkit-input-placeholder {
+  &::-webkit-input-placeholder {
     color: ${s("placeholder")};
   }
-  :-moz-placeholder {
+  &:-moz-placeholder {
     color: ${s("placeholder")};
   }
-  ::-moz-placeholder {
+  &::-moz-placeholder {
     color: ${s("placeholder")};
   }
-  :-ms-input-placeholder {
+  &:-ms-input-placeholder {
     color: ${s("placeholder")};
   }
 `;
@@ -118,4 +116,4 @@ const ClearButton = styled(NudeButton)`
   }
 `;
 
-export default React.forwardRef(SearchInput);
+export default SearchInput;

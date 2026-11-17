@@ -80,7 +80,7 @@ const useSettingsConfig = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    void integrations.fetchAll();
+    void integrations.fetchAllIfNeeded();
   }, [integrations]);
 
   const config = useComputed(() => {

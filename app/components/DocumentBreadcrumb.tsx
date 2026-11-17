@@ -88,12 +88,17 @@ type Props = {
    * default so list contexts do not repeat the title they already render.
    */
   showCurrent?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function DocumentBreadcrumb(
-  { document, children, onlyText, maxDepth, showCurrent }: Props,
-  ref: React.RefObject<HTMLDivElement> | null
-) {
+function DocumentBreadcrumb({
+  document,
+  children,
+  onlyText,
+  maxDepth,
+  showCurrent,
+  ref,
+}: Props) {
   const { collections } = useStores();
   const { t } = useTranslation();
   const sidebarContext = useLocationSidebarContext();
@@ -375,4 +380,4 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.5;
 `;
 
-export default observer(React.forwardRef(DocumentBreadcrumb));
+export default observer(DocumentBreadcrumb);

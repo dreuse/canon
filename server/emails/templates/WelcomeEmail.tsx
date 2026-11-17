@@ -52,7 +52,7 @@ ${this.t("Welcome to {{ appName }}!", { appName: env.APP_NAME })}
 
 ${this.t("{{ appName }} is a place for your team to build and share knowledge.", { appName: env.APP_NAME })}
 
-${this.t("To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work.")}
+${this.t("To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team’s work.")}
 
 ${UrlHelper.guide ? `${this.t("Or, learn more about everything {{ appName }} can do in the guide", { appName: env.APP_NAME })}:\n${UrlHelper.guide}\n` : ""}
 ${teamUrl}/home
@@ -78,7 +78,7 @@ ${teamUrl}/home
           </p>
           <p>
             {this.t(
-              "To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work."
+              "To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team’s work."
             )}
           </p>
           {UrlHelper.guide ? (

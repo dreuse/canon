@@ -363,7 +363,7 @@ function Home() {
                           )}
                           <RowBody>
                             <RowTitle>
-                              <RowName>{notification.subject}</RowName>
+                              <RowName>{notification.subject(t)}</RowName>
                             </RowTitle>
                             <RowWhy>
                               <Time

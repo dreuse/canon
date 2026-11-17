@@ -17,7 +17,7 @@ import { useSplitView } from "~/components/SplitView/context";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import {
   documentPath,
   matchDocumentHistory,
@@ -66,6 +66,14 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
     [ui, pane]
   );
 
+  // The store clears the panel before the sidebar has animated closed, so the
+  // last panel stays visible until the content unmounts.
+  const [lastPanel, setLastPanel] = React.useState(panel);
+  if (panel && panel !== lastPanel) {
+    setLastPanel(panel);
+  }
+  const visiblePanel = panel ?? lastPanel;
+
   if (!isMobile && panel === null) {
     return (
       <Aside width={CommentsRailWidth}>
@@ -81,18 +89,27 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
     );
   }
 
+  const fallback = (
+    <SidebarLayout title={<PlaceholderText width={100} />}>
+      {null}
+    </SidebarLayout>
+  );
+
+  // Both panels stay mounted so that switching between them keeps their state
+  // and does not re-suspend on the lazy chunk. Effects, and with them the MobX
+  // reactions of observer components, are disposed while a panel is hidden.
   const inner = (
     <Route path={`/doc/${matchDocumentSlug}`}>
-      <React.Suspense
-        fallback={
-          <SidebarLayout title={<PlaceholderText width={100} />}>
-            {null}
-          </SidebarLayout>
-        }
-      >
-        {panel === "comments" && <DocumentComments />}
-        {panel === "history" && <DocumentHistory />}
-      </React.Suspense>
+      <React.Activity mode={visiblePanel === "comments" ? "visible" : "hidden"}>
+        <React.Suspense fallback={fallback}>
+          <DocumentComments />
+        </React.Suspense>
+      </React.Activity>
+      <React.Activity mode={visiblePanel === "history" ? "visible" : "hidden"}>
+        <React.Suspense fallback={fallback}>
+          <DocumentHistory />
+        </React.Suspense>
+      </React.Activity>
     </Route>
   );
 

@@ -11,6 +11,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { codeThemes } from "@shared/styles/codeThemes";
+import { validateColorHex } from "@shared/utils/color";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -68,10 +69,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         /** The custom theme for the team. */
         [TeamPreference.CustomTheme]: z
           .strictObject({
-            accent: z.string().min(4).max(7).regex(/^#/),
-            accentText: z.string().min(4).max(7).regex(/^#/),
-            accentDark: z.string().min(4).max(7).regex(/^#/),
-            accentTextDark: z.string().min(4).max(7).regex(/^#/),
+            accent: z.string().min(4).max(7).refine(validateColorHex),
+            accentText: z.string().min(4).max(7).refine(validateColorHex),
+            accentDark: z.string().min(4).max(7).refine(validateColorHex),
+            accentTextDark: z.string().min(4).max(7).refine(validateColorHex),
           })
           .partial(),
         [TeamPreference.BodyFontFamily]: z.enum(BodyFontFamily),

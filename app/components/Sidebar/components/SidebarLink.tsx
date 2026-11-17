@@ -2,10 +2,8 @@ import type { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import EventBoundary from "@shared/components/EventBoundary";
 import { ellipsis, s } from "@shared/styles";
-import { isMobile } from "@shared/utils/browser";
-import NudeButton from "~/components/NudeButton";
+import { isMobile, isTouchDevice } from "@shared/utils/browser";
 import Tooltip from "~/components/Tooltip";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
@@ -14,6 +12,11 @@ import Disclosure from "./Disclosure";
 import { DEPTH_STEP } from "./Folder";
 import type { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
+import {
+  SidebarActions,
+  hoveredOrMenuOpen,
+  revealActionsOnHover,
+} from "./SidebarActions";
 import type { ActionFactory, ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
@@ -38,6 +41,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   /** Ref callback to access the underlying HTML element */
   innerRef?: (ref: HTMLElement | null | undefined) => void;
+  /** Ref to the rendered link element */
+  ref?: React.Ref<HTMLAnchorElement>;
   /** Callback fired when the link is clicked */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
@@ -92,6 +97,8 @@ const DEFAULT_WEIGHT = 475;
 const HIGHLIGHT_INSET = 8;
 const ROW_PADDING_INLINE_END = HIGHLIGHT_INSET * 2;
 
+const startsInteractive = () => isTouchDevice() || isMobile();
+
 const activeDropStyle = {
   fontWeight: 600,
 };
@@ -103,42 +110,41 @@ const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
 };
 
-function SidebarLink(
-  {
-    icon,
-    onClick,
-    onClickIntent,
-    to,
-    label,
-    active,
-    isActiveDrop,
-    isDraft,
-    menu,
-    $showActions,
-    exact,
-    href,
-    depth,
-    inlineDisclosure,
-    rank,
-    count,
-    trailing,
-    className,
-    expanded,
-    onDisclosureClick,
-    disabled,
-    unreadBadge,
-    contextAction,
-    ellipsis = true,
-    ...rest
-  }: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function SidebarLink({
+  icon,
+  onClick,
+  onClickIntent,
+  to,
+  label,
+  active,
+  isActiveDrop,
+  isDraft,
+  menu,
+  $showActions,
+  exact,
+  href,
+  depth,
+  inlineDisclosure,
+  rank,
+  count,
+  trailing,
+  className,
+  expanded,
+  onDisclosureClick,
+  disabled,
+  unreadBadge,
+  contextAction,
+  ellipsis = true,
+  ref,
+  ...rest
+}: Props) {
   const hasDisclosure = expanded !== undefined;
   const isIndented = !!icon || !!inlineDisclosure;
   const labelRef = React.useRef<HTMLDivElement>(null);
   const [truncatedLabel, setTruncatedLabel] = React.useState<string>();
   const { t } = useTranslation();
   const theme = useTheme();
+  const [isInteractive, setIsInteractive] = React.useState(startsInteractive);
   const { handleMouseEnter: handleClickIntent, handleMouseLeave } =
     useClickIntent(onClickIntent);
   const style = React.useMemo(
@@ -213,32 +219,48 @@ function SidebarLink(
     [onDisclosureClick, hasDisclosure]
   );
 
+  const handleFocusCapture = (event: React.FocusEvent<HTMLElement>) => {
+    if (event.target === event.currentTarget) {
+      setIsInteractive(true);
+    }
+  };
+
   const DisclosureComponent = isIndented ? InlineDisclosure : Disclosure;
+
+  const content = (
+    <Content>
+      {hasDisclosure && (
+        <DisclosureComponent
+          expanded={expanded}
+          onClick={handleDisclosureClick}
+          onMouseDown={stopPropagation}
+          tabIndex={-1}
+        />
+      )}
+      {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
+      <Tooltip content={truncatedLabel} placement="right" delay={500}>
+        <Label ref={labelRef} $ellipsis={ellipsis}>
+          {label}
+        </Label>
+      </Tooltip>
+      {count !== undefined && count > 0 && <Count>{count}</Count>}
+      {trailing}
+      {unreadBadge && <UnreadBadge style={unreadStyle} />}
+    </Content>
+  );
 
   const innerContent = (
     <>
-      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
-        <Content>
-          {hasDisclosure && (
-            <DisclosureComponent
-              expanded={expanded}
-              onClick={handleDisclosureClick}
-              onMouseDown={stopPropagation}
-              tabIndex={-1}
-            />
-          )}
-          {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
-          <Tooltip content={truncatedLabel} placement="right" delay={500}>
-            <Label ref={labelRef} $ellipsis={ellipsis}>
-              {label}
-            </Label>
-          </Tooltip>
-          {count !== undefined && count > 0 && <Count>{count}</Count>}
-          {trailing}
-          {unreadBadge && <UnreadBadge style={unreadStyle} />}
-        </Content>
-      </ContextMenu>
-      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
+      {isInteractive ? (
+        <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+          {content}
+        </ContextMenu>
+      ) : (
+        content
+      )}
+      {isInteractive && menu && (
+        <Actions $showActions={$showActions}>{menu}</Actions>
+      )}
     </>
   );
 
@@ -252,6 +274,8 @@ function SidebarLink(
         style={active ? activeStyle : style}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
+        onPointerEnter={() => setIsInteractive(true)}
+        onFocusCapture={handleFocusCapture}
         onMouseLeave={handleMouseLeave}
         onDragEnter={handleMouseEnter}
         href={href}
@@ -266,6 +290,7 @@ function SidebarLink(
 
   return (
     <Link
+      as={NavLink}
       $isActiveDrop={isActiveDrop}
       $isDraft={isDraft}
       $disabled={disabled}
@@ -274,13 +299,14 @@ function SidebarLink(
       onClick={handleClick}
       onActiveClick={handleDisclosureClick}
       onMouseEnter={handleMouseEnter}
+      onPointerEnter={() => setIsInteractive(true)}
+      onFocusCapture={handleFocusCapture}
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
       exact={exact !== false}
       to={to!}
       href={href}
       className={className}
-      // @ts-expect-error spread props cause overload mismatch with styled NavLink
       ref={ref}
       {...rest}
     >
@@ -325,26 +351,17 @@ const Content = styled.span`
   min-width: 0;
 `;
 
-const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
-  display: inline-flex;
-  visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
-
-  [data-drag-active] & {
-    display: none;
-  }
-
-  position: absolute;
-  top: 3px;
+const Actions = styled(SidebarActions)`
   inset-inline-end: ${ROW_PADDING_INLINE_END}px;
   gap: 4px;
-  color: ${s("textTertiary")};
-  transition: opacity 50ms;
-  height: 24px;
-  background: var(--background);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 
   @media (max-width: 768px), (hover: none) {
     visibility: visible;
-    top: 0;
     height: 100%;
     align-items: center;
 
@@ -354,22 +371,6 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
       min-width: 44px;
       min-height: 44px;
     }
-
-    svg {
-      opacity: 0.75;
-    }
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-    color: ${s("textSecondary")};
-    fill: currentColor;
-    opacity: 0.5;
-  }
-
-  &:hover {
-    visibility: visible;
 
     svg {
       opacity: 0.75;
@@ -385,16 +386,14 @@ const InlineDisclosure = styled(Disclosure)`
   margin-inline-end: 0;
 `;
 
-const Link = styled(NavLink)<{
+const Link = styled.a<{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
 }>`
   --background: transparent;
 
-  &:hover,
-  &:active,
-  &:has([data-state="open"]) {
+  ${hoveredOrMenuOpen} {
     --background: ${s("sidebarHoverBackground")};
   }
 
@@ -480,39 +479,16 @@ const Link = styled(NavLink)<{
     font-size: 14px;
   `}
 
+  ${revealActionsOnHover}
+
   @media (hover: hover) {
-    &:hover
-      ${Actions},
-      &:active
-      ${Actions},
-      &:has([data-state="open"])
-      ${Actions} {
-      visibility: visible;
-
-      svg {
-        opacity: 0.75;
-      }
-    }
-
-    &:hover,
-    &:has([data-state="open"]) {
+    ${hoveredOrMenuOpen} {
       color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
 
     &:hover ${Count}, &:has([data-state="open"]) ${Count} {
       opacity: 0;
-    }
-  }
-
-  & ${Actions} {
-    ${NudeButton} {
-      background: transparent;
-
-      &:hover,
-      &[aria-expanded="true"] {
-        background: ${s("sidebarControlHoverBackground")};
-      }
     }
   }
 `;
@@ -532,4 +508,4 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   }
 `;
 
-export default React.forwardRef<HTMLAnchorElement, Props>(SidebarLink);
+export default SidebarLink;

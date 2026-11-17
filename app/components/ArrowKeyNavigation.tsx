@@ -6,12 +6,16 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "children"> & {
   children: () => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
   items: unknown[];
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-function ArrowKeyNavigation(
-  { children, onEscape, items, ...rest }: Props,
-  ref: React.RefObject<HTMLDivElement>
-) {
+function ArrowKeyNavigation({
+  children,
+  onEscape,
+  items,
+  ref,
+  ...rest
+}: Props) {
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLDivElement>) => {
       if (onEscape) {
@@ -50,4 +54,4 @@ function ArrowKeyNavigation(
   );
 }
 
-export default observer(React.forwardRef(ArrowKeyNavigation));
+export default observer(ArrowKeyNavigation);

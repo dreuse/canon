@@ -191,7 +191,7 @@ function Preferences() {
             {UrlHelper.translations ? (
               <Trans>
                 Choose the interface language. Community translations are
-                accepted though our{" "}
+                accepted through our{" "}
                 <a
                   href={UrlHelper.translations}
                   target="_blank"

@@ -1,7 +1,3 @@
-import {
-  useFocusEffect,
-  useRovingTabIndex,
-} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +10,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
+import { isTouchDevice } from "@shared/utils/browser";
 import type Document from "~/models/Document";
 import Badge from "~/components/Badge";
 import { useModelSelection } from "~/components/ModelSelectionContext";
@@ -38,6 +35,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
+import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 
 type Props = {
   document: Document;
@@ -48,6 +46,7 @@ type Props = {
   showPublished?: boolean;
   showDraft?: boolean;
   showPath?: boolean;
+  ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -59,28 +58,26 @@ function replaceResultMarks(tag: string) {
   return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
-function DocumentListItem(
-  props: Props,
-  ref: React.RefObject<HTMLAnchorElement>
-) {
+function DocumentListItem(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
   const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const [isInteractive, setIsInteractive] = React.useState(isTouchDevice);
   const isMobile = useMobile();
   const selection = useModelSelection();
   const iconRef = React.useRef<HTMLDivElement>(null);
+  const restoreFocus = React.useRef(false);
 
-  let itemRef: React.Ref<HTMLAnchorElement> =
+  let itemRef: React.RefObject<HTMLAnchorElement | null> =
     React.useRef<HTMLAnchorElement>(null);
-  if (ref) {
-    itemRef = ref;
+  if (props.ref) {
+    itemRef = props.ref;
   }
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
-  useFocusEffect(focused, itemRef);
 
   const {
     document,
@@ -91,6 +88,7 @@ function DocumentListItem(
     showPath,
     highlight,
     context,
+    ref: _ref,
     ...rest
   } = props;
   const matchedInTitle = queryIsInTitle(document.title, highlight);
@@ -163,132 +161,162 @@ function DocumentListItem(
     [itemRef, draggableRef]
   );
 
+  React.useLayoutEffect(() => {
+    if (isInteractive && restoreFocus.current) {
+      itemRef.current?.focus();
+      restoreFocus.current = false;
+    }
+  }, [isInteractive]);
+
+  const handleFocusCapture = (event: React.FocusEvent<HTMLAnchorElement>) => {
+    if (!isInteractive && event.target === event.currentTarget) {
+      restoreFocus.current = true;
+      setIsInteractive(true);
+    }
+  };
+
+  const link = (
+    <DocumentLink
+      ref={mergedRef}
+      dir={document.dir}
+      $isStarred={document.isStarred}
+      $isDragging={isDragging}
+      $menuOpen={menuOpen}
+      $selectable={selectable}
+      $compact={showPath}
+      to={{
+        pathname: documentPath(document),
+        search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
+        state: {
+          title: document.titleWithDefault,
+          sidebarContext,
+        },
+      }}
+      {...rest}
+      {...rovingTabIndex}
+      onClick={handleLinkClick}
+      onMouseDown={handleLinkMouseDown}
+      onPointerEnter={() => setIsInteractive(true)}
+      onFocusCapture={handleFocusCapture}
+    >
+      <Flex gap={4} auto>
+        <IconWrapper ref={iconRef}>
+          {selectable && (
+            <SelectButton
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-label={t("Select")}
+              $checked={isSelected}
+              $visible={isSelecting}
+              tabIndex={-1}
+            >
+              {isSelected && <CheckmarkIcon size={16} />}
+            </SelectButton>
+          )}
+          <DocumentIconWrapper $dimmed={isSelecting}>
+            {document.icon ? (
+              <Icon
+                value={document.icon}
+                color={document.color ?? undefined}
+                initial={document.initial}
+              />
+            ) : (
+              <DocumentIcon
+                outline={document.isDraft}
+                color={theme.textSecondary}
+              />
+            )}
+          </DocumentIconWrapper>
+        </IconWrapper>
+        <Content>
+          <Heading dir={document.dir}>
+            <Title
+              text={document.titleWithDefault}
+              highlight={highlight}
+              dir={document.dir}
+            />
+            {document.isBadgedNew && document.createdBy?.id !== user.id && (
+              <Badge yellow>{t("New")}</Badge>
+            )}
+            {document.isDraft &&
+              showDraft &&
+              (isInteractive ? (
+                <Tooltip content={t("Only visible to you")} placement="top">
+                  <Badge>{t("Draft")}</Badge>
+                </Tooltip>
+              ) : (
+                <Badge>{t("Draft")}</Badge>
+              ))}
+            {showPath && (
+              <ItemTime>
+                <Time
+                  dateTime={
+                    document.deletedAt ??
+                    document.archivedAt ??
+                    document.updatedAt
+                  }
+                  shorten
+                />
+              </ItemTime>
+            )}
+          </Heading>
+
+          {!matchedInTitle && !!trimmedContext && (
+            <ResultContext
+              text={trimmedContext}
+              highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+              processResult={replaceResultMarks}
+            />
+          )}
+          {excerpt && <Excerpt>{excerpt}</Excerpt>}
+          <DocumentMeta
+            document={document}
+            showCollection={showCollection}
+            showPublished={showPublished}
+            showParentDocuments={showParentDocuments}
+            showPath={showPath}
+            showLastViewed={!showPath}
+          />
+        </Content>
+      </Flex>
+      <Actions>
+        {canStar && !isMobile && (
+          <StarButton document={document} tooltipDisabled={!isInteractive} />
+        )}
+        {isInteractive && can.update && (
+          <NudeButton
+            aria-label={t("Edit")}
+            tooltip={{ content: t("Edit"), delay: 500 }}
+            onClick={handleEditClick}
+          >
+            <EditIcon size={18} />
+          </NudeButton>
+        )}
+        {isInteractive && (
+          <DocumentMenu
+            document={document}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        )}
+      </Actions>
+    </DocumentLink>
+  );
+
   return (
     <ActionContextProvider value={{ activeModels }}>
-      <ContextMenu
-        action={contextMenuAction}
-        ariaLabel={t("Document options")}
-        onOpen={handleMenuOpen}
-        onClose={handleMenuClose}
-      >
-        <DocumentLink
-          ref={mergedRef}
-          dir={document.dir}
-          $isStarred={document.isStarred}
-          $isDragging={isDragging}
-          $menuOpen={menuOpen}
-          $selectable={selectable}
-          $compact={showPath}
-          to={{
-            pathname: documentPath(document),
-            search: highlight
-              ? `?q=${encodeURIComponent(highlight)}`
-              : undefined,
-            state: {
-              title: document.titleWithDefault,
-              sidebarContext,
-            },
-          }}
-          {...rest}
-          {...rovingTabIndex}
-          onClick={handleLinkClick}
-          onMouseDown={handleLinkMouseDown}
+      {isInteractive ? (
+        <ContextMenu
+          action={contextMenuAction}
+          ariaLabel={t("Document options")}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
         >
-          <Flex gap={4} auto>
-            <IconWrapper ref={iconRef}>
-              {selectable && (
-                <SelectButton
-                  role="checkbox"
-                  aria-checked={isSelected}
-                  aria-label={t("Select")}
-                  $checked={isSelected}
-                  $visible={isSelecting}
-                  tabIndex={-1}
-                >
-                  {isSelected && <CheckmarkIcon size={16} />}
-                </SelectButton>
-              )}
-              <DocumentIconWrapper $dimmed={isSelecting}>
-                {document.icon ? (
-                  <Icon
-                    value={document.icon}
-                    color={document.color ?? undefined}
-                    initial={document.initial}
-                  />
-                ) : (
-                  <DocumentIcon
-                    outline={document.isDraft}
-                    color={theme.textSecondary}
-                  />
-                )}
-              </DocumentIconWrapper>
-            </IconWrapper>
-            <Content>
-              <Heading dir={document.dir}>
-                <Title
-                  text={document.titleWithDefault}
-                  highlight={highlight}
-                  dir={document.dir}
-                />
-                {document.isBadgedNew && document.createdBy?.id !== user.id && (
-                  <Badge yellow>{t("New")}</Badge>
-                )}
-                {document.isDraft && showDraft && (
-                  <Tooltip content={t("Only visible to you")} placement="top">
-                    <Badge>{t("Draft")}</Badge>
-                  </Tooltip>
-                )}
-                {showPath && (
-                  <ItemTime>
-                    <Time
-                      dateTime={
-                        document.deletedAt ??
-                        document.archivedAt ??
-                        document.updatedAt
-                      }
-                      shorten
-                    />
-                  </ItemTime>
-                )}
-              </Heading>
-
-              {!matchedInTitle && !!trimmedContext && (
-                <ResultContext
-                  text={trimmedContext}
-                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-                  processResult={replaceResultMarks}
-                />
-              )}
-              {excerpt && <Excerpt>{excerpt}</Excerpt>}
-              <DocumentMeta
-                document={document}
-                showCollection={showCollection}
-                showPublished={showPublished}
-                showParentDocuments={showParentDocuments}
-                showPath={showPath}
-                showLastViewed={!showPath}
-              />
-            </Content>
-          </Flex>
-          <Actions>
-            {canStar && !isMobile && <StarButton document={document} />}
-            {can.update && (
-              <NudeButton
-                aria-label={t("Edit")}
-                tooltip={{ content: t("Edit"), delay: 500 }}
-                onClick={handleEditClick}
-              >
-                <EditIcon size={18} />
-              </NudeButton>
-            )}
-            <DocumentMenu
-              document={document}
-              onOpen={handleMenuOpen}
-              onClose={handleMenuClose}
-            />
-          </Actions>
-        </DocumentLink>
-      </ContextMenu>
+          {link}
+        </ContextMenu>
+      ) : (
+        link
+      )}
     </ActionContextProvider>
   );
 }
@@ -538,4 +566,4 @@ const ResultContext = styled(Highlight)`
   text-overflow: ellipsis;
 `;
 
-export default observer(React.forwardRef(DocumentListItem));
+export default observer(DocumentListItem);

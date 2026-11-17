@@ -1,3 +1,4 @@
+import { pickBy } from "es-toolkit";
 import { useEffect, useMemo } from "react";
 import { breakpoints } from "@shared/styles";
 import {
@@ -6,6 +7,7 @@ import {
   buildPitchBlackTheme,
 } from "@shared/styles/theme";
 import type { ThemeOverride } from "@shared/styles/theme";
+import { validateColorHex } from "@shared/utils/color";
 import { Theme } from "~/stores/UiStore";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "./useStores";
@@ -41,18 +43,31 @@ export default function useBuildTheme(
 
   const resolvedTheme = overrideTheme ?? ui.resolvedTheme;
 
+  // Drop any stored color that is not valid hex so a bad value cannot break rendering.
+  const safeTheme = useMemo(
+    () =>
+      pickBy(
+        customTheme,
+        (value, key) =>
+          key === "fontFamily" ||
+          key === "fontFamilyMono" ||
+          (typeof value === "string" && validateColorHex(value))
+      ),
+    [customTheme]
+  );
+
   const theme = useMemo(
     () =>
       isPrinting
-        ? buildLightTheme(customTheme)
+        ? buildLightTheme(safeTheme)
         : isMobile
           ? resolvedTheme === "dark"
-            ? buildPitchBlackTheme(customTheme)
-            : buildLightTheme(customTheme)
+            ? buildPitchBlackTheme(safeTheme)
+            : buildLightTheme(safeTheme)
           : resolvedTheme === "dark"
-            ? buildDarkTheme(customTheme)
-            : buildLightTheme(customTheme),
-    [customTheme, isMobile, isPrinting, resolvedTheme]
+            ? buildDarkTheme(safeTheme)
+            : buildLightTheme(safeTheme),
+    [safeTheme, isMobile, isPrinting, resolvedTheme]
   );
 
   return theme;

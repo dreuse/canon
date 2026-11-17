@@ -9,6 +9,7 @@ import {
   CodeFontScaleValues,
   MonospaceFontFamilyStacks,
 } from "@shared/constants";
+import { StyleSheetProvider } from "@shared/components/StyleSheetProvider";
 import GlobalStyles from "@shared/styles/globals";
 import { resolveCodeTheme } from "@shared/styles/codeThemes";
 import { resolveAccent } from "@shared/styles/palettes";
@@ -95,19 +96,22 @@ const Theme: React.FC<Props> = ({ children }: Props) => {
 
   return (
     <DirectionProvider dir={direction}>
-      <ThemeProvider theme={theme}>
-        <>
-          <GlobalStyles
-            fontSize={FontSizeValues[fontSize] * ui.fontScale}
-            codeFontScale={CodeFontScaleValues[codeFontSize]}
-            useCursorPointer={
-              // Default to showing the cursor pointer if no user is logged in (public share)
-              auth.user?.getPreference(UserPreference.UseCursorPointer) ?? true
-            }
-          />
-          {children}
-        </>
-      </ThemeProvider>
+      <StyleSheetProvider>
+        <ThemeProvider theme={theme}>
+          <>
+            <GlobalStyles
+              fontSize={FontSizeValues[fontSize] * ui.fontScale}
+              codeFontScale={CodeFontScaleValues[codeFontSize]}
+              useCursorPointer={
+                // Default to showing the cursor pointer if no user is logged in (public share)
+                auth.user?.getPreference(UserPreference.UseCursorPointer) ??
+                true
+              }
+            />
+            {children}
+          </>
+        </ThemeProvider>
+      </StyleSheetProvider>
     </DirectionProvider>
   );
 };

@@ -54,16 +54,16 @@ export type AvatarProps = {
    * avatars are frequently rendered inside another link.
    */
   linkToProfile?: boolean;
+  /** Ref to the outer element */
+  ref?: React.Ref<HTMLDivElement>;
 } & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "onClick" | "className" | "style"
 >;
 
-const Avatar = React.forwardRef(function Avatar_(
-  props: AvatarProps,
-  ref: React.Ref<HTMLDivElement>
-) {
+function Avatar(props: AvatarProps) {
   const {
+    ref,
     model,
     style,
     variant = AvatarVariant.Round,
@@ -117,7 +117,7 @@ const Avatar = React.forwardRef(function Avatar_(
   ) : (
     content
   );
-});
+}
 
 const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   position: relative;
