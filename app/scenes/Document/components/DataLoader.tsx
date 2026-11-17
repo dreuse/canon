@@ -7,7 +7,6 @@ import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
-import Error402 from "~/scenes/Errors/Error402";
 import Error403 from "~/scenes/Errors/Error403";
 import Error404 from "~/scenes/Errors/Error404";
 import ErrorOffline from "~/scenes/Errors/ErrorOffline";
@@ -26,7 +25,6 @@ import {
   AuthorizationError,
   NotFoundError,
   OfflineError,
-  PaymentRequiredError,
 } from "~/utils/errors";
 import history from "~/utils/history";
 import {
@@ -279,8 +277,6 @@ function DataLoader({ match, children }: Props) {
   if (error) {
     return error instanceof OfflineError ? (
       <ErrorOffline />
-    ) : error instanceof PaymentRequiredError ? (
-      <Error402 />
     ) : error instanceof AuthorizationError ? (
       <Error403 documentId={documentSlug} />
     ) : error instanceof NotFoundError ? (

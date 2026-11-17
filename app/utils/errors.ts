@@ -22,11 +22,6 @@ export class NotFoundError extends Error {
   name = "NotFoundError";
 }
 
-/** Error thrown when the request requires payment or an upgraded plan. */
-export class PaymentRequiredError extends Error {
-  name = "PaymentRequiredError";
-}
-
 /** Error thrown when a request is made while the client is offline. */
 export class OfflineError extends Error {
   name = "OfflineError";

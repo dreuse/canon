@@ -27,7 +27,6 @@ describe("errors", () => {
       { name: "DomainNotAllowedError", fn: errors.DomainNotAllowedError },
       { name: "AdminRequiredError", fn: errors.AdminRequiredError },
       { name: "InvalidRequestError", fn: errors.InvalidRequestError },
-      { name: "PaymentRequiredError", fn: errors.PaymentRequiredError },
       { name: "NotFoundError", fn: errors.NotFoundError },
       { name: "ParamRequiredError", fn: errors.ParamRequiredError },
       { name: "ValidationError", fn: errors.ValidationError },

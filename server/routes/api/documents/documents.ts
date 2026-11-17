@@ -410,13 +410,9 @@ router.post(
     const includeDrafts =
       !!statusFilter?.includes(StatusFilter.Draft) || filterIncludesDrafts;
 
-    // The withDrafts scope drops the defaultScope filters, so re-apply the
-    // ones we still want — templates and trial-import documents should never
-    // appear in this listing.
     if (includeDrafts) {
       where[Op.and].push({
         template: false,
-        sourceMetadata: { trial: { [Op.is]: null } },
       });
     }
 

@@ -1,4 +1,4 @@
-import { NotFoundError, PaymentRequiredError } from "@server/errors";
+import { NotFoundError } from "@server/errors";
 import type { User } from "@server/models";
 import { Document } from "@server/models";
 import { authorize } from "@server/policies";
@@ -33,10 +33,6 @@ export default async function loadDocument({
     if (user) {
       authorize(user, "read", document);
     }
-  }
-
-  if (document.isTrialImport) {
-    throw PaymentRequiredError();
   }
 
   return document;

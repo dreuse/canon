@@ -134,16 +134,9 @@ interface QueryGeneratorWithWhere {
   ): string;
 }
 
-// Documents that are visible by default: published, not a template, and not
-// created as part of a trial.
 const publishedWhere: WhereOptions<Document> = {
   publishedAt: {
     [Op.ne]: null,
-  },
-  sourceMetadata: {
-    trial: {
-      [Op.is]: null,
-    },
   },
   template: false,
 };
@@ -1140,15 +1133,6 @@ class Document extends ArchivableModel<
    */
   get displayTitle(): string {
     return this.title || "Untitled";
-  }
-
-  /**
-   * Whether this document was imported during a trial period.
-   *
-   * @returns boolean
-   */
-  get isTrialImport() {
-    return !!(this.importId && this.sourceMetadata?.trial);
   }
 
   /**

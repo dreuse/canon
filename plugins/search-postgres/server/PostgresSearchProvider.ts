@@ -782,11 +782,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
             [Op.eq]: null,
           },
           template: false,
-          sourceMetadata: {
-            trial: {
-              [Op.is]: null,
-            },
-          },
         },
       ],
     };

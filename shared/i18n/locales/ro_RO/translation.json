@@ -837,7 +837,6 @@
   "Publish in <em>{{ location }}</em>": "Publish in <em>{{ location }}</em>",
   "Search documents": "Search documents",
   "No documents found for your filters.": "No documents found for your filters.",
-  "Payment Required": "Payment Required",
   "Access request sent": "Access request sent",
   "No access to this doc": "No access to this doc",
   "Your request to access this document has been sent. You will be notified once access is granted.": "Your request to access this document has been sent. You will be notified once access is granted.",

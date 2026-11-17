@@ -104,13 +104,6 @@ export function InvalidRequestError(message = "Request invalid") {
   });
 }
 
-export function PaymentRequiredError(message = "Payment required") {
-  return httpErrors(402, message, {
-    id: "payment_required",
-    isReportable: false,
-  });
-}
-
 export function NotFoundError(message = "Resource not found") {
   return httpErrors(404, message, {
     id: "not_found",

@@ -7,7 +7,6 @@ import {
   AuthorizationError,
   InvalidRequestError,
   NotFoundError,
-  PaymentRequiredError,
 } from "@server/errors";
 import type { User } from "@server/models";
 import { Collection, Document, Share } from "@server/models";
@@ -125,10 +124,6 @@ export async function loadPublicShare({
     }
   } else {
     document = share.document;
-  }
-
-  if (document?.isTrialImport) {
-    throw PaymentRequiredError();
   }
 
   return {

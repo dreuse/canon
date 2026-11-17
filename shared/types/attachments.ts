@@ -21,8 +21,6 @@ export type SourceMetadata = {
   externalId?: string;
   /** Original name in the external source. */
   externalName?: string;
-  /** Whether the item was created through a trial license. */
-  trial?: boolean;
   /** The ID of the original document when this document was duplicated. */
   originalDocumentId?: string;
   /** The ID of the original collection when this collection was duplicated. */

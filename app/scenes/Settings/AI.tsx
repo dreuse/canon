@@ -140,18 +140,6 @@ function AI() {
           />
         )}
       </SettingsSection>
-
-      <SettingsSection title={t("AI answers")}>
-        <SettingRow
-          name="answers"
-          label={t("Enabled")}
-          description={t(
-            "Show AI-generated answers to questions in search, based on content in your workspace. Requires a paid license."
-          )}
-        >
-          <Switch disabled />
-        </SettingRow>
-      </SettingsSection>
     </Scene>
   );
 }
