@@ -7,7 +7,6 @@ export * from "./integrations";
 export * from "./navigation";
 export * from "./notifications";
 export * from "./permissions";
-export * from "./plans";
 export * from "./prosemirror";
 export * from "./team";
 export * from "./unfurl";

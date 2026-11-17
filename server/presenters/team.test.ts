@@ -1,5 +1,4 @@
-import { Plan, TeamPreference } from "@shared/types";
-import { PlanHelper } from "@shared/utils/PlanHelper";
+import { TeamPreference } from "@shared/types";
 import { Team } from "@server/models";
 import presentTeam from "./team";
 
@@ -31,11 +30,4 @@ it("presents null preferences", () => {
   team.preferences = null;
 
   expect(presentTeam(team).preferences).toBeNull();
-});
-
-it("presents the plan and its entitlements", () => {
-  const team = presentTeam(Team.build({ id: "123", name: "Test Team" }));
-
-  expect(team.plan).toEqual(Plan.Community);
-  expect(team.entitlements).toEqual(PlanHelper.getFeatures(Plan.Community));
 });

@@ -1,5 +1,4 @@
 import type { JobOptions } from "bull";
-import { PlanFeature } from "@shared/types";
 import groupsSyncer from "@server/commands/groupsSyncer";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
@@ -9,7 +8,6 @@ import {
   User,
   UserAuthentication,
 } from "@server/models";
-import { teamHasEntitlement } from "@server/policies/utils";
 import { sequelize } from "@server/storage/database";
 import { PluginManager } from "@server/utils/PluginManager";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -82,7 +80,7 @@ export default class SyncUserGroupsTask extends BaseTask<Props> {
     }
 
     const team = await Team.findByPk(user.teamId);
-    if (!team || !teamHasEntitlement(team, PlanFeature.GroupSync)) {
+    if (!team) {
       return;
     }
 

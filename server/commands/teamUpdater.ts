@@ -90,7 +90,6 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   if (preferences) {
     const shareExpiryDays = preferences[TeamPreference.DefaultShareExpiryDays];
 
-    // Removing the default stays possible after losing the entitlement.
     if (
       shareExpiryDays &&
       shareExpiryDays !==

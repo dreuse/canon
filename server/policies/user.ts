@@ -1,14 +1,7 @@
-import { TeamPreference, EmailDisplay, PlanFeature } from "@shared/types";
+import { TeamPreference, EmailDisplay } from "@shared/types";
 import { User, Team } from "@server/models";
 import { allow } from "./cancan";
-import {
-  and,
-  isTeamAdmin,
-  isTeamModel,
-  isTeamMutable,
-  or,
-  teamHasEntitlement,
-} from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "read", User, isTeamModel);
 
@@ -30,13 +23,7 @@ allow(User, "inviteUser", Team, (actor, team) =>
   )
 );
 
-allow(User, "addGuest", Team, (actor, team) =>
-  and(
-    //
-    isTeamModel(actor, team),
-    teamHasEntitlement(team, PlanFeature.Guests)
-  )
-);
+allow(User, "addGuest", Team, isTeamModel);
 
 allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
   or(

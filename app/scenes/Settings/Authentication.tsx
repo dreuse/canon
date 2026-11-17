@@ -195,11 +195,10 @@ function Authentication() {
 
       <SettingsSection title={t("Sign in")}>
         {authenticationProviders.orderedData.map((provider) => {
-          // Group sync can still be disabled after losing the entitlement.
           const showGroupSync =
             provider.isActive &&
             provider.groupSyncSupported &&
-            (!!can.externalGroupSync || !!provider.settings?.groupSyncEnabled);
+            !!can.externalGroupSync;
 
           return (
             <React.Fragment key={provider.name}>

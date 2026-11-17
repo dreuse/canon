@@ -1,10 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { MockInstance } from "vitest";
 import { vi } from "vitest";
 import sharedEnv from "@shared/env";
-import { Plan } from "@shared/types";
 import env from "@server/env";
-import { AuthenticationProvider, Team } from "@server/models";
+import { AuthenticationProvider } from "@server/models";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 import { PluginManager } from "@server/utils/PluginManager";
@@ -63,18 +61,6 @@ describe("#authenticationProviders.info", () => {
 });
 
 describe("#authenticationProviders.update", () => {
-  let planSpy: MockInstance<() => Plan>;
-
-  beforeEach(() => {
-    planSpy = vi
-      .spyOn(Team.prototype, "plan", "get")
-      .mockReturnValue(Plan.Business);
-  });
-
-  afterEach(() => {
-    planSpy.mockRestore();
-  });
-
   it("requires the admin setup flow before enabling group sync", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
@@ -111,43 +97,7 @@ describe("#authenticationProviders.update", () => {
     }
   });
 
-  it("requires the group sync entitlement to enable group sync", async () => {
-    const team = await buildTeam();
-    const user = await buildAdmin({ teamId: team.id });
-    const provider = await team.$create("authenticationProvider", {
-      name: "oidc",
-      providerId: randomUUID(),
-    });
-
-    planSpy.mockReturnValue(Plan.Community);
-    const getGroupSyncProvider = vi
-      .spyOn(PluginManager, "getGroupSyncProvider")
-      .mockReturnValue({
-        useGroupClaim: true,
-        fetchUserGroups: async () => [],
-      });
-
-    try {
-      const res = await server.post(
-        "/api/authenticationProviders.update",
-        user,
-        {
-          body: {
-            id: provider.id,
-            settings: { groupSyncEnabled: true },
-          },
-        }
-      );
-
-      expect(res.status).toEqual(403);
-      const reloaded = await AuthenticationProvider.findByPk(provider.id);
-      expect(reloaded?.settings?.groupSyncEnabled).not.toBe(true);
-    } finally {
-      getGroupSyncProvider.mockRestore();
-    }
-  });
-
-  it("allows disabling group sync without the group sync entitlement", async () => {
+  it("allows disabling group sync", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const provider = await team.$create("authenticationProvider", {
@@ -155,8 +105,6 @@ describe("#authenticationProviders.update", () => {
       providerId: randomUUID(),
       settings: { groupSyncEnabled: true },
     });
-
-    planSpy.mockReturnValue(Plan.Community);
 
     const res = await server.post("/api/authenticationProviders.update", user, {
       body: {
@@ -236,18 +184,6 @@ describe("#authenticationProviders.update", () => {
 });
 
 describe("#authenticationProviders.startGroupSync", () => {
-  let planSpy: MockInstance<() => Plan>;
-
-  beforeEach(() => {
-    planSpy = vi
-      .spyOn(Team.prototype, "plan", "get")
-      .mockReturnValue(Plan.Business);
-  });
-
-  afterEach(() => {
-    planSpy.mockRestore();
-  });
-
   it("returns the provider setup URL for a workspace admin", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
@@ -278,38 +214,6 @@ describe("#authenticationProviders.startGroupSync", () => {
       expect(startGroupSync).toHaveBeenCalledTimes(1);
       expect(startGroupSync.mock.calls[0][0].id).toEqual(provider.id);
       expect(startGroupSync.mock.calls[0][1].id).toEqual(user.id);
-    } finally {
-      getGroupSyncProvider.mockRestore();
-    }
-  });
-
-  it("requires the group sync entitlement", async () => {
-    const team = await buildTeam();
-    const user = await buildAdmin({ teamId: team.id });
-    const provider = await team.$create("authenticationProvider", {
-      name: "azure",
-      providerId: randomUUID(),
-    });
-    const startGroupSync = vi
-      .fn()
-      .mockResolvedValue("https://example.com/consent");
-    planSpy.mockReturnValue(Plan.Community);
-    const getGroupSyncProvider = vi
-      .spyOn(PluginManager, "getGroupSyncProvider")
-      .mockReturnValue({
-        useGroupClaim: false,
-        startGroupSync,
-        fetchUserGroups: async () => [],
-      });
-
-    try {
-      const res = await server.post(
-        "/api/authenticationProviders.startGroupSync",
-        user,
-        { body: { id: provider.id } }
-      );
-      expect(res.status).toEqual(403);
-      expect(startGroupSync).not.toHaveBeenCalled();
     } finally {
       getGroupSyncProvider.mockRestore();
     }

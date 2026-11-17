@@ -1,7 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
 import { isoBase64URL, isoCBOR } from "@simplewebauthn/server/helpers";
-import { Plan } from "@shared/types";
-import { Team } from "@server/models";
 import {
   buildAdmin,
   buildApiKey,
@@ -292,9 +290,6 @@ describe("#passkeys.verifyRegistration", () => {
   });
 
   it("should record the registration in the audit log", async () => {
-    const planSpy = vi
-      .spyOn(Team.prototype, "plan", "get")
-      .mockReturnValue(Plan.Business);
     const team = await buildTeam({ passkeysEnabled: true });
     const admin = await buildAdmin({ teamId: team.id });
 
@@ -318,8 +313,6 @@ describe("#passkeys.verifyRegistration", () => {
     expect(body.data[0].userId).toEqual(admin.id);
     expect(body.data[0].changes.attributes.name).toBeTruthy();
     expect(body.data[0].changes.attributes.credentialPublicKey).toBeUndefined();
-
-    planSpy.mockRestore();
   });
 });
 

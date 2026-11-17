@@ -1,10 +1,8 @@
 import { vi } from "vitest";
-import { Plan } from "@shared/types";
 import {
   AuthenticationProvider,
   Group,
   GroupUser,
-  Team,
   UserAuthentication,
 } from "@server/models";
 import { buildUser } from "@server/test/factories";
@@ -39,10 +37,6 @@ async function setup() {
 
 describe("SyncUserGroupsTask", () => {
   const schedule = mockTaskSchedule();
-
-  beforeEach(() => {
-    vi.spyOn(Team.prototype, "plan", "get").mockReturnValue(Plan.Business);
-  });
 
   afterEach(() => {
     vi.restoreAllMocks();

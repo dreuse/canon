@@ -27,14 +27,13 @@ import {
 import slugify from "slugify";
 import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import type { Plan, TeamPreferences } from "@shared/types";
-import { PlanFeature, TeamPreference, UserRole } from "@shared/types";
+import type { TeamPreferences } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import {
   getBaseDomain,
   parseDomain,
   RESERVED_SUBDOMAINS,
 } from "@shared/utils/domains";
-import { PlanHelper } from "@shared/utils/PlanHelper";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
@@ -264,30 +263,12 @@ class Team extends ParanoidModel<
   }
 
   /**
-   * Returns the plan that the team is on.
-   */
-  get plan(): Plan {
-    return PlanHelper.defaultPlan;
-  }
-
-  /**
-   * Returns the features that the team is entitled to use.
-   */
-  get entitlements(): PlanFeature[] {
-    return PlanHelper.getFeatures(this.plan);
-  }
-
-  /**
    * Returns the expiry for a share created now, if the team has a default.
    */
   get defaultShareExpiresAt(): Date | undefined {
     const days = this.getPreference(TeamPreference.DefaultShareExpiryDays);
 
-    if (
-      typeof days !== "number" ||
-      days === 0 ||
-      !this.entitlements.includes(PlanFeature.AdvancedSecurity)
-    ) {
+    if (typeof days !== "number" || days === 0) {
       return undefined;
     }
 

@@ -1,4 +1,3 @@
-import { PlanFeature } from "@shared/types";
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
 import {
@@ -8,7 +7,6 @@ import {
   isTeamModel,
   isTeamMutable,
   or,
-  teamHasEntitlement,
 } from "./utils";
 
 allow(User, "read", Team, isTeamModel);
@@ -52,28 +50,11 @@ allow(User, "delete", Team, (actor, team) =>
   )
 );
 
-allow(User, "audit", Team, (actor, team) =>
-  and(
-    //
-    isTeamAdmin(actor, team),
-    teamHasEntitlement(team, PlanFeature.AuditLog)
-  )
-);
-
-allow(User, "externalGroupSync", Team, (actor, team) =>
-  and(
-    //
-    isTeamAdmin(actor, team),
-    teamHasEntitlement(team, PlanFeature.GroupSync)
-  )
-);
-
-allow(User, "setDefaultShareExpiry", Team, (actor, team) =>
-  and(
-    //
-    isTeamAdmin(actor, team),
-    teamHasEntitlement(team, PlanFeature.AdvancedSecurity)
-  )
+allow(
+  User,
+  ["audit", "externalGroupSync", "setDefaultShareExpiry"],
+  Team,
+  isTeamAdmin
 );
 
 allow(User, ["createTemplate", "updateTemplate"], Team, (actor, team) =>

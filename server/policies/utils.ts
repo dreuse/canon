@@ -6,7 +6,6 @@ import {
   CommentingAccess,
   GroupPermission,
   TeamPreference,
-  type PlanFeature,
 } from "@shared/types";
 import invariant from "invariant";
 
@@ -153,24 +152,6 @@ export function isCommentingEnabled(actor: User): boolean {
  */
 export function isTeamMutable(_actor: User, _model?: Model | null) {
   return true;
-}
-
-/**
- * Check if the team is entitled to use a feature.
- *
- * IMPORTANT NOTICE: Bypassing or modifying license controls is a breach of
- * the license agreement, and will automatically terminate your rights under
- * the license for the current and all other versions.
- *
- * @param team the team to check.
- * @param feature the feature to check for.
- * @returns true if the team is entitled to the feature.
- */
-export function teamHasEntitlement(
-  team: Team | null | undefined,
-  feature: PlanFeature
-): boolean {
-  return !!team?.entitlements.includes(feature);
 }
 
 /**

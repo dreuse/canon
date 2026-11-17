@@ -1,11 +1,9 @@
 import { addDays, differenceInCalendarDays } from "date-fns";
 import queryString from "query-string";
-import type { MockInstance } from "vitest";
-import { vi } from "vitest";
 import { randomString } from "@shared/random";
-import { CollectionPermission, Plan, TeamPreference } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
 import { createContext } from "@server/context";
-import { UserMembership, Share, ShareSubscription, Team } from "@server/models";
+import { UserMembership, Share, ShareSubscription } from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -393,16 +391,6 @@ describe("#shares.create", () => {
   });
 
   describe("default share expiry", () => {
-    let planSpy: MockInstance<() => Plan>;
-
-    beforeEach(() => {
-      planSpy = vi.spyOn(Team.prototype, "plan", "get");
-    });
-
-    afterEach(() => {
-      planSpy.mockRestore();
-    });
-
     const buildTeamWithDefault = async () => {
       const team = await buildTeam();
       team.setPreference(TeamPreference.DefaultShareExpiryDays, 30);
@@ -416,7 +404,6 @@ describe("#shares.create", () => {
     };
 
     it("should apply the team default to new shares", async () => {
-      planSpy.mockReturnValue(Plan.Business);
       const { user, document } = await buildTeamWithDefault();
 
       const res = await server.post("/api/shares.create", user, {
@@ -430,7 +417,6 @@ describe("#shares.create", () => {
     });
 
     it("should prefer an explicit expiry over the team default", async () => {
-      planSpy.mockReturnValue(Plan.Business);
       const { user, document } = await buildTeamWithDefault();
       const expiresAt = addDays(new Date(), 7).toISOString();
 
@@ -443,23 +429,10 @@ describe("#shares.create", () => {
     });
 
     it("should create a share without expiry when expiresAt is null", async () => {
-      planSpy.mockReturnValue(Plan.Business);
       const { user, document } = await buildTeamWithDefault();
 
       const res = await server.post("/api/shares.create", user, {
         body: { documentId: document.id, published: true, expiresAt: null },
-      });
-      const body = await res.json();
-      expect(res.status).toEqual(200);
-      expect(body.data.expiresAt).toBeNull();
-    });
-
-    it("should not apply the team default without the entitlement", async () => {
-      planSpy.mockReturnValue(Plan.Community);
-      const { user, document } = await buildTeamWithDefault();
-
-      const res = await server.post("/api/shares.create", user, {
-        body: { documentId: document.id, published: true },
       });
       const body = await res.json();
       expect(res.status).toEqual(200);
