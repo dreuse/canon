@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
-import { extraArea, s } from "@shared/styles";
+import { s } from "@shared/styles";
 import {
   VoChevronDownIcon,
   VoChevronRightIcon,
@@ -8,6 +8,7 @@ import {
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
 import SidebarLink from "./SidebarLink";
+import { SectionDragContext } from "./DraggableSection";
 
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
@@ -35,6 +36,7 @@ export const Header: React.FC<Props> = ({
   children,
 }: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
+  const dragRef = React.useContext(SectionDragContext);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
     true
@@ -54,6 +56,7 @@ export const Header: React.FC<Props> = ({
     return (
       <SidebarLink
         onClick={handleClick}
+        innerRef={dragRef ? (element) => dragRef(element ?? null) : undefined}
         icon={icon}
         label={title}
         trailing={
@@ -68,7 +71,7 @@ export const Header: React.FC<Props> = ({
 
   return (
     <>
-      <H3>
+      <H3 ref={dragRef}>
         <Button onClick={handleClick} disabled={!id}>
           {title}
           {id && <Disclosure $expanded={expanded} size={16} />}
@@ -97,8 +100,9 @@ const Fade = styled.span`
 `;
 
 const Button = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  width: 100%;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -115,12 +119,17 @@ const Button = styled.button`
   -webkit-appearance: none;
   transition: all 100ms ease;
   ${undraggableOnDesktop()}
-  ${extraArea(4)}
 
   &:not(:disabled):hover,
   &:not(:disabled):active {
-    color: ${s("textSecondary")};
+    background: ${s("sidebarHoverBackground")};
     cursor: var(--pointer);
+  }
+
+  @media (hover: hover) {
+    &:not(:disabled):hover {
+      color: ${s("text")};
+    }
   }
 `;
 

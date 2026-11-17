@@ -4,6 +4,7 @@ import { find, findIndex, isNil, keyBy, remove, uniq } from "es-toolkit/compat";
 import type {
   Identifier,
   Transaction,
+  DestroyOptions,
   FindOptions,
   NonNullFindOptions,
   InferAttributes,
@@ -62,6 +63,7 @@ import { CollectionValidation } from "@shared/validations";
 import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
+import { LockHelper } from "@server/storage/LockHelper";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
@@ -422,7 +424,13 @@ class Collection extends ParanoidModel<
   }
 
   @BeforeDestroy
-  static async checkLastCollection(model: Collection) {
+  static async checkLastCollection(model: Collection, options: DestroyOptions) {
+    await LockHelper.acquire(
+      model.sequelize,
+      `collections:${model.teamId}`,
+      options.transaction
+    );
+
     const total = await this.count({
       where: {
         teamId: model.teamId,
@@ -435,9 +443,12 @@ class Collection extends ParanoidModel<
 
   @BeforeDestroy
   static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+    // A bulk update rather than a destroy per document, so `deletedById` is
+    // written here instead of by the hook on ParanoidModel.
     await Document.update(
       {
         lastModifiedById: ctx.auth.user.id,
+        deletedById: ctx.auth.user.id,
         deletedAt: new Date(),
       },
       {
@@ -870,18 +881,27 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  deleteDocument = async (document: Document, options?: FindOptions) => {
-    await this.removeDocumentInStructure(document, options);
+  /**
+   * Removes a document from this collection's structure and soft deletes it
+   * along with all of its descendants.
+   *
+   * @param ctx the API context, which attributes the deletion to the acting user.
+   * @param document the document to delete.
+   */
+  deleteDocument = async (ctx: APIContext, document: Document) => {
+    const { transaction } = ctx.context;
+
+    await this.removeDocumentInStructure(document, { transaction });
 
     // IDs come back breadth-first so reversing them destroys the deepest
     // descendants first.
     const childDocumentIds = (
-      await document.findAllChildDocumentIds(undefined, options)
+      await document.findAllChildDocumentIds(undefined, { transaction })
     ).reverse();
 
     if (childDocumentIds.length) {
       const childDocuments = await Document.findAll({
-        ...options,
+        transaction,
         where: {
           id: childDocumentIds,
         },
@@ -890,11 +910,11 @@ class Collection extends ParanoidModel<
 
       // Destroyed one at a time to ensure model hooks run for each document.
       for (const childDocumentId of childDocumentIds) {
-        await childDocumentsById[childDocumentId]?.destroy(options);
+        await childDocumentsById[childDocumentId]?.destroy(ctx.context);
       }
     }
 
-    await document.destroy(options);
+    await document.destroy(ctx.context);
   };
 
   removeDocumentInStructure = async (

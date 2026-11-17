@@ -6,6 +6,7 @@ import {
   FontSize,
   CodeFontSize,
   MonospaceFontFamily,
+  TeamPreference,
   TOCPosition,
   UserRole,
 } from "@shared/types";
@@ -47,50 +48,52 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     guidanceMCP: z.string().max(TeamValidation.maxGuidanceMCPLength).nullish(),
     /** Team preferences */
     preferences: z
-      .object({
+      .strictObject({
         /** Whether documents have a separate edit mode instead of seamless editing. */
-        seamlessEdit: z.boolean().optional(),
+        [TeamPreference.SeamlessEdit]: z.boolean(),
         /** Whether to use team logo across the app for branding. */
-        publicBranding: z.boolean().optional(),
+        [TeamPreference.PublicBranding]: z.boolean(),
         /** Whether viewers should see download options. */
-        viewersCanExport: z.boolean().optional(),
+        [TeamPreference.ViewersCanExport]: z.boolean(),
         /** Whether members can invite new people to the team. */
-        membersCanInvite: z.boolean().optional(),
+        [TeamPreference.MembersCanInvite]: z.boolean(),
         /** Whether members can create API keys. */
-        membersCanCreateApiKey: z.boolean().optional(),
+        [TeamPreference.MembersCanCreateApiKey]: z.boolean(),
         /** Whether members can delete their user account. */
-        membersCanDeleteAccount: z.boolean().optional(),
+        [TeamPreference.MembersCanDeleteAccount]: z.boolean(),
         /** Whether notification emails include document and comment content. */
-        previewsInEmails: z.boolean().optional(),
+        [TeamPreference.PreviewsInEmails]: z.boolean(),
         /** Who can comment on documents. */
-        commenting: z.enum(CommentingAccess).optional(),
+        [TeamPreference.Commenting]: z.enum(CommentingAccess),
         /** The custom theme for the team. */
-        customTheme: z
-          .object({
-            accent: z.string().min(4).max(7).regex(/^#/).optional(),
-            accentText: z.string().min(4).max(7).regex(/^#/).optional(),
-            accentDark: z.string().min(4).max(7).regex(/^#/).optional(),
-            accentTextDark: z.string().min(4).max(7).regex(/^#/).optional(),
+        [TeamPreference.CustomTheme]: z
+          .strictObject({
+            accent: z.string().min(4).max(7).regex(/^#/),
+            accentText: z.string().min(4).max(7).regex(/^#/),
+            accentDark: z.string().min(4).max(7).regex(/^#/),
+            accentTextDark: z.string().min(4).max(7).regex(/^#/),
           })
-          .optional(),
-        bodyFontFamily: z.enum(BodyFontFamily).optional(),
-        monospaceFontFamily: z.enum(MonospaceFontFamily).optional(),
-        fontSize: z.enum(FontSize).optional(),
-        codeFontSize: z.enum(CodeFontSize).optional(),
+          .partial(),
+        [TeamPreference.BodyFontFamily]: z.enum(BodyFontFamily),
+        [TeamPreference.MonospaceFontFamily]: z.enum(MonospaceFontFamily),
+        [TeamPreference.FontSize]: z.enum(FontSize),
+        [TeamPreference.CodeFontSize]: z.enum(CodeFontSize),
         /** Side to display the document's table of contents in relation to the main content. */
-        tocPosition: z.enum(TOCPosition).optional(),
-        emailDisplay: z.enum(EmailDisplay).optional(),
+        [TeamPreference.TocPosition]: z.enum(TOCPosition),
+        /** Who can see user email addresses. */
+        [TeamPreference.EmailDisplay]: z.enum(EmailDisplay),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
-        preventDocumentEmbedding: z.boolean().optional(),
+        [TeamPreference.PreventDocumentEmbedding]: z.boolean(),
         /** Whether external MCP clients can connect to the workspace. */
-        mcp: z.boolean().optional(),
+        [TeamPreference.MCP]: z.boolean(),
         /** List of disabled embed provider titles. */
-        disabledEmbeds: z.array(z.string()).optional(),
+        [TeamPreference.DisabledEmbeds]: z.array(z.string()),
         /** The collection new members are pointed at from Home. */
-        onboardingCollectionId: z.uuid().nullish(),
+        [TeamPreference.OnboardingCollectionId]: z.uuid().nullable(),
         /** The palette used for code blocks and inline code. */
-        codeTheme: z.enum(Object.keys(codeThemes)).nullish(),
+        [TeamPreference.CodeTheme]: z.enum(Object.keys(codeThemes)).nullable(),
       })
+      .partial()
       .optional(),
   }),
 });

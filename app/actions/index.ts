@@ -15,7 +15,6 @@ import type {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
-import { pushOrOpenInSplit } from "~/utils/splitView";
 import type { ActionImpl, Action as KbarAction } from "kbar";
 
 /** A command bar action, with the additional properties that Outline renders. */
@@ -57,7 +56,9 @@ export function createAction(
                 ? "button"
                 : context.isCommandBar
                   ? "commandbar"
-                  : "contextmenu",
+                  : context.isMCP
+                    ? "webmcp"
+                    : "contextmenu",
             });
           }
           return definition.perform(context);
@@ -167,6 +168,7 @@ export function actionToMenuItem(
       const title = resolve<string>(action.name, context);
       const visible = resolve<boolean>(action.visible, context) ?? true;
       const disabled = resolve<boolean>(action.disabled, context);
+      const shortcut = resolve<string[] | undefined>(action.shortcut, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
           ? resolve<React.ReactNode>(action.icon, context)
@@ -183,7 +185,7 @@ export function actionToMenuItem(
             tooltip: resolve<React.ReactChild>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
-            shortcut: action.shortcut,
+            shortcut,
             onClick: () => performAction(action, context),
           };
 
@@ -195,7 +197,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
-            shortcut: action.shortcut,
+            shortcut,
             to,
           };
         }
@@ -207,7 +209,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
-            shortcut: action.shortcut,
+            shortcut,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,
@@ -262,6 +264,7 @@ export function actionToKBar(
   }
 
   const name = resolve<string>(action.name, context);
+  const shortcut = resolve<string[] | undefined>(action.shortcut, context);
   const icon = resolve<React.ReactElement>(action.icon, context);
   const badge = resolve<React.ReactNode>(action.badge, context);
   const section = resolve<string>(action.section, context);
@@ -271,12 +274,16 @@ export function actionToKBar(
   // priority orders the sections themselves – given a bare string it would
   // instead order them by the match score of whichever result happens to come
   // first, which lets a section with an exact keyword match jump to the top.
+  // The command bar falls back to that same match score when the priority is
+  // falsy, so the offset keeps an undeclared priority of zero out of the way
+  // while preserving the relative order of the declared values.
   const sectionWithPriority = {
     name: section,
     priority:
-      typeof action.section !== "string" && "priority" in action.section
+      sectionPriorityOffset +
+      (typeof action.section !== "string" && "priority" in action.section
         ? ((action.section.priority as number) ?? 0)
-        : 0,
+        : 0),
   };
 
   const priority = 1 + (action.priority ?? 0);
@@ -291,7 +298,7 @@ export function actionToKBar(
           name,
           section: sectionWithPriority,
           keywords: action.keywords,
-          shortcut: action.shortcut,
+          shortcut,
           subtitle,
           icon,
           badge,
@@ -317,7 +324,7 @@ export function actionToKBar(
           name,
           section: sectionWithPriority,
           keywords: action.keywords,
-          shortcut: action.shortcut,
+          shortcut,
           icon,
           badge,
           subtitle,
@@ -343,29 +350,30 @@ export async function performAction(
     action.variant === "action"
       ? () => action.perform(context)
       : action.variant === "internal_link"
-        ? () => {
-            const to = resolve<LocationDescriptor>(action.to, context);
-
-            // Holding the modifier while triggering a command bar action
-            // opens the route in the secondary pane of the split view.
-            if (context.isCommandBar) {
-              pushOrOpenInSplit(history, to);
-            } else {
-              history.push(to);
-            }
-          }
+        ? () => history.push(resolve<LocationDescriptor>(action.to, context))
         : () => window.open(action.url, action.target);
 
   const result = perform();
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {
+      // WebMCP callers surface errors to the agent instead of a toast.
+      if (context.isMCP) {
+        throw err;
+      }
       toast.error(err.message);
     });
   }
 
   return result;
 }
+
+/**
+ * Added to every section priority handed to the command bar, so that a section
+ * which declares no priority is still ordered by its priority rather than by
+ * match score. Must be larger than the largest declared priority in magnitude.
+ */
+const sectionPriorityOffset = 10;
 
 function hasVisibleItems(items: MenuItem[]) {
   const applicableTypes = ["button", "link", "route", "group", "submenu"];

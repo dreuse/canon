@@ -55,9 +55,7 @@ describe("getVersionInfo", () => {
 
   it("should report -1 when the current version is not a published release", async () => {
     server.use(
-      http.get(releasesUrl, () =>
-        HttpResponse.json([{ tag_name: "v1.9.2" }])
-      )
+      http.get(releasesUrl, () => HttpResponse.json([{ tag_name: "v1.9.2" }]))
     );
 
     const result = await getVersionInfo(currentVersion);

@@ -7,6 +7,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
+import type { TeamPreferences, UserRole } from "@shared/types";
 import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -107,7 +108,9 @@ function Security() {
   );
 
   const saveData = React.useCallback(
-    async (newData) => {
+    async (
+      newData: Partial<typeof data> & { preferences?: TeamPreferences }
+    ) => {
       try {
         setData((prev) => ({ ...prev, ...newData }));
         await team.save(newData);
@@ -121,7 +124,7 @@ function Security() {
 
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
-      await saveData({ defaultUserRole: newDefaultRole });
+      await saveData({ defaultUserRole: newDefaultRole as UserRole });
     },
     [saveData]
   );
@@ -191,7 +194,7 @@ function Security() {
     async (emailDisplay: string) => {
       const preferences = {
         ...team.preferences,
-        [TeamPreference.EmailDisplay]: emailDisplay,
+        [TeamPreference.EmailDisplay]: emailDisplay as EmailDisplay,
       };
       await saveData({ preferences });
     },
@@ -202,7 +205,7 @@ function Security() {
     async (commenting: string) => {
       const preferences = {
         ...team.preferences,
-        [TeamPreference.Commenting]: commenting,
+        [TeamPreference.Commenting]: commenting as CommentingAccess,
       };
       await saveData({ preferences });
     },

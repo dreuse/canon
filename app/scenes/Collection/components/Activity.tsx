@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { hairline, s } from "@shared/styles";
+import { hairlineColor, s } from "@shared/styles";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type Event from "~/models/Event";
@@ -128,7 +128,7 @@ const Row = styled.div`
   align-items: center;
   gap: 10px;
   padding: 10px 0;
-  border-top: 1px solid ${hairline};
+  border-top: 1px solid ${hairlineColor};
   font-size: 13px;
   color: ${s("textSecondary")};
 `;

@@ -53,7 +53,8 @@ router.post(
       });
       authorize(user, "listRevisions", document);
       revision = Revision.buildFromDocument(document);
-      revision.id = RevisionHelper.latestId(document.id);
+      // Sequelize ignores primary key assignment on built instances.
+      revision.setDataValue("id", RevisionHelper.latestId(document.id));
       revision.user = document.updatedBy;
     } else {
       throw ValidationError("Either id or documentId must be provided");
@@ -150,6 +151,7 @@ router.post(
       includeViews: false,
     });
     authorize(user, "listRevisions", document);
+    authorize(user, "download", document);
 
     let contentType: string;
     let content: string;
@@ -170,10 +172,12 @@ router.post(
       );
     } else if (isTextBundle || accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = await DocumentHelper.toMarkdown(revision);
+      content = await DocumentHelper.toMarkdown(revision, {
+        commonMark: true,
+      });
     } else {
       ctx.body = {
-        data: await DocumentHelper.toMarkdown(revision),
+        data: await DocumentHelper.toMarkdown(revision, { commonMark: true }),
       };
       return;
     }
@@ -287,6 +291,12 @@ router.post(
       includeViews: false,
     });
     authorize(user, "listRevisions", document);
+
+    // History remains visible for a document in the trash,
+    // but only to those that could restore it.
+    if (document.deletedAt) {
+      authorize(user, "restore", document);
+    }
 
     const revisions = await Revision.findAll({
       attributes: {

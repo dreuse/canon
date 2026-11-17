@@ -14,7 +14,7 @@ test("the signed in user reaches home with the sidebar rendered", async ({
 
   await expect(page.getByRole("link", { name: "Home" })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: seed.collectionName })
+    page.locator("#sidebar").getByRole("link", { name: seed.collectionName })
   ).toBeVisible();
 });
 

@@ -199,7 +199,7 @@ const Button = <T extends React.ElementType = "button">(
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
-        {hasIcon && ic}
+        {hasIcon && typeof ic !== "function" && ic}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
         {disclosure && <StyledDisclosureIcon />}
       </Inner>

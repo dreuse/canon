@@ -7,6 +7,7 @@ import {
 } from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { SidebarSection, UserPreference } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import InputSearchPage from "~/components/InputSearchPage";
 import Scrollable from "~/components/Scrollable";
@@ -18,6 +19,9 @@ import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import Collections from "./components/Collections";
+import DraggableSection, {
+  normalizeSidebarSectionOrder,
+} from "./components/DraggableSection";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
@@ -54,6 +58,16 @@ function AppSidebar() {
   useEffect(() => {
     setScrollArea(scrollRef.current);
   }, []);
+
+  const sectionOrder = normalizeSidebarSectionOrder(
+    user.getPreference(UserPreference.SidebarSectionOrder, [])
+  );
+
+  const sectionContent = {
+    [SidebarSection.Starred]: <Starred />,
+    [SidebarSection.SharedWithMe]: <SharedWithMe />,
+    [SidebarSection.Collections]: <Collections />,
+  };
 
   return (
     <Sidebar hidden={!ui.readyToShow} accountActions={<SidebarSystemActions />}>
@@ -99,15 +113,11 @@ function AppSidebar() {
         </Overflow>
         <Scrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
-            <Section>
-              <Starred />
-            </Section>
-            <Section>
-              <SharedWithMe />
-            </Section>
-            <Section>
-              <Collections />
-            </Section>
+            {sectionOrder.map((section) => (
+              <DraggableSection key={section} section={section}>
+                {sectionContent[section]}
+              </DraggableSection>
+            ))}
             <Section auto>
               <DismissableSidebarAction
                 id="sidebar-import-hidden"

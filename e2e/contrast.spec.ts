@@ -55,23 +55,17 @@ test("mermaid diagram labels meet the contrast bar in dark mode", async ({
   await expect(wrapper).toBeVisible();
   await expect(wrapper.locator("svg")).toBeVisible();
 
-  const labels = wrapper.locator(".nodeLabel");
+  const labels = wrapper.locator("g.node text");
   await expect(labels.first()).toBeVisible();
 
   const samples = await labels.evaluateAll((nodes) =>
     nodes.map((node) => {
-      const style = window.getComputedStyle(node);
-      let element: HTMLElement | null = node as HTMLElement;
-      let background = "rgba(0, 0, 0, 0)";
-      while (element) {
-        const candidate = window.getComputedStyle(element).backgroundColor;
-        if (candidate && !candidate.startsWith("rgba(0, 0, 0, 0")) {
-          background = candidate;
-          break;
-        }
-        element = element.parentElement;
-      }
-      return { text: node.textContent, color: style.color, background };
+      const shape = node.closest("g.node")?.querySelector(".label-container");
+      return {
+        text: node.textContent,
+        color: window.getComputedStyle(node).fill,
+        background: shape ? window.getComputedStyle(shape).fill : "",
+      };
     })
   );
 

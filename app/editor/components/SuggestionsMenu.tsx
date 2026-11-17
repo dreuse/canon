@@ -378,36 +378,45 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   );
 
   const handleClickItem = React.useCallback(
-    (item) => {
+    (item: MenuItem | EmbedDescriptor) => {
       if (item.disabled) {
         return;
       }
 
       props.onSelect?.(item);
 
+      const attrs = typeof item.attrs === "function" ? undefined : item.attrs;
+
       switch (item.name) {
-        case "link":
+        case "link": {
           insertNode({
-            ...item,
+            ...(item as MenuItem),
             name: "mention",
           });
+          const mention = attrs as
+            | { label?: string; modelId?: string; nested?: boolean }
+            | undefined;
           void editorProps.onCreateLink?.(
             {
-              title: item.attrs.label,
-              id: item.attrs.modelId,
+              title: mention?.label,
+              id: mention?.modelId,
             },
-            !!item.attrs.nested
+            !!mention?.nested
           );
           return;
+        }
         case "image":
           return triggerFilePick(
             AttachmentValidation.imageContentTypes.join(", "),
-            item.attrs
+            attrs
           );
         case "video":
-          return triggerFilePick("video/*", item.attrs);
+          return triggerFilePick("video/*", attrs);
         case "attachment":
-          return triggerFilePick(item.attrs?.accept ?? "*", item.attrs);
+          return triggerFilePick(
+            (attrs?.accept as string | undefined) ?? "*",
+            attrs
+          );
         case "embed":
           return triggerLinkInput(item);
         default:
@@ -419,7 +428,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const close = React.useCallback(() => {
     props.onClose();
-    view.focus();
+
+    // Don't steal focus back from a nested editor, such as the one inside a
+    // math node, that took it while the menu was closing.
+    const focused = view.dom.ownerDocument.activeElement;
+    if (focused === view.dom || !view.dom.contains(focused)) {
+      view.focus();
+    }
   }, [props, view]);
 
   const handleLinkInputKeydown = (

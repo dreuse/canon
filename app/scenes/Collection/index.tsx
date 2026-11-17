@@ -10,7 +10,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { toError } from "@shared/utils/error";
-import { hairline, s } from "@shared/styles";
+import { hairlineColor, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";
@@ -193,7 +193,11 @@ const CollectionScene = observer(function CollectionScene_() {
             />
           </HeaderRow>
 
-          <PinnedDocuments pins={pins} placeholderCount={count} />
+          <PinnedDocuments
+            pins={pins}
+            placeholderCount={count}
+            collapseKey={collection.id}
+          />
 
           <Content>
             <Overview
@@ -236,7 +240,7 @@ const HeaderRow = styled.div`
   gap: 8px;
   padding-bottom: 8px;
   margin: 28px 0 16px;
-  border-bottom: 1px solid ${hairline};
+  border-bottom: 1px solid ${hairlineColor};
 
   ${breakpoint("tablet")`
     flex-direction: row;

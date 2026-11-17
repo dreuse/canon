@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { hairline, s } from "@shared/styles";
+import { hairlineColor, s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -200,7 +200,7 @@ const Block = styled.div`
   padding: 12px 0;
 
   & + & {
-    border-top: 1px solid ${hairline};
+    border-top: 1px solid ${hairlineColor};
   }
 
   &:first-child {

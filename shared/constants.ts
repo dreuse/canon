@@ -1,6 +1,12 @@
-import type { TeamPreferences, UserPreferences } from "./types";
+import type {
+  DocumentPreferences,
+  TeamPreferences,
+  UserPreferences,
+} from "./types";
 import {
   TOCPosition,
+  DocumentPreference,
+  HeadingPrefixStyle,
   TeamPreference,
   UserPreference,
   EmailDisplay,
@@ -139,6 +145,10 @@ export const FontSizeValues: Record<FontSize, number> = {
   [FontSize.Default]: 16,
   [FontSize.Large]: 17,
   [FontSize.ExtraLarge]: 18,
+};
+
+export const DocumentPreferenceDefaults: DocumentPreferences = {
+  [DocumentPreference.HeadingPrefix]: HeadingPrefixStyle.None,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

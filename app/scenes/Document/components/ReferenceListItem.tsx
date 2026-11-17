@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -19,7 +20,7 @@ import type { SidebarContextType } from "~/components/Sidebar/components/Sidebar
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { sharedModelPath } from "~/utils/routeHelpers";
+import { newNestedDocumentPath, sharedModelPath } from "~/utils/routeHelpers";
 import useBoolean from "~/hooks/useBoolean";
 import useClickIntent from "~/hooks/useClickIntent";
 import useStores from "~/hooks/useStores";
@@ -34,6 +35,44 @@ type Props = {
   showCollection?: boolean;
   sidebarContext?: SidebarContextType;
 };
+
+type NewChildProps = {
+  parentDocumentId: string;
+  sidebarContext?: SidebarContextType;
+};
+
+/**
+ * A list item that starts the creation of a new document nested under the given
+ * parent document.
+ *
+ * @param parentDocumentId - the identifier of the parent document.
+ * @param sidebarContext - the sidebar context to keep after navigation.
+ * @returns a list item linking to the new document screen.
+ */
+export function NewChildReferenceListItem({
+  parentDocumentId,
+  sidebarContext,
+}: NewChildProps) {
+  const { t } = useTranslation();
+  const [pathname, search] = newNestedDocumentPath(parentDocumentId).split("?");
+
+  return (
+    <li>
+      <DocumentLink
+        to={{
+          pathname,
+          search,
+          state: { sidebarContext },
+        }}
+      >
+        <Content gap={4} dir="auto">
+          <PlusIcon />
+          <SecondaryTitle>{t("New doc")}</SecondaryTitle>
+        </Content>
+      </DocumentLink>
+    </li>
+  );
+}
 
 const Actions = styled(EventBoundary)`
   display: none;
@@ -118,6 +157,10 @@ const Excerpt = styled.p`
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+`;
+
+const SecondaryTitle = styled(Title)`
+  color: ${s("textSecondary")};
 `;
 
 function ReferenceListItem({

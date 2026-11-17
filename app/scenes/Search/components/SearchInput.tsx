@@ -7,7 +7,7 @@ import Flex from "~/components/Flex";
 import { VoSearchIcon } from "~/components/Icons/VobysIcons";
 import NudeButton from "~/components/NudeButton";
 
-interface Props extends React.HTMLAttributes<HTMLInputElement> {
+interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   defaultValue: string;
   onClear?: () => void;

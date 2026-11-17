@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { cardBorder, hairline, s } from "@shared/styles";
+import { cardBorder, hairlineColor, s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
@@ -228,14 +228,14 @@ const Children = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 12px;
-  border-top: 1px solid ${hairline};
+  border-top: 1px solid ${hairlineColor};
 `;
 
 const Child = styled.div`
   padding: 10px 0;
 
   & + & {
-    border-top: 1px solid ${hairline};
+    border-top: 1px solid ${hairlineColor};
   }
 `;
 
@@ -252,7 +252,7 @@ const ChildLink = styled(Link)`
 
 const MoreLink = styled(Link)`
   padding: 10px 0 0;
-  border-top: 1px solid ${hairline};
+  border-top: 1px solid ${hairlineColor};
   font-size: 12px;
   color: ${s("textTertiary")};
   text-decoration: none;
@@ -276,7 +276,7 @@ const ChildExcerpt = styled.p`
 const Meta = styled.p`
   margin: 12px 0 0;
   padding-top: 12px;
-  border-top: 1px solid ${hairline};
+  border-top: 1px solid ${hairlineColor};
   font-size: 12px;
   color: ${s("textTertiary")};
 `;

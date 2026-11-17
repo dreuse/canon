@@ -76,7 +76,7 @@ function Notices({ document }: Props) {
           description={permanentlyDeletedDescription()}
         >
           {t("Deleted by {{userName}}", {
-            userName: document.updatedBy?.name ?? t("Unknown"),
+            userName: document.deletedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.deletedAt} addSuffix />

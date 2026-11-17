@@ -54,16 +54,6 @@ const aliasesAsArray = Object.entries(aliases).map(([find, replacement]) => ({
 
 const fileMockAlias = { find: /\.(gif|ttf|eot|svg)$/, replacement: fileMock };
 
-/**
- * React 17 ships jsx-runtime without an exports map, so ESM dependencies that
- * import the bare specifier (Radix, for one) fail to resolve. Match exactly so
- * the already-suffixed path is left alone.
- */
-const jsxRuntimeAlias = {
-  find: /^react\/jsx-runtime$/,
-  replacement: "react/jsx-runtime.js",
-};
-
 export default defineConfig({
   ...sharedConfig,
   test: {
@@ -90,7 +80,7 @@ export default defineConfig({
       },
       {
         ...sharedConfig,
-        resolve: { alias: [fileMockAlias, jsxRuntimeAlias, ...aliasesAsArray] },
+        resolve: { alias: [fileMockAlias, ...aliasesAsArray] },
         test: {
           name: "app",
           globals: true,
@@ -100,7 +90,6 @@ export default defineConfig({
           },
           include: ["app/**/*.test.{ts,tsx}"],
           setupFiles: ["./__mocks__/window.js", "./app/test/setup.ts"],
-          server: { deps: { inline: [/@radix-ui/] } },
         },
       },
       {
@@ -115,7 +104,7 @@ export default defineConfig({
       },
       {
         ...sharedConfig,
-        resolve: { alias: [fileMockAlias, jsxRuntimeAlias, ...aliasesAsArray] },
+        resolve: { alias: [fileMockAlias, ...aliasesAsArray] },
         test: {
           name: "shared-jsdom",
           globals: true,
@@ -124,7 +113,7 @@ export default defineConfig({
             jsdom: { url: "http://localhost" },
           },
           include: ["shared/**/*.test.{ts,tsx}"],
-          setupFiles: ["./__mocks__/window.js"],
+          setupFiles: ["./__mocks__/window.js", "./shared/test/setupJsdom.ts"],
         },
       },
     ],

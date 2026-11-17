@@ -19,6 +19,17 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 
 /**
+ * Returns the inline-start offset in pixels of a sidebar row's content at the
+ * given nesting depth.
+ *
+ * @param depth The nesting depth of the row, 0-based.
+ * @returns the offset in pixels.
+ */
+export function indentForDepth(depth: number): number {
+  return depth * DEPTH_STEP + 12;
+}
+
+/**
  * Props for the SidebarLink component.
  * Extends NavLink props with additional sidebar-specific functionality.
  */

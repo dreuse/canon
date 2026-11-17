@@ -56,6 +56,7 @@ export const navigateToRecentSearchQueryActionFactory = (
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
     icon: <SearchIcon />,
+    visible: ({ isMCP }) => !isMCP,
     to: searchPath({ query: searchQuery.query }),
   });
 

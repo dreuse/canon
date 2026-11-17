@@ -545,6 +545,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
+  color: ${props.theme.text};
   border-radius: 8px;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -560,9 +561,50 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
+  /* Keep icons at their intended size when the mention wraps. */
+  &::before,
+  svg,
+  img {
+    flex-shrink: 0;
+  }
+
+  /* External resource titles stay on one line, while internal mentions can
+     wrap to fit constrained containers such as table cells. */
+  &[data-type="issue"],
+  &[data-type="pull_request"],
+  &[data-type="project"],
+  &[data-type="url"] {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+      white-space: nowrap;
+    }
+
+    /* Only the label truncates; trailing identifiers stay whole. */
+    span ~ span {
+      flex-shrink: 0;
+    }
+  }
+
   &:${hover} {
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
+  }
+
+  /* Date mentions only open the picker when editable, so no hover affordance
+     in read-only mode. */
+  ${
+    props.readOnly
+      ? `&[data-type="date"]:${hover} {
+    background: ${props.theme.mentionBackground};
+  }`
+      : ""
   }
 
   &[data-type="user"],
@@ -590,6 +632,13 @@ width: 100%;
   &.mention-document::before {
     content: "+";
   }
+}
+
+.${EditorStyleHelper.suggestionTrigger} {
+  background: ${props.theme.mentionBackground};
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px ${props.theme.mentionBackground};
+  box-decoration-break: clone;
 }
 
 > div {
@@ -646,7 +695,7 @@ width: 100%;
       margin-top: 0.25em;
     }
 
-    &:not(.placeholder) {
+    &:not(.placeholder):not([data-heading-prefix]) {
       &::before {
         display: none;
         font-family: ${props.theme.fontFamilyMono};
@@ -701,6 +750,13 @@ width: 100%;
   & > h2 {
     border-top: 1px solid ${props.theme.divider};
     padding-top: 1.25em;
+  }
+
+  [data-heading-prefix]::before {
+    content: attr(data-heading-prefix);
+    color: ${props.theme.text};
+    opacity: 0.75;
+    margin-inline-end: 0.25em;
   }
 
   .${EditorStyleHelper.multiplayerSelection} {
@@ -1090,6 +1146,10 @@ img.ProseMirror-separator {
   vertical-align: 0.18em;
 }
 
+[data-heading-prefix] .${EditorStyleHelper.headingChip} {
+  display: none;
+}
+
 .${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
@@ -1127,22 +1187,22 @@ a:first-child {
   }
 }
 
-h1:not(.placeholder)::before {
+h1:not(.placeholder):not([data-heading-prefix])::before {
   content: "H1";
 }
-h2:not(.placeholder)::before {
+h2:not(.placeholder):not([data-heading-prefix])::before {
   content: "H2";
 }
-h3:not(.placeholder)::before {
+h3:not(.placeholder):not([data-heading-prefix])::before {
   content: "H3";
 }
-h4:not(.placeholder)::before {
+h4:not(.placeholder):not([data-heading-prefix])::before {
   content: "H4";
 }
-h5:not(.placeholder)::before {
+h5:not(.placeholder):not([data-heading-prefix])::before {
   content: "H5";
 }
-h6:not(.placeholder)::before {
+h6:not(.placeholder):not([data-heading-prefix])::before {
   content: "H6";
 }
 
@@ -1154,10 +1214,10 @@ h6:not(.placeholder)::before {
   h4,
   h5,
   h6 {
-    &:not(.placeholder)::before {
+    &:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 1;
     }
-    &:hover:not(.placeholder)::before {
+    &:hover:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
     }
   }
@@ -1254,7 +1314,7 @@ h6:not(.placeholder)::before {
     .heading-anchor {
       display: inline-flex;
     }
-    &:not(.placeholder)::before {
+    &:not(.placeholder):not([data-heading-prefix])::before {
       display: ${props.readOnly ? "none" : "inline-block"};
     }
   }
@@ -2650,6 +2710,41 @@ table {
   }
 }
 
+.${EditorStyleHelper.tableStickyColumn} {
+  // The padding of the scroll container also holds the column back, so the
+  // column stops at the same place it sits when the table is not scrolled.
+  > .${EditorStyleHelper.tableScrollable} > table > tbody > tr > th[data-first-column] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  // The first cell is part of both the sticky row and column, so it goes above both.
+  &.${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th[data-first-column] {
+    z-index: 3;
+  }
+
+  // Move the scroll shadow from the edge of the table to the edge of the column.
+  &.${EditorStyleHelper.tableShadowLeft} {
+    &::before {
+      box-shadow: none;
+    }
+
+    > .${EditorStyleHelper.tableScrollable} > table > tbody > tr > th[data-first-column]::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      bottom: -1px;
+      right: -${EditorStyleHelper.padding}px;
+      width: ${EditorStyleHelper.padding}px;
+      pointer-events: none;
+      box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+        props.theme.isDark ? 1 : 0.25
+      });
+    }
+  }
+}
+
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
   margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
@@ -2789,16 +2884,18 @@ del {
 }
 
 @media print {
+  // The heading level labels are an editing affordance, but the same pseudo
+  // element carries the heading prefix, which is content and must be printed.
   .placeholder::before,
   .block-menu-trigger,
   .heading-anchor,
   button.show-source-button,
-  h1:not(.placeholder)::before,
-  h2:not(.placeholder)::before,
-  h3:not(.placeholder)::before,
-  h4:not(.placeholder)::before,
-  h5:not(.placeholder)::before,
-  h6:not(.placeholder)::before {
+  h1:not(.placeholder):not([data-heading-prefix])::before,
+  h2:not(.placeholder):not([data-heading-prefix])::before,
+  h3:not(.placeholder):not([data-heading-prefix])::before,
+  h4:not(.placeholder):not([data-heading-prefix])::before,
+  h5:not(.placeholder):not([data-heading-prefix])::before,
+  h6:not(.placeholder):not([data-heading-prefix])::before {
     display: none;
   }
 
@@ -2850,15 +2947,20 @@ li > .${EditorStyleHelper.toggleBlock} {
     &:dir(ltr) {
       --rotate-by: -90deg;
     }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
-      display: none;
-    }
-    > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
-      display: unset;
+    /* Folded content is always included when printing */
+    @media not print {
+      > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
+        display: none;
+      }
+      > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
+        display: unset;
+      }
+      > .${EditorStyleHelper.toggleBlockButton} svg {
+        transform: rotate(var(--rotate-by));
+      }
     }
     > .${EditorStyleHelper.toggleBlockButton} {
       svg {
-        transform: rotate(var(--rotate-by));
         pointer-events: none;
       }
       opacity: 1;

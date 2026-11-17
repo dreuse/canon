@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { SurfaceProvider } from "@shared/components/SurfaceContext";
-import { depths, s } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -261,7 +261,7 @@ const Wrapper = styled.div<{
   align-items: flex-start;
   background: ${s("modalBackground")};
   box-shadow: ${s("modalShadow")};
-  border-radius: 8px;
+  ${borderRadius(10)}
   outline: none;
 
   ${NudeButton} {
