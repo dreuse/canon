@@ -1,6 +1,6 @@
 import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
-import { PadlockIcon, PlusIcon } from "outline-icons";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -97,7 +97,8 @@ export type CollectionRowProps = {
 const DOT_SIZE = 10;
 const DOT_RADIUS = 3;
 const DOT_MARGIN = 3;
-const LOCK_SIZE = 20;
+const LOCK_SIZE = 12;
+const LOCK_STROKE = 1.75;
 const LOCK_START_MARGIN = 8;
 
 const Dot = styled.span<{ $color?: string }>`
@@ -115,10 +116,6 @@ const Lock = styled.span`
   flex: none;
   margin-inline-start: ${LOCK_START_MARGIN}px;
   color: ${(props) => props.theme.textTertiary};
-
-  svg {
-    fill: currentColor;
-  }
 `;
 
 /**
@@ -145,7 +142,20 @@ export function PrivateLock() {
 
   return (
     <Lock role="img" aria-label={t("Private collection")}>
-      <PadlockIcon size={LOCK_SIZE} />
+      <svg
+        width={LOCK_SIZE}
+        height={LOCK_SIZE}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={LOCK_STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      </svg>
     </Lock>
   );
 }

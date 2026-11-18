@@ -72,6 +72,19 @@ describe("CollectionLink", () => {
     expect(screen.getByRole("img", { name: LOCK_LABEL })).not.toBeNull();
   });
 
+  it("R10 draws the lock as a 12px outline glyph in the faint tone", () => {
+    renderLink(null);
+
+    const lock = screen.getByRole("img", { name: LOCK_LABEL });
+    const glyph = lock.querySelector("svg");
+
+    expect(glyph?.getAttribute("width")).toBe("12");
+    expect(glyph?.getAttribute("height")).toBe("12");
+    expect(glyph?.getAttribute("stroke-width")).toBe("1.75");
+    expect(glyph?.getAttribute("fill")).toBe("none");
+    expect(getComputedStyle(lock).color).toBe("rgb(95, 102, 115)");
+  });
+
   it("R10 draws the dot in the collection colour", () => {
     renderLink(CollectionPermission.ReadWrite);
 
