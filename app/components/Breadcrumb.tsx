@@ -12,6 +12,14 @@ import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import { useComputed } from "~/hooks/useComputed";
 
+const MIDDLE_ITEM_SHRINK = 100;
+const MIDDLE_ITEM_MIN_WIDTH = 48;
+const LAST_ITEM_SHRINK = 10;
+const LAST_ITEM_MIN_WIDTH = 96;
+const FIRST_ITEM_MIN_WIDTH = 40;
+const FOCUS_RING_ROOM = 4;
+const PRIORITISED_ITEMS_MIN_LEVELS = 3;
+
 type TopLevelAction =
   | InternalLinkAction
   | { type: "menu"; actions: InternalLinkAction[] };
@@ -69,18 +77,27 @@ function Breadcrumb({
   );
 
   const toBreadcrumb = React.useCallback(
-    (action: TopLevelAction, index: number) => {
+    (action: TopLevelAction, index: number, total: number) => {
       if (action.type === "menu") {
         return <BreadcrumbMenu key="menu" actions={action.actions} />;
       }
 
       const item = actionToMenuItem(action, actionContext) as MenuInternalLink;
       const highlight = !!highlightFirstItem && index === 0;
+      const middle = index > 0 && index < total - 1;
+      const long = total >= PRIORITISED_ITEMS_MIN_LEVELS;
+      const pinned = index === 0 && long;
+      const last = index === total - 1 && long;
 
       // Items without a destination are shown as plain text.
       if (!item.to) {
         return (
-          <StaticItem $highlight={highlight}>
+          <StaticItem
+            $highlight={highlight}
+            $middle={middle}
+            $pinned={pinned}
+            $last={last}
+          >
             {item.icon}
             <Title>{item.title}</Title>
           </StaticItem>
@@ -88,7 +105,14 @@ function Breadcrumb({
       }
 
       return (
-        <Item to={item.to} onClick={handleClick} $highlight={highlight}>
+        <Item
+          to={item.to}
+          onClick={handleClick}
+          $highlight={highlight}
+          $middle={middle}
+          $pinned={pinned}
+          $last={last}
+        >
           {item.icon}
           <Title>{item.title}</Title>
         </Item>
@@ -98,26 +122,38 @@ function Breadcrumb({
   );
 
   return (
-    <Flex justify="flex-start" align="center" ref={ref}>
+    <Crumbs justify="flex-start" align="center" ref={ref}>
       {topLevelActions.map((action, index) => (
         <React.Fragment key={action.type === "menu" ? "menu" : `item-${index}`}>
-          {toBreadcrumb(action, index)}
+          {toBreadcrumb(action, index, topLevelActions.length)}
           {index !== topLevelActions.length - 1 || !!children ? (
             <Slash />
           ) : null}
         </React.Fragment>
       ))}
       {children}
-    </Flex>
+    </Crumbs>
   );
 }
+
+const Crumbs = styled(Flex)`
+  min-width: 0;
+  overflow: clip;
+  padding: ${FOCUS_RING_ROOM}px;
+  margin: -${FOCUS_RING_ROOM}px;
+`;
 
 const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   fill: ${s("divider")};
 `;
 
-const itemStyles = css<{ $highlight: boolean }>`
+const itemStyles = css<{
+  $highlight: boolean;
+  $middle?: boolean;
+  $pinned?: boolean;
+  $last?: boolean;
+}>`
   ${undraggableOnDesktop()}
 
   display: flex;
@@ -137,9 +173,38 @@ const itemStyles = css<{ $highlight: boolean }>`
     margin-inline-start: 0;
   }
   max-width: 460px;
+
+  & > :not(:last-child) {
+    flex-shrink: 0;
+  }
+
+  ${(props) =>
+    props.$pinned &&
+    css`
+      min-width: ${FIRST_ITEM_MIN_WIDTH}px;
+    `}
+
+  ${(props) =>
+    props.$last &&
+    css`
+      flex-shrink: ${LAST_ITEM_SHRINK};
+      min-width: ${LAST_ITEM_MIN_WIDTH}px;
+    `}
+
+  ${(props) =>
+    props.$middle &&
+    css`
+      flex-shrink: ${MIDDLE_ITEM_SHRINK};
+      min-width: ${MIDDLE_ITEM_MIN_WIDTH}px;
+    `}
 `;
 
-const Item = styled(Link)<{ $highlight: boolean }>`
+const Item = styled(Link)<{
+  $highlight: boolean;
+  $middle?: boolean;
+  $pinned?: boolean;
+  $last?: boolean;
+}>`
   ${itemStyles}
   cursor: var(--pointer);
   transition: background 100ms ease-in-out;
@@ -151,7 +216,12 @@ const Item = styled(Link)<{ $highlight: boolean }>`
   }
 `;
 
-const StaticItem = styled.span<{ $highlight: boolean }>`
+const StaticItem = styled.span<{
+  $highlight: boolean;
+  $middle?: boolean;
+  $pinned?: boolean;
+  $last?: boolean;
+}>`
   ${itemStyles}
   cursor: default;
 `;

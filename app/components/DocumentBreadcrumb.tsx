@@ -88,6 +88,7 @@ type Props = {
    * default so list contexts do not repeat the title they already render.
    */
   showCurrent?: boolean;
+  max?: number;
   ref?: React.Ref<HTMLDivElement>;
 };
 
@@ -97,6 +98,7 @@ function DocumentBreadcrumb({
   onlyText,
   maxDepth,
   showCurrent,
+  max,
   ref,
 }: Props) {
   const { collections } = useStores();
@@ -282,7 +284,7 @@ function DocumentBreadcrumb({
   }
 
   return (
-    <Breadcrumb actions={actions} ref={ref} highlightFirstItem>
+    <Breadcrumb actions={actions} max={max} ref={ref} highlightFirstItem>
       {children}
     </Breadcrumb>
   );
@@ -361,6 +363,10 @@ const Name = styled.span`
   gap: 4px;
   min-width: 0;
   max-width: 100%;
+
+  & > :not(:last-child) {
+    flex-shrink: 0;
+  }
 `;
 
 const NameText = styled.span`

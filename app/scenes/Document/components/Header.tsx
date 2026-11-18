@@ -1,11 +1,15 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon } from "outline-icons";
+import {
+  TableOfContentsIcon,
+  EditIcon,
+  CommentIcon,
+  CheckmarkIcon,
+} from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import useMeasure from "react-use-measure";
 import styled, { useTheme } from "styled-components";
-import Icon from "@shared/components/Icon";
 import { HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
@@ -19,6 +23,7 @@ import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Header from "~/components/Header";
+import { useSplitView } from "~/components/SplitView/context";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -36,13 +41,15 @@ import TemplatesMenu from "~/menus/TemplatesMenu";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type Template from "~/models/Template";
-import { documentEditPath } from "~/utils/routeHelpers";
+import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 import { ChangesNavigation } from "./ChangesNavigation";
 import ObservingBanner from "./ObservingBanner";
 import { SearchHighlightChip } from "./SearchHighlightChip";
-import FontSizeControl from "./FontSizeControl";
+import { useFontSizeShortcuts } from "./FontSizeControl";
 import ShareButton from "./ShareButton";
 import { VerifiedBadge } from "./VerifiedBadge";
+
+const SHOW_ALL_BREADCRUMB_LEVELS = Infinity;
 
 type Props = {
   document: Document;
@@ -89,7 +96,8 @@ function DocumentHeader({
     );
   }, [isEditingFocus]);
 
-  const { hasHeadings, editor } = useDocumentContext();
+  const { hasHeadings, editor, multiplayerStatus, hasUnsyncedChanges } =
+    useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
   const isMobile = isMobileMedia || (size.width > 0 && size.width < 700);
@@ -113,6 +121,13 @@ function DocumentHeader({
   const { isDeleted } = document;
   const canToggleEmbeds = team?.documentEmbeds;
   const showContents = ui.tocVisible === true;
+  const showSaved =
+    multiplayerStatus === "connected" &&
+    can.update &&
+    !isRevision &&
+    !hasUnsyncedChanges;
+  const showConversations =
+    !!team?.commentingEnabled && can.comment && !isDeleted && !isRevision;
 
   const toc = (
     <Tooltip
@@ -160,6 +175,8 @@ function DocumentHeader({
     </Action>
   );
 
+  useFontSizeShortcuts();
+
   useKeyDown(
     (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
     handleToggle,
@@ -173,41 +190,25 @@ function DocumentHeader({
       ref={measureRef}
       $hidden={isEditingFocus}
       hasSidebar
+      fullLeft
       left={
         isMobile ? (
           <MobileBreadcrumb>
             <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
           </MobileBreadcrumb>
         ) : (
-          <Flex align="center" gap={8}>
-            <DocumentBreadcrumb document={document} showCurrent>
-              {!belowDesktop && (
-                <>
-                  {toc} <FontSizeControl />{" "}
-                  <StarAction>
-                    <Star document={document} color={theme.textSecondary} />
-                  </StarAction>
-                </>
-              )}
-            </DocumentBreadcrumb>
+          <LeftSlot align="center" gap={8}>
+            <DocumentBreadcrumb
+              document={document}
+              showCurrent
+              max={SHOW_ALL_BREADCRUMB_LEVELS}
+            />
+            {!belowDesktop && toc}
             <VerifiedBadge document={document} />
-          </Flex>
+          </LeftSlot>
         )
       }
-      title={
-        <Flex gap={4} align="center">
-          {document.icon && (
-            <Icon
-              value={document.icon}
-              initial={document.initial}
-              color={document.color ?? undefined}
-            />
-          )}
-          {document.title}
-          {document.isArchived && <Badge>{t("Archived")}</Badge>}
-          {document.isDraft && <Badge>{t("Draft")}</Badge>}
-        </Flex>
-      }
+      title={null}
       actions={({ isCompact }) => (
         <>
           <ObservingBanner />
@@ -217,11 +218,33 @@ function DocumentHeader({
               <TableOfContentsMenu />
             </Action>
           )}
+          {document.isArchived && (
+            <Action>
+              <Badge>{t("Archived")}</Badge>
+            </Action>
+          )}
+          {document.isDraft && (
+            <Action>
+              <Badge>{t("Draft")}</Badge>
+            </Action>
+          )}
+          {showSaved && !isCompact && (
+            <SavedStatus>
+              <CheckmarkIcon size={16} />
+              {t("Saved")}
+            </SavedStatus>
+          )}
           {!isDeleted && !isRevision && can.listViews && (
             <Collaborators
               document={document}
               limit={isCompact ? 3 : undefined}
             />
+          )}
+          {showConversations && <ConversationsButton document={document} />}
+          {!isMobile && !belowDesktop && (
+            <StarAction>
+              <Star document={document} color={theme.textSecondary} />
+            </StarAction>
           )}
           {(isEditing || !user?.separateEditMode) && wasNew && can.update && (
             <Action>
@@ -232,7 +255,7 @@ function DocumentHeader({
               />
             </Action>
           )}
-          {!isEditing && !isRevision && can.update && (
+          {!isEditing && !isRevision && !isDraft && can.update && (
             <Action>
               <ShareButton document={document} />
             </Action>
@@ -247,7 +270,7 @@ function DocumentHeader({
                 <Button
                   onClick={handleSave}
                   disabled={savingIsDisabled}
-                  neutral={isDraft}
+                  neutral
                   hideIcon
                 >
                   {isDraft ? t("Save draft") : t("Done editing")}
@@ -308,6 +331,48 @@ function DocumentHeader({
   );
 }
 
+const ConversationsButton = observer(function ConversationsButton_({
+  document,
+}: {
+  document: Document;
+}) {
+  const { t } = useTranslation();
+  const { comments, ui } = useStores();
+  const history = useHistory();
+  const { pane } = useSplitView();
+  const sidebarContext = useLocationSidebarContext();
+  const count = comments.unresolvedThreadsInDocumentCount(document.id);
+  const isOpen = ui.getRightSidebar(pane) === "comments";
+  const label = count
+    ? t("Conversations, {{ count }} open", { count })
+    : t("Conversations");
+
+  const handleClick = useCallback(() => {
+    const path = documentPath(document);
+    if (!history.location.pathname.startsWith(path)) {
+      history.push({ pathname: path, state: { sidebarContext } });
+    }
+    ui.setRightSidebar(isOpen ? null : "comments", pane);
+  }, [history, document, sidebarContext, ui, pane, isOpen]);
+
+  return (
+    <Action>
+      <Tooltip content={t("Conversations")} side="bottom">
+        <Button
+          aria-label={label}
+          aria-expanded={isOpen}
+          onClick={handleClick}
+          icon={<CommentIcon />}
+          borderOnHover
+          neutral
+        >
+          {count || null}
+        </Button>
+      </Tooltip>
+    </Action>
+  );
+});
+
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
@@ -322,6 +387,19 @@ const TocButton = styled(Button)`
     box-shadow: none;
     transition: none;
   }
+`;
+
+const LeftSlot = styled(Flex)`
+  min-width: 0;
+`;
+
+const SavedStatus = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: ${s("textTertiary")};
+  font-size: 13px;
+  white-space: nowrap;
 `;
 
 const MobileBreadcrumb = styled.span`

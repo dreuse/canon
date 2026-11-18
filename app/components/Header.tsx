@@ -46,6 +46,8 @@ type Props = {
     | ((props: { isCompact: boolean }) => React.ReactNode)
     | React.ReactNode;
   hasSidebar?: boolean;
+  /** Whether the left slot keeps its full width instead of sharing the bar with the actions. */
+  fullLeft?: boolean;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -94,6 +96,7 @@ function Header({
   topBar,
   actions,
   hasSidebar,
+  fullLeft,
   className,
   ref,
 }: Props) {
@@ -146,7 +149,8 @@ function Header({
     [breadcrumbsMeasureRef]
   );
 
-  const breadcrumbMakesCompact = breadcrumbsSize.width > size.width / 3;
+  const breadcrumbMakesCompact =
+    !fullLeft && breadcrumbsSize.width > size.width / 3;
   const isCompact = size.width < 1000 || breadcrumbMakesCompact;
 
   return (
@@ -212,7 +216,7 @@ function Header({
         ) : (
           <div />
         )}
-        <Actions align="center" justify="flex-end">
+        <Actions align="center" justify="flex-end" $fixed={fullLeft}>
           {titleInBreadcrumbs && user && <NavigationShortcuts />}
           {typeof actions === "function" ? actions({ isCompact }) : actions}
           {isSplitView && (
@@ -278,9 +282,9 @@ const Breadcrumbs = styled("div")`
   `};
 `;
 
-const Actions = styled(Flex)`
-  flex-grow: 1;
-  flex-basis: 0;
+const Actions = styled(Flex)<{ $fixed?: boolean }>`
+  flex-grow: ${(props) => (props.$fixed ? 0 : 1)};
+  flex-basis: ${(props) => (props.$fixed ? "auto" : 0)};
   min-width: auto;
   padding-inline: 8px 0;
   gap: 8px;

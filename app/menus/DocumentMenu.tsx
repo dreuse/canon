@@ -25,6 +25,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { MenuSeparator } from "~/components/primitives/components/Menu";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import FontSizeControl from "~/scenes/Document/components/FontSizeControl";
 
 type Props = {
   /** Document for which the menu is to be shown */
@@ -134,16 +135,22 @@ function DocumentMenu({
   });
 
   const toggleSwitches = React.useMemo<React.ReactNode>(() => {
-    if (!can.update || !(showDisplayOptions || showToggleEmbeds)) {
+    const canToggle = can.update && (showDisplayOptions || showToggleEmbeds);
+    if (!canToggle && !showDisplayOptions) {
       return;
     }
 
     return (
       <>
         <MenuSeparator />
-        {showDisplayOptions && <HeadingPrefixMenuItem />}
+        {canToggle && showDisplayOptions && <HeadingPrefixMenuItem />}
         <DisplayOptions>
-          {can.updateInsights && (
+          {showDisplayOptions && (
+            <Style>
+              <FontSizeControl />
+            </Style>
+          )}
+          {canToggle && can.updateInsights && (
             <Style>
               <ToggleMenuItem
                 width={26}
@@ -155,7 +162,7 @@ function DocumentMenu({
               />
             </Style>
           )}
-          {showToggleEmbeds && (
+          {canToggle && showToggleEmbeds && (
             <Style>
               <ToggleMenuItem
                 width={26}
@@ -167,7 +174,7 @@ function DocumentMenu({
               />
             </Style>
           )}
-          {showDisplayOptions && !isMobile && (
+          {canToggle && showDisplayOptions && !isMobile && (
             <Style>
               <ToggleMenuItem
                 width={26}
