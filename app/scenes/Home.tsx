@@ -1,8 +1,7 @@
-import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
 import { DocumentIcon, HomeIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { transparentize } from "polished";
 import styled, { css, useTheme, type DefaultTheme } from "styled-components";
@@ -13,7 +12,7 @@ import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { actionToMenuItem } from "~/actions";
 import { createCollection } from "~/actions/definitions/collections";
-import { Avatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
@@ -28,6 +27,8 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
+import type Document from "~/models/Document";
+import type Event from "~/models/Event";
 import {
   documentPath,
   newDocumentPath,
@@ -69,32 +70,133 @@ const MENTION_EVENTS = [
   NotificationEventType.CreateComment,
 ];
 
-function activityVerb(
-  name: string,
-  userName: string | undefined,
-  t: TFunction
-) {
-  const opts = { userName };
+function ActivityVerb({
+  name,
+  userName,
+}: {
+  name: string;
+  userName: string | undefined;
+}) {
+  const values = { userName };
+  const components = { actor: <ActorName /> };
 
   switch (name) {
     case "documents.publish":
-      return t("{{userName}} published", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> published"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.unpublish":
-      return t("{{userName}} unpublished", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> unpublished"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.archive":
-      return t("{{userName}} archived", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> archived"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.unarchive":
-      return t("{{userName}} restored", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> restored"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.restore":
-      return t("{{userName}} moved from trash", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> restored from trash"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.move":
-      return t("{{userName}} moved", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> moved"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.delete":
-      return t("{{userName}} deleted", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> deleted"
+          values={values}
+          components={components}
+        />
+      );
     default:
-      return t("{{ userName }} updated", opts);
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> edited"
+          values={values}
+          components={components}
+        />
+      );
   }
 }
+
+/**
+ * A single row of the workspace activity feed.
+ *
+ * @param props.event the event to render.
+ * @returns the row element.
+ */
+export const ActivityEventRow = observer(function ActivityEventRow({
+  event,
+}: {
+  event: Event<Document>;
+}) {
+  const { t } = useTranslation();
+  const { documents, collections } = useStores();
+  const document = event.documentId
+    ? documents.get(event.documentId)
+    : undefined;
+  const collectionId = event.collectionId ?? document?.collectionId;
+  const collection = collectionId ? collections.get(collectionId) : undefined;
+  const title =
+    document?.displayTitle ?? event.documentTitle ?? t("a document");
+  const path = document?.isDeleted
+    ? event.documentUrl
+    : (document?.path ?? event.documentUrl);
+
+  return (
+    <ActivityRow>
+      {event.actor && <Avatar model={event.actor} size={AvatarSize.Medium} />}
+      <RowBody>
+        <ActivityTitle>
+          <ActivityVerb name={event.name} userName={event.actor?.name} />{" "}
+          {path ? (
+            <ActivityDocument to={path}>{title}</ActivityDocument>
+          ) : (
+            <ActivityName>{title}</ActivityName>
+          )}
+        </ActivityTitle>
+      </RowBody>
+      {collection && (
+        <ActivityCollection>
+          <CollectionDot $color={collection.color} />
+          {collection.displayName}
+        </ActivityCollection>
+      )}
+      <RowTime>
+        <Time dateTime={event.createdAt} addSuffix shorten />
+      </RowTime>
+    </ActivityRow>
+  );
+});
 
 function previousWorkingDay() {
   const date = new Date();
@@ -423,26 +525,7 @@ function Home() {
                     <ModuleLabel>{t("Changed in workspace")}</ModuleLabel>
                     <div>
                       {activity.map((event) => (
-                        <ActivityRow key={event.id}>
-                          {event.actor && (
-                            <Avatar model={event.actor} size={24} />
-                          )}
-                          <RowBody>
-                            <RowTitle>
-                              {activityVerb(event.name, event.actor?.name, t)}{" "}
-                              <ActivityDocument to={`/doc/${event.documentId}`}>
-                                {event.document?.title ?? t("a document")}
-                              </ActivityDocument>
-                            </RowTitle>
-                          </RowBody>
-                          <RowTime>
-                            <Time
-                              dateTime={event.createdAt}
-                              addSuffix
-                              shorten
-                            />
-                          </RowTime>
-                        </ActivityRow>
+                        <ActivityEventRow key={event.id} event={event} />
                       ))}
                     </div>
                   </Module>
@@ -857,9 +940,44 @@ const ActivityRow = styled.div`
   padding: 11px 0;
 `;
 
-const ActivityDocument = styled(Link)`
-  font-weight: 600;
+const ActivityTitle = styled(RowTitle)`
+  color: ${s("textSecondary")};
+`;
+
+const ActorName = styled.b`
+  font-weight: 500;
   color: ${s("text")};
+`;
+
+const ActivityDocument = styled(Link)`
+  font-weight: 500;
+  color: ${s("text")};
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const ActivityName = styled.span`
+  font-weight: 500;
+  color: ${s("text")};
+`;
+
+const ActivityCollection = styled.span`
+  flex: 0 0 auto;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: ${s("textTertiary")};
+`;
+
+const CollectionDot = styled.span<{ $color?: string | null }>`
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: ${(props) => props.$color ?? props.theme.textTertiary};
 `;
 
 const CollectionGrid = styled.div`
