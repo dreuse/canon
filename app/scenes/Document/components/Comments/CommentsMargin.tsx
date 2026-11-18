@@ -1,3 +1,4 @@
+import { type MotionProps, m, useIsPresent } from "framer-motion";
 import { observer } from "mobx-react";
 import {
   type KeyboardEvent,
@@ -19,6 +20,7 @@ import { useFocusedComment } from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCommentsLayout from "~/scenes/Document/hooks/useCommentsLayout";
+import useMarginTransition from "~/scenes/Document/hooks/useMarginTransition";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSplitView } from "~/components/SplitView/context";
@@ -39,6 +41,7 @@ const EDITOR_MUTATION_OPTIONS: MutationObserverInit = {
   attributeFilter: ["id", "class"],
 };
 
+const CARD_FADE_DELAY_SECONDS = 0.2;
 const FORM_ID = "new-comment-form";
 const LINK_ID = "resolved-link";
 
@@ -92,6 +95,16 @@ function measureCentredOffset(
   );
 }
 
+function isSameLayout(a: CommentsLayout, b: CommentsLayout) {
+  return (
+    a.mode === b.mode &&
+    a.marginWidth === b.marginWidth &&
+    a.marginOffset === b.marginOffset &&
+    a.marginEndGap === b.marginEndGap &&
+    a.cardEndGap === b.cardEndGap
+  );
+}
+
 interface Props {
   /** The document whose open threads are placed in the margin. */
   document: Document;
@@ -107,11 +120,28 @@ export const CommentsMargin = observer(function CommentsMargin({
   const { t } = useTranslation();
   const { ui, comments } = useStores();
   const { pane } = useSplitView();
-  const layout = useCommentsLayout();
+  const liveLayout = useCommentsLayout();
+  const [layout, setLayout] = useState(liveLayout);
+  if (liveLayout.mode !== "none" && !isSameLayout(liveLayout, layout)) {
+    setLayout(liveLayout);
+  }
+  const { transition, reducedMotion } = useMarginTransition();
+  const marginTotalWidth =
+    layout.marginOffset + layout.marginWidth + layout.marginEndGap;
+  const cardMotion: MotionProps = {
+    initial: reducedMotion ? false : { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: reducedMotion
+      ? transition
+      : { ...transition, delay: CARD_FADE_DELAY_SECONDS },
+  };
   const { editor, isEditorInitialized, setFocusedCommentId } =
     useDocumentContext();
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
+  const isPresent = useIsPresent();
+  const isPresentRef = useRef(isPresent);
+  const slotRef = useRef<HTMLDivElement>(null);
   const columnRef = useRef<HTMLElement>(null);
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
   const formRef = useRef<HTMLDivElement>(null);
@@ -207,9 +237,13 @@ export const CommentsMargin = observer(function CommentsMargin({
 
   useKeyDown("Escape", () => ui.setRightSidebar(null, pane));
 
+  useLayoutEffect(() => {
+    isPresentRef.current = isPresent;
+  }, [isPresent]);
+
   const measure = useCallback(() => {
     const column = columnRef.current;
-    if (!column || !isEditorInitialized) {
+    if (!column || !isEditorInitialized || !isPresentRef.current) {
       return;
     }
 
@@ -219,7 +253,9 @@ export const CommentsMargin = observer(function CommentsMargin({
         ? measureCentredOffset(column, text, appliedOffset.current)
         : 0;
     appliedOffset.current = offset;
-    column.style.transform = offset ? `translateX(${offset}px)` : "";
+    if (slotRef.current) {
+      slotRef.current.style.transform = offset ? `translateX(${offset}px)` : "";
+    }
 
     const columnTop = column.getBoundingClientRect().top;
     const cards: MeasuredCard[] = [...cardRefs.current].map(([id, card]) => {
@@ -307,71 +343,77 @@ export const CommentsMargin = observer(function CommentsMargin({
   ]);
 
   return (
-    <Column
-      ref={columnRef}
-      aria-label={t("Comments")}
-      data-testid="comments-margin"
-      $layout={layout}
+    <Slot
+      data-margin-slot
+      ref={slotRef}
+      initial={reducedMotion ? false : { width: 0, opacity: 0 }}
+      animate={{ width: marginTotalWidth, opacity: 1 }}
+      exit={{ width: 0, opacity: 0 }}
+      transition={transition}
+      onAnimationComplete={measure}
     >
-      <HideGutterIndicators />
-      {threads.map((thread) => (
-        <Card
-          key={thread.id}
-          ref={(element) => {
-            if (element) {
-              cardRefs.current.set(thread.id, element);
-            } else {
-              cardRefs.current.delete(thread.id);
-            }
-          }}
-          data-margin-card={thread.id}
-          role="article"
-          aria-label={thread.createdBy?.name}
-          tabIndex={0}
-          aria-current={focusedComment?.id === thread.id ? "true" : undefined}
-          onKeyDown={(event) => handleCardKeyDown(event, thread.id)}
-        >
-          <CommentThread
-            comment={thread}
-            document={document}
-            recessed={isFocusedInList && focusedComment?.id !== thread.id}
-            focused={focusedComment?.id === thread.id}
-            margin
-            onResolveFocused={handleResolveFocused}
-          />
-        </Card>
-      ))}
-      {can.comment && isEditorInitialized && !showResolved && (
-        <FormCard
-          ref={formRef}
-          data-margin-form
-        >
-          <CommentForm
-            draft={draft}
-            onSaveDraft={onSaveDraft}
-            documentId={document.id}
-            placeholder={`${t("Add a comment")}…`}
-            autoFocus={false}
-            standalone
-          />
-        </FormCard>
-      )}
-      {(showResolved || resolvedCount > 0) && (
-        <LinkRow
-          ref={linkRef}
-        >
-          {showResolved ? (
-            <ResolvedLink onClick={handleShowOpen}>
-              {t("Back to open threads")}
-            </ResolvedLink>
-          ) : (
-            <ResolvedLink onClick={handleShowResolved}>
-              {t("{{ count }} resolved thread", { count: resolvedCount })}
-            </ResolvedLink>
-          )}
-        </LinkRow>
-      )}
-    </Column>
+      <Column
+        ref={columnRef}
+        aria-label={t("Comments")}
+        data-testid="comments-margin"
+        $layout={layout}
+      >
+        <HideGutterIndicators />
+        {threads.map((thread) => (
+          <Card
+            key={thread.id}
+            ref={(element) => {
+              if (element) {
+                cardRefs.current.set(thread.id, element);
+              } else {
+                cardRefs.current.delete(thread.id);
+              }
+            }}
+            data-margin-card={thread.id}
+            role="article"
+            aria-label={thread.createdBy?.name}
+            tabIndex={0}
+            aria-current={focusedComment?.id === thread.id ? "true" : undefined}
+            onKeyDown={(event) => handleCardKeyDown(event, thread.id)}
+            {...cardMotion}
+          >
+            <CommentThread
+              comment={thread}
+              document={document}
+              recessed={isFocusedInList && focusedComment?.id !== thread.id}
+              focused={focusedComment?.id === thread.id}
+              margin
+              onResolveFocused={handleResolveFocused}
+            />
+          </Card>
+        ))}
+        {can.comment && isEditorInitialized && !showResolved && (
+          <FormCard ref={formRef} data-margin-form {...cardMotion}>
+            <CommentForm
+              draft={draft}
+              onSaveDraft={onSaveDraft}
+              documentId={document.id}
+              placeholder={`${t("Add a comment")}…`}
+              autoFocus={false}
+              standalone
+            />
+          </FormCard>
+        )}
+        {(showResolved || resolvedCount > 0) && (
+          <LinkRow ref={linkRef} {...cardMotion}>
+            {showResolved ? (
+              <ResolvedLink onClick={handleShowOpen}>
+                {t("Back to open threads")}
+              </ResolvedLink>
+            ) : (
+              <ResolvedLink onClick={handleShowResolved}>
+                {t("{{ count }} resolved thread", { count: resolvedCount })}
+              </ResolvedLink>
+            )}
+          </LinkRow>
+        )}
+      </Column>
+    </Slot>
   );
 });
 
@@ -379,6 +421,12 @@ const HideGutterIndicators = createGlobalStyle`
   .${EditorStyleHelper.commentGutter} {
     display: none !important;
   }
+`;
+
+const Slot = styled(m.div)`
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: clip;
 `;
 
 const Column = styled.aside<{ $layout: CommentsLayout }>`
@@ -390,7 +438,7 @@ const Column = styled.aside<{ $layout: CommentsLayout }>`
   --margin-card-end-gap: ${(props) => props.$layout.cardEndGap}px;
 `;
 
-const Card = styled.div`
+const Card = styled(m.div)`
   position: absolute;
   top: 0;
   visibility: hidden;
@@ -403,7 +451,7 @@ const Card = styled.div`
   }
 `;
 
-const LinkRow = styled.div`
+const LinkRow = styled(m.div)`
   position: absolute;
   top: 0;
   visibility: hidden;

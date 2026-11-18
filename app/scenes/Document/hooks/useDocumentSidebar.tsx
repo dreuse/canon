@@ -1,3 +1,4 @@
+import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import {
@@ -54,12 +55,19 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const hasMargin = useMediaQuery(`(min-width: ${breakpoints.desktop}px)`);
   const panel = ui.getRightSidebar(pane);
 
+  const isHistoryRoute = !!useRouteMatch({ path: matchDocumentHistory });
+
   const slugMatch = useRouteMatch<{ documentSlug: string }>({
     path: `/doc/${matchDocumentSlug}`,
   });
   const document = slugMatch
     ? documents.get(slugMatch.params.documentSlug)
     : undefined;
+  const [lastDocument, setLastDocument] = React.useState(document);
+  if (document && document !== lastDocument) {
+    setLastDocument(document);
+  }
+  const marginDocument = document ?? lastDocument;
 
   // The store clears the panel before the sidebar has animated closed, so the
   // last panel stays visible until the content unmounts.
@@ -68,10 +76,6 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
     setLastPanel(panel);
   }
   const visiblePanel = panel ?? lastPanel;
-
-  if (hasMargin && !isSplitView && visiblePanel === "comments") {
-    return document ? <CommentsMargin document={document} /> : null;
-  }
 
   const fallback = (
     <SidebarLayout title={<PlaceholderText width={100} />}>
@@ -101,14 +105,32 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
     return inner;
   }
 
-  return (
+  const aside = (
     // Skip the width animation in a split view, where the sidebar content
     // would visibly overflow the pane while animating into place.
-    <Aside skipInitialAnimation={skipInitialAnimation || isSplitView}>
+    <Aside
+      key="aside"
+      skipInitialAnimation={skipInitialAnimation || isSplitView}
+    >
       <RightSidebarWrappedContext.Provider value={true}>
         {inner}
       </RightSidebarWrappedContext.Provider>
     </Aside>
+  );
+
+  if (isSplitView) {
+    return aside;
+  }
+
+  const isOpen = panel !== null && (panel !== "history" || isHistoryRoute);
+
+  return (
+    <AnimatePresence initial={false} propagate>
+      {isOpen && panel === "comments" && marginDocument && (
+        <CommentsMargin key="margin" document={marginDocument} />
+      )}
+      {isOpen && panel === "history" && aside}
+    </AnimatePresence>
   );
 });
 
@@ -124,7 +146,9 @@ export default function useDocumentSidebar() {
   const { ui, documents } = useStores();
   const location = useLocation();
   const paneHistory = useHistory();
-  const { pane } = useSplitView();
+  const { pane, isSplitView } = useSplitView();
+  const isDesktop = useMediaQuery(`(min-width: ${breakpoints.desktop}px)`);
+  const hasPersistentSidebar = isDesktop && !isSplitView;
   const setSidebar = useSetRightSidebar();
   const isHistoryRoute = !!matchPath(location.pathname, {
     path: matchDocumentHistory,
@@ -176,15 +200,21 @@ export default function useDocumentSidebar() {
   ]);
 
   React.useEffect(() => {
-    if (isOpen) {
+    if (hasPersistentSidebar) {
+      setSidebar(<DocumentSidebarContent />);
+    }
+  }, [hasPersistentSidebar, setSidebar]);
+
+  React.useEffect(() => {
+    if (!hasPersistentSidebar) {
       setSidebar(
-        <DocumentSidebarContent skipInitialAnimation={wasOpenRef.current} />
+        isOpen ? (
+          <DocumentSidebarContent skipInitialAnimation={wasOpenRef.current} />
+        ) : null
       );
-    } else {
-      setSidebar(null);
     }
     wasOpenRef.current = isOpen;
-  }, [isOpen, setSidebar]);
+  }, [isOpen, hasPersistentSidebar, setSidebar]);
 
   React.useEffect(
     () => () => {

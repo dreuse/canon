@@ -10,7 +10,7 @@ import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useStores from "~/hooks/useStores";
 import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { useResizeHandle } from "~/hooks/useResizeHandle";
-import { sidebarAppearDuration } from "~/styles/animations";
+import { sidebarSpring } from "~/styles/animations";
 import { useDirection } from "@radix-ui/react-direction";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
@@ -88,13 +88,7 @@ function Aside({
 
   // Resizing tracks the pointer exactly, otherwise width changes spring – which also animates the
   // snap back to the maximum or minimum when released from a stretched position.
-  const transition: Transition = isResizing
-    ? { duration: 0 }
-    : {
-        type: "spring",
-        bounce: 0.2,
-        duration: sidebarAppearDuration / 1000,
-      };
+  const transition: Transition = isResizing ? { duration: 0 } : sidebarSpring;
 
   const flowWidth =
     width !== undefined

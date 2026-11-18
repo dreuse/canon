@@ -1,4 +1,4 @@
-import { act, render } from "@testing-library/react";
+import { act, render, renderHook } from "@testing-library/react";
 import { runInAction } from "mobx";
 import { Provider } from "mobx-react";
 import { MemoryRouter } from "react-router-dom";
@@ -14,7 +14,9 @@ import { SplitViewContext } from "~/components/SplitView/context";
 import type { Editor } from "~/editor";
 import { MARGIN_CARD_GAP } from "~/editor/components/marginLayout";
 import { ActionContextProvider } from "~/hooks/useActionContext";
+import useMarginTransition from "~/scenes/Document/hooks/useMarginTransition";
 import stores from "~/stores";
+import { sidebarAppearDuration, sidebarSpring } from "~/styles/animations";
 import { client } from "~/utils/ApiClient";
 import { CommentsMargin } from "./CommentsMargin";
 
@@ -27,6 +29,10 @@ const CARD_HEIGHT = 100;
 const GROWN_HEIGHT = 160;
 const SHIFT = 40;
 const FORM_SELECTOR = "[data-margin-form]";
+const SLOT_SELECTOR = "[data-margin-slot]";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const CENTRED_MARGIN_TOTAL_WIDTH = 340;
+const SPRING_BOUNCE = 0.2;
 
 type ObserverCallback = () => void;
 
@@ -355,5 +361,100 @@ describe("CommentsMargin placement", () => {
     });
 
     expect(() => fireResizeObservers()).not.toThrow();
+  });
+});
+
+describe("CommentsMargin motion", () => {
+  const originalMatchMedia = window.matchMedia;
+
+  function stubMedia(reducedMotion: boolean) {
+    window.matchMedia = (query: string) =>
+      ({
+        media: query,
+        matches: query === REDUCED_MOTION_QUERY ? reducedMotion : true,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }) as unknown as MediaQueryList;
+  }
+
+  beforeEach(() => {
+    resizeCallbacks.length = 0;
+    cardHeights.clear();
+    anchorTops.clear();
+    frameCallbacks = [];
+    THREAD_IDS.forEach((id, index) => {
+      cardHeights.set(id, CARD_HEIGHT);
+      addAnchor(id, index * 300);
+    });
+    stubOffsetHeight();
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    });
+    seedStores();
+    act(() => stores.ui.setRightSidebar("comments", "primary"));
+  });
+
+  afterEach(() => {
+    act(() => stores.ui.setRightSidebar(null, "primary"));
+    window.matchMedia = originalMatchMedia;
+    anchorElements.splice(0).forEach((anchor) => anchor.remove());
+    editorDom?.remove();
+    if (originalOffsetHeight) {
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "offsetHeight",
+        originalOffsetHeight
+      );
+    }
+    vi.restoreAllMocks();
+  });
+
+  function getSlot() {
+    const slot = document.querySelector<HTMLElement>(SLOT_SELECTOR);
+    if (!slot) {
+      throw new Error("no margin slot");
+    }
+    return slot;
+  }
+
+  it("R36 uses the sidebar spring for the margin and the text column", () => {
+    stubMedia(false);
+
+    const { result } = renderHook(() => useMarginTransition());
+
+    expect(result.current.transition).toEqual({
+      type: "spring",
+      bounce: SPRING_BOUNCE,
+      duration: sidebarAppearDuration / 1000,
+    });
+    expect(result.current.transition).toBe(sidebarSpring);
+  });
+
+  it("R36 makes the transition instant with prefers-reduced-motion", () => {
+    stubMedia(true);
+
+    const { result } = renderHook(() => useMarginTransition());
+
+    expect(result.current.transition).toEqual({ duration: 0 });
+    expect(result.current.reducedMotion).toBe(true);
+  });
+
+  it("R36 starts the margin closed and the cards transparent", async () => {
+    stubMedia(false);
+    await renderMargin();
+
+    expect(getSlot().style.width).toBe("0px");
+    expect(getSlot().style.opacity).toBe("0");
+    expect(getCard(THREAD_IDS[0]).style.opacity).toBe("0");
+  });
+
+  it("R36 renders the margin and the cards at their final size with prefers-reduced-motion", async () => {
+    stubMedia(true);
+    await renderMargin();
+
+    expect(getSlot().style.width).toBe(`${CENTRED_MARGIN_TOTAL_WIDTH}px`);
+    expect(getSlot().style.opacity).toBe("1");
+    expect(getCard(THREAD_IDS[0]).style.opacity).toBe("1");
   });
 });

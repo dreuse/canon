@@ -1,8 +1,9 @@
 import * as React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { LazyMotion, domMax } from "framer-motion";
 import { runInAction } from "mobx";
-import { Provider } from "mobx-react";
-import { MemoryRouter, Route } from "react-router-dom";
+import { Provider, observer } from "mobx-react";
+import { MemoryRouter, Route, useHistory } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { vi } from "vitest";
 import { UserRole } from "@shared/types";
@@ -19,6 +20,8 @@ import {
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import stores from "~/stores";
 import { client } from "~/utils/ApiClient";
+import type { CommentsLayoutMode } from "~/scenes/Document/components/commentsLayout";
+import useCommentsLayout from "./useCommentsLayout";
 import useDocumentSidebar from "./useDocumentSidebar";
 
 const USER_ID = "user-1";
@@ -28,6 +31,18 @@ const DOCUMENT_SLUG = "integration-guide-abc123def45";
 const DESKTOP_VIEWPORT_QUERY = /min-width:\s*1025px/;
 const WIDE_VIEWPORT_QUERY = /min-width:\s*1440px/;
 const THREAD_IDS = ["thread-1", "thread-2"];
+const UNCACHED_DOCUMENT_PATH = "/doc/uncached-document-xyz987abc65";
+const MARGIN_SELECTOR = '[data-testid="comments-margin"]';
+const EXIT_TIMEOUT_MS = 3000;
+const STAYS_MOUNTED_MS = 1500;
+
+interface Commit {
+  mode: CommentsLayoutMode;
+  hasMargin: boolean;
+}
+
+const commits: Commit[] = [];
+let navigate: (path: string) => void = () => {};
 
 class ResizeObserverStub {
   observe() {}
@@ -82,34 +97,54 @@ function seedStores() {
   );
 }
 
-function Harness() {
+const CommitProbe = observer(function CommitProbe() {
+  const { mode } = useCommentsLayout();
+  React.useLayoutEffect(() => {
+    commits.push({
+      mode,
+      hasMargin: !!document.querySelector(MARGIN_SELECTOR),
+    });
+  });
+  return null;
+});
+
+const Harness = observer(function Harness() {
+  const history = useHistory();
+  navigate = (path) => history.push(path);
   const { setEditorInitialized } = useDocumentContext();
   React.useEffect(() => setEditorInitialized(true), [setEditorInitialized]);
   useDocumentSidebar();
-  return <>{useRightSidebarContent()}</>;
-}
+  return (
+    <>
+      {useRightSidebarContent()}
+      <CommitProbe />
+    </>
+  );
+});
 
 function renderSidebar(isSplitView = false) {
   return render(
-    <ThemeProvider theme={light}>
-      <Provider rootStore={stores}>
-        <MemoryRouter initialEntries={[`/doc/${DOCUMENT_SLUG}`]}>
-          <RightSidebarProvider>
-            <ActionContextProvider>
-              <DocumentContextProvider>
-                <SplitViewContext.Provider
-                  value={{ pane: "primary", isSplitView, isFocused: true }}
-                >
-                  <Route path="/doc/:documentSlug">
-                    <Harness />
-                  </Route>
-                </SplitViewContext.Provider>
-              </DocumentContextProvider>
-            </ActionContextProvider>
-          </RightSidebarProvider>
-        </MemoryRouter>
-      </Provider>
-    </ThemeProvider>
+    <LazyMotion features={domMax}>
+      <ThemeProvider theme={light}>
+        <Provider rootStore={stores}>
+          <MemoryRouter initialEntries={[`/doc/${DOCUMENT_SLUG}`]}>
+            <RightSidebarProvider>
+              <ActionContextProvider>
+                <DocumentContextProvider>
+                  <SplitViewContext.Provider
+                    value={{ pane: "primary", isSplitView, isFocused: true }}
+                  >
+                    <Route path="/doc/:documentSlug">
+                      <Harness />
+                    </Route>
+                  </SplitViewContext.Provider>
+                </DocumentContextProvider>
+              </ActionContextProvider>
+            </RightSidebarProvider>
+          </MemoryRouter>
+        </Provider>
+      </ThemeProvider>
+    </LazyMotion>
   );
 }
 
@@ -121,6 +156,7 @@ describe("useDocumentSidebar", () => {
   beforeEach(() => {
     seedStores();
     setPanel(null);
+    commits.length = 0;
   });
 
   it("R04 renders a margin column with one card per open thread at 1440px", () => {
@@ -190,4 +226,55 @@ describe("useDocumentSidebar", () => {
       expect(screen.queryByText(/comments?$/)).toBeNull();
     }
   );
+
+  it.each([1440, 1280])(
+    "R36 renders the margin in the same commit as the layout flip at %ipx",
+    async (width) => {
+      stubViewport(width);
+      renderSidebar();
+      await act(async () => {});
+      commits.length = 0;
+
+      setPanel("comments");
+
+      expect(commits.length).toBeGreaterThan(0);
+      expect(
+        commits.filter(({ mode, hasMargin }) => mode !== "none" && !hasMargin)
+      ).toEqual([]);
+      expect(screen.getByTestId("comments-margin")).toBeTruthy();
+    }
+  );
+
+  it("R36 keeps the margin mounted until its exit animation completes", async () => {
+    stubViewport(1440);
+    setPanel("comments");
+    renderSidebar();
+    await act(async () => {});
+
+    setPanel(null);
+
+    expect(screen.queryByTestId("comments-margin")).not.toBeNull();
+    await waitFor(
+      () => expect(screen.queryByTestId("comments-margin")).toBeNull(),
+      { timeout: EXIT_TIMEOUT_MS }
+    );
+  });
+
+  it("R36 keeps the margin mounted when moving to a document not yet in the store", async () => {
+    stubViewport(1440);
+    setPanel("comments");
+    renderSidebar();
+    await act(async () => {});
+    const margin = screen.getByTestId("comments-margin");
+
+    act(() => navigate(UNCACHED_DOCUMENT_PATH));
+
+    await expect(
+      waitFor(
+        () => expect(screen.queryByTestId("comments-margin")).toBeNull(),
+        { timeout: STAYS_MOUNTED_MS }
+      )
+    ).rejects.toThrow();
+    expect(screen.getByTestId("comments-margin")).toBe(margin);
+  });
 });

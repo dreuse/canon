@@ -1,4 +1,5 @@
 import type { Location } from "history";
+import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
@@ -41,6 +42,7 @@ import {
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import useCommentsLayout from "../hooks/useCommentsLayout";
+import useMarginTransition from "../hooks/useMarginTransition";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
 import { SHIFTED_TEXT_MAX_WIDTH } from "./commentsLayout";
@@ -336,6 +338,7 @@ function DocumentScene({
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
   const commentsLayout = useCommentsLayout();
+  const { transition: marginTransition } = useMarginTransition();
   const isTextShifted = commentsLayout.mode === "shifted";
   const showContents =
     commentsLayout.mode === "none" &&
@@ -461,20 +464,23 @@ function DocumentScene({
             <React.Suspense
               fallback={
                 <EditorContainer
-                  docFullWidth={document.fullWidth}
-                  showContents={showContents}
-                  tocPosition={tocPos}
-                  isTextShifted={isTextShifted}
+                  $docFullWidth={document.fullWidth}
+                  $showContents={showContents}
+                  $tocPosition={tocPos}
+                  $isTextShifted={isTextShifted}
                 >
                   <PlaceholderDocument />
                 </EditorContainer>
               }
             >
               <EditorContainer
-                docFullWidth={document.fullWidth}
-                showContents={showContents}
-                tocPosition={tocPos}
-                isTextShifted={isTextShifted}
+                layout="position"
+                layoutDependency={commentsLayout.mode}
+                transition={{ layout: marginTransition }}
+                $docFullWidth={document.fullWidth}
+                $showContents={showContents}
+                $tocPosition={tocPos}
+                $isTextShifted={isTextShifted}
               >
                 {revision ? (
                   <RevisionViewer
@@ -646,13 +652,13 @@ const PrintContentsContainer = styled.div`
 `;
 
 type EditorContainerProps = {
-  docFullWidth: boolean;
-  showContents: boolean;
-  tocPosition: TOCPosition | false;
-  isTextShifted: boolean;
+  $docFullWidth: boolean;
+  $showContents: boolean;
+  $tocPosition: TOCPosition | false;
+  $isTextShifted: boolean;
 };
 
-const EditorContainer = styled.div<EditorContainerProps>`
+const EditorContainer = styled(m.div)<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
   padding: 0 32px;
 
@@ -667,28 +673,28 @@ const EditorContainer = styled.div<EditorContainerProps>`
 
     // Decides the editor column position & span
     grid-column: ${({
-      docFullWidth,
-      showContents,
-      tocPosition,
+      $docFullWidth,
+      $showContents,
+      $tocPosition,
     }: EditorContainerProps) =>
-      docFullWidth
-        ? showContents
-          ? tocPosition === TOCPosition.Left
+      $docFullWidth
+        ? $showContents
+          ? $tocPosition === TOCPosition.Left
             ? 2
             : 1
           : "1 / -1"
         : 2};
   `};
 
-  ${({ isTextShifted }: EditorContainerProps) =>
-    isTextShifted &&
+  ${({ $isTextShifted }: EditorContainerProps) =>
+    $isTextShifted &&
     breakpoint("tablet")`
       padding: 0 0 0 ${CONTENT_EDGE}px;
       grid-column: 1;
     `}
 
-  ${({ docFullWidth }: EditorContainerProps) =>
-    docFullWidth &&
+  ${({ $docFullWidth }: EditorContainerProps) =>
+    $docFullWidth &&
     css`
       .ProseMirror > p,
       .ProseMirror > ul,

@@ -1,3 +1,4 @@
+import type { Transition } from "framer-motion";
 import { keyframes } from "styled-components";
 
 export const fadeIn = keyframes`
@@ -148,6 +149,15 @@ export const pulse = keyframes`
  * The duration of the sidebar appearing animation in ms
  */
 export const sidebarAppearDuration = 600;
+
+/**
+ * The spring that moves the right sidebar and the comments margin.
+ */
+export const sidebarSpring: Transition = {
+  type: "spring",
+  bounce: 0.2,
+  duration: sidebarAppearDuration / 1000,
+};
 
 /**
  * The duration and easing of the vaul drawer, shared so that panels move the same way.
