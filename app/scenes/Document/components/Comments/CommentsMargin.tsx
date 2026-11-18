@@ -24,7 +24,10 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSplitView } from "~/components/SplitView/context";
 import { type CommentSortOption, CommentSortType } from "~/types";
-import type { CommentsLayout } from "~/scenes/Document/components/commentsLayout";
+import {
+  type CommentsLayout,
+  getCentredMarginShift,
+} from "~/scenes/Document/components/commentsLayout";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 
@@ -56,6 +59,28 @@ function findAnchorElement(threadId: string): Element | null {
   return sibling ?? marker;
 }
 
+function measureCentredOffset(
+  column: HTMLElement,
+  text: HTMLElement,
+  appliedOffset: number
+): number {
+  const columnRect = column.getBoundingClientRect();
+  const textRect = text.getBoundingClientRect();
+  const textStyle = getComputedStyle(text);
+
+  if (getComputedStyle(column).direction === "rtl") {
+    return getCentredMarginShift(
+      -(textRect.left + parseFloat(textStyle.paddingLeft)),
+      -(columnRect.right - appliedOffset)
+    );
+  }
+
+  return -getCentredMarginShift(
+    textRect.right - parseFloat(textStyle.paddingRight),
+    columnRect.left - appliedOffset
+  );
+}
+
 interface Props {
   /** The document whose open threads are placed in the margin. */
   document: Document;
@@ -83,6 +108,8 @@ export const CommentsMargin = observer(function CommentsMargin({
   const shouldFocusFirstCard = useRef(false);
   const [viewingResolved, setViewingResolved] = useState(false);
   const [tops, setTops] = useState<Record<string, number>>({});
+  const [offset, setOffset] = useState(0);
+  const appliedOffset = useRef(0);
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-new`,
     undefined
@@ -173,6 +200,13 @@ export const CommentsMargin = observer(function CommentsMargin({
       return;
     }
 
+    const text = editor?.view.dom;
+    setOffset(
+      layout.mode === "centred" && text
+        ? measureCentredOffset(column, text, appliedOffset.current)
+        : 0
+    );
+
     const columnTop = column.getBoundingClientRect().top;
     const cards = [...cardRefs.current].map(([id, card]) => {
       const anchor = findAnchorElement(id);
@@ -205,7 +239,11 @@ export const CommentsMargin = observer(function CommentsMargin({
     );
 
     setTops((previous) => (isEqual(previous, next) ? previous : next));
-  }, [isEditorInitialized, showResolved]);
+  }, [editor, isEditorInitialized, layout.mode, showResolved]);
+
+  useLayoutEffect(() => {
+    appliedOffset.current = offset;
+  }, [offset]);
 
   useLayoutEffect(measure, [
     measure,
@@ -220,6 +258,9 @@ export const CommentsMargin = observer(function CommentsMargin({
     const main = window.document.querySelector(MAIN_CONTENT_SELECTOR);
     if (main) {
       resizeObserver.observe(main);
+    }
+    if (editor?.view.dom) {
+      resizeObserver.observe(editor.view.dom);
     }
     cardRefs.current.forEach((card) => resizeObserver.observe(card));
     if (formRef.current) {
@@ -261,6 +302,7 @@ export const CommentsMargin = observer(function CommentsMargin({
       aria-label={t("Comments")}
       data-testid="comments-margin"
       $layout={layout}
+      style={{ transform: offset ? `translateX(${offset}px)` : undefined }}
     >
       <HideGutterIndicators />
       {threads.map((thread) => (

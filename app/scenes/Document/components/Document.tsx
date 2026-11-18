@@ -338,7 +338,7 @@ function DocumentScene({
   const commentsLayout = useCommentsLayout();
   const isTextShifted = commentsLayout.mode === "shifted";
   const showContents =
-    !isTextShifted &&
+    commentsLayout.mode === "none" &&
     shouldShowContents({
       tocPosition: tocPos,
       belowDesktop,

@@ -1,5 +1,5 @@
 import { sidebarRailWidth, sidebarPanelWidth } from "@shared/styles/theme";
-import { getCommentsLayout } from "./commentsLayout";
+import { getCentredMarginShift, getCommentsLayout } from "./commentsLayout";
 
 const DEFAULT_SIDEBAR_WIDTH = sidebarRailWidth + sidebarPanelWidth;
 
@@ -51,5 +51,23 @@ describe("getCommentsLayout", () => {
       textWidth: null,
       marginWidth: 0,
     });
+  });
+});
+
+describe("getCentredMarginShift", () => {
+  it.each([
+    { width: 1440, textEnd: 1024, columnStart: 1140, shift: 76 },
+    { width: 1920, textEnd: 1430, columnStart: 1620, shift: 150 },
+    { width: 2552, textEnd: 1670, columnStart: 2252, shift: 542 },
+  ])(
+    "R04 pulls the cards to 40px from the text at $width",
+    ({ textEnd, columnStart, shift }) => {
+      expect(getCentredMarginShift(textEnd, columnStart)).toBe(shift);
+    }
+  );
+
+  it("R04 does not push the cards when the text is already within 40px", () => {
+    expect(getCentredMarginShift(1100, 1140)).toBe(0);
+    expect(getCentredMarginShift(1120, 1140)).toBe(0);
   });
 });
