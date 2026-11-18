@@ -1198,6 +1198,7 @@
   "Warning Sign": "Warning Sign",
   "A workspace admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly.": "A workspace admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly.",
   "Sorry, an unknown error occurred loading the page. Please try again or contact support if the issue persists.": "Sorry, an unknown error occurred loading the page. Please try again or contact support if the issue persists.",
+  "<actor>{{userName}}</actor> created": "<actor>{{userName}}</actor> created",
   "<actor>{{userName}}</actor> published": "<actor>{{userName}}</actor> published",
   "<actor>{{userName}}</actor> unpublished": "<actor>{{userName}}</actor> unpublished",
   "<actor>{{userName}}</actor> archived": "<actor>{{userName}}</actor> archived",

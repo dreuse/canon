@@ -942,6 +942,7 @@
   "requested access to": "solicitou acesso a",
   "is requesting access to": "está solicitando acesso a",
   "a document": "um documento",
+  "<actor>{{userName}}</actor> created": "<actor>{{userName}}</actor> criou",
   "<actor>{{userName}}</actor> published": "<actor>{{userName}}</actor> publicou",
   "<actor>{{userName}}</actor> unpublished": "<actor>{{userName}}</actor> despublicou",
   "<actor>{{userName}}</actor> archived": "<actor>{{userName}}</actor> arquivou",

@@ -203,6 +203,14 @@ router.post(
 
     if (!hasExplicitScope && !auditLog) {
       where = { ...where, ...visibilityWhere };
+    } else if (collectionId && !documentId && !auditLog) {
+      where = {
+        ...where,
+        [Op.or]: [
+          { documentId: null },
+          { "$document.publishedAt$": { [Op.ne]: null } },
+        ],
+      };
     }
 
     const loadedEvents = await Event.findAll({

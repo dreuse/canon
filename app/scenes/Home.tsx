@@ -89,6 +89,14 @@ function ActivityVerb({
   const components = { actor: <ActorName /> };
 
   switch (name) {
+    case "documents.create":
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> created"
+          values={values}
+          components={components}
+        />
+      );
     case "documents.publish":
       return (
         <Trans

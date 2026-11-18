@@ -635,6 +635,116 @@ describe("#events.list", () => {
     expect(eventIds).not.toContain(privateEvent.id);
   });
 
+  it("should return comment and document create events the user can read", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    const commentEvent = await buildEvent({
+      name: "comments.create",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    const createEvent = await buildEvent({
+      name: "documents.create",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+
+    const res = await server.post("/api/events.list", user);
+    const body = await res.json();
+    const eventIds = body.data.map((event: { id: string }) => event.id);
+
+    expect(res.status).toEqual(200);
+    expect(eventIds).toContain(commentEvent.id);
+    expect(eventIds).toContain(createEvent.id);
+  });
+
+  it("should hide comment events on documents the user cannot read", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const privateCollection = await buildCollection({
+      userId: other.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+    const privateDocument = await buildDocument({
+      userId: other.id,
+      collectionId: privateCollection.id,
+      teamId: user.teamId,
+    });
+    const privateComment = await buildEvent({
+      name: "comments.create",
+      documentId: privateDocument.id,
+      collectionId: privateCollection.id,
+      teamId: user.teamId,
+      actorId: other.id,
+    });
+    const draft = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: null,
+      publishedAt: null,
+    });
+    const draftComment = await buildEvent({
+      name: "comments.create",
+      documentId: draft.id,
+      collectionId: null,
+      teamId: user.teamId,
+      actorId: other.id,
+    });
+
+    const res = await server.post("/api/events.list", user);
+    const body = await res.json();
+    const eventIds = body.data.map((event: { id: string }) => event.id);
+
+    expect(res.status).toEqual(200);
+    expect(eventIds).not.toContain(privateComment.id);
+    expect(eventIds).not.toContain(draftComment.id);
+  });
+
+  it("should not return create events for drafts when scoped by collectionId", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const draft = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      publishedAt: null,
+    });
+    const draftEvent = await buildEvent({
+      name: "documents.create",
+      documentId: draft.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      actorId: other.id,
+    });
+
+    const res = await server.post("/api/events.list", user, {
+      body: { collectionId: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.map((event: { id: string }) => event.id)).not.toContain(
+      draftEvent.id
+    );
+  });
+
   it("should return events across the workspace for admins", async () => {
     const admin = await buildAdmin();
     const other = await buildUser({ teamId: admin.teamId });

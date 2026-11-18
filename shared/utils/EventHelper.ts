@@ -6,6 +6,8 @@ export class EventHelper {
     "collections.permission_changed",
     "collections.add_user",
     "collections.remove_user",
+    "comments.create",
+    "documents.create",
     "documents.publish",
     "documents.unpublish",
     "documents.archive",

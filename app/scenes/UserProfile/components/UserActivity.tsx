@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import {
   ArchiveIcon,
   CollectionIcon,
+  CommentIcon,
   CrossIcon,
   EditIcon,
   MoveIcon,
@@ -58,6 +59,16 @@ export function describeEvent(
       return {
         icon: <EditIcon />,
         defaults: "Edited <target>{{title}}</target>",
+      };
+    case "documents.create":
+      return {
+        icon: <EditIcon />,
+        defaults: "Created <target>{{title}}</target>",
+      };
+    case "comments.create":
+      return {
+        icon: <CommentIcon />,
+        defaults: "Commented on <target>{{title}}</target>",
       };
     case "documents.publish":
       return {

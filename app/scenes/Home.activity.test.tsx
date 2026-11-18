@@ -55,6 +55,17 @@ describe("Home activity row", () => {
     });
   });
 
+  it("R03 renders a created verb for documents.create", () => {
+    renderRow(makeEvent({ name: "documents.create" }));
+    expect(screen.getByText(/created/)).toBeTruthy();
+    expect(screen.queryByText(/edited/)).toBeNull();
+  });
+
+  it("R03 renders a commented verb for comments.create", () => {
+    renderRow(makeEvent({ name: "comments.create" }));
+    expect(screen.getByText(/commented on/)).toBeTruthy();
+  });
+
   it("R03 renders the stored document title", () => {
     renderRow(makeEvent());
     expect(screen.getByText(STORED_TITLE)).toBeTruthy();
