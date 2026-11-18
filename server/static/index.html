@@ -8,12 +8,12 @@
     />
     <meta
       name="theme-color"
-      content="#FFF"
+      content="#FFFFFF"
       media="(prefers-color-scheme: light)"
     />
     <meta
       name="theme-color"
-      content="#111319"
+      content="#23252C"
       media="(prefers-color-scheme: dark)"
     />
     <script nonce="{csp-nonce}">
@@ -34,10 +34,7 @@
           (theme !== "light" &&
             window.matchMedia &&
             window.matchMedia("(prefers-color-scheme: dark)").matches);
-        // Matches useBuildTheme, which uses a pitch black theme on mobile.
-        var isMobile =
-          window.matchMedia && window.matchMedia("(max-width: 737px)").matches;
-        var color = isDark ? (isMobile ? "#000" : "#111319") : "#FFF";
+        var color = isDark ? "#23252C" : "#FFFFFF";
 
         document
           .querySelectorAll('meta[name="theme-color"]')

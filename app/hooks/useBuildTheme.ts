@@ -1,11 +1,6 @@
 import { pickBy } from "es-toolkit";
 import { useEffect, useMemo } from "react";
-import { breakpoints } from "@shared/styles";
-import {
-  buildDarkTheme,
-  buildLightTheme,
-  buildPitchBlackTheme,
-} from "@shared/styles/theme";
+import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { ThemeOverride } from "@shared/styles/theme";
 import { validateColorHex } from "@shared/utils/color";
 import { Theme } from "~/stores/UiStore";
@@ -14,8 +9,8 @@ import useStores from "./useStores";
 import useQuery from "./useQuery";
 
 /**
- * Builds a theme based on the current user's preferences, the current device
- * and the custom theme provided.
+ * Builds a theme from the user's preference (system, light or dark), whether
+ * the page is printing, and the custom theme provided.
  *
  * @param customTheme Custom theme to merge with the default theme
  * @param overrideTheme Optional override the theme to use
@@ -27,7 +22,6 @@ export default function useBuildTheme(
 ) {
   const { ui } = useStores();
   const params = useQuery();
-  const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
   const isPrinting = useMediaQuery("print");
   const queryTheme = (params.get("theme") as Theme) || undefined;
 
@@ -58,16 +52,10 @@ export default function useBuildTheme(
 
   const theme = useMemo(
     () =>
-      isPrinting
+      isPrinting || resolvedTheme !== "dark"
         ? buildLightTheme(safeTheme)
-        : isMobile
-          ? resolvedTheme === "dark"
-            ? buildPitchBlackTheme(safeTheme)
-            : buildLightTheme(safeTheme)
-          : resolvedTheme === "dark"
-            ? buildDarkTheme(safeTheme)
-            : buildLightTheme(safeTheme),
-    [safeTheme, isMobile, isPrinting, resolvedTheme]
+        : buildDarkTheme(safeTheme),
+    [safeTheme, isPrinting, resolvedTheme]
   );
 
   return theme;

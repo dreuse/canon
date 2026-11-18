@@ -1,6 +1,6 @@
 import type { LocationDescriptor } from "history";
 import { DisclosureIcon } from "outline-icons";
-import { darken, lighten, transparentize } from "polished";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
@@ -112,21 +112,31 @@ const RealButton = styled(ActionButton)<RealProps>`
   ${(props) =>
     props.$danger &&
     `
-      background: ${props.theme.danger};
-      color: ${props.theme.white};
+      background: transparent;
+      color: ${props.theme.danger};
+      box-shadow: ${transparentize(0.55, props.theme.danger)} 0 0 0 1px inset;
+
+      svg {
+        fill: currentColor;
+      }
 
       &:hover:not(:disabled),
       &[aria-expanded="true"] {
-        background: ${darken(0.05, props.theme.danger)};
+        background: ${transparentize(0.9, props.theme.danger)};
         transition: background 0s;
       }
 
       &:disabled {
-        background: ${lighten(0.05, props.theme.danger)};
+        background: none;
+        color: ${transparentize(0.5, props.theme.danger)};
+
+        svg {
+          fill: currentColor;
+        }
       }
 
       &:focus-visible {
-        outline-color: ${darken(0.2, props.theme.danger)} !important;
+        outline-color: ${props.theme.danger} !important;
       }
   `};
 `;

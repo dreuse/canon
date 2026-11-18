@@ -27,13 +27,17 @@ const darkSidebar = "#1D1F25";
 const darkContent = "#23252C";
 const darkRaised = "#35383F";
 const darkOverlay = "#464950";
-const darkHairline = "#454C59";
+const darkHairline = "#2E3138";
+const darkLine2 = "#3A3D46";
+const lightLine = "#ECECE8";
+const lightLine2 = "#E0E0DB";
+const lightText3 = "#5F6673";
+
+const intellijDarkKeyword = "#C3A6FF";
 
 const intellijDark = {
-  background: "#1E1F22",
   border: "#35353B",
   text: "#BCBEC4",
-  comment: "#505060",
   lineNumber: "#4B5059",
   keyword: "#CF8E6D",
   string: "#6AAB73",
@@ -194,7 +198,7 @@ const buildBaseTheme = (input: ThemeOverride) => {
 
 export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
   const colors = buildBaseTheme(input);
-  const sidebarBackground = "hsl(60 9% 96% / 1)";
+  const sidebarBackground = "#F7F7F5";
   const sidebarHoverBackground = "hsl(60 9% 92% / 1)";
   const sidebarActiveBackground = "hsl(60 9% 89% / 1)";
 
@@ -209,9 +213,9 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     commentCardBackground: colors.white,
     link: input.link ?? colors.accent,
     cursor: colors.almostBlack,
-    text: colors.almostBlack,
-    textSecondary: colors.slateDark,
-    textTertiary: "#596A81",
+    text: "#16181D",
+    textSecondary: "#454B57",
+    textTertiary: lightText3,
     textTertiaryOnTint: "#5A6980",
     textDiffInserted: colors.almostBlack,
     textDiffInsertedBackground: "rgba(18, 138, 41, 0.16)",
@@ -236,9 +240,9 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     menuBackground: colors.white,
     menuShadow:
       "0 0 0 1px rgb(0 0 0 / 10%), 0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
-    divider: sidebarHoverBackground,
+    divider: lightLine,
     titleBarDivider: sidebarActiveBackground,
-    inputBorder: sidebarActiveBackground,
+    inputBorder: lightLine2,
     inputBorderFocused: colors.slate,
     inputBackground: colors.warmGrey,
     listItemHoverBackground: colors.warmGrey,
@@ -254,13 +258,20 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     toastBackground: colors.white,
     toastText: colors.almostBlack,
     quote: colors.slateLight,
+    code: "#24292F",
     codeBackground: sidebarBackground,
     codeBorder: sidebarActiveBackground,
+    codeKeyword: "#7A3FC2",
+    codeString: "#1A7F37",
+    codeComment: lightText3,
+    success: "#187044",
+    warning: "#8F5B00",
+    danger: "#C0353D",
     embedBorder: colors.slateLight,
-    horizontalRule: colors.smokeDark,
+    horizontalRule: lightLine,
     progressBarBackground: colors.slateLight,
-    scrollbarBackground: colors.smoke,
-    scrollbarThumb: darken(0.15, colors.smokeDark),
+    scrollbarBackground: colors.white,
+    scrollbarThumb: lightLine2,
     staleBackground: "#fdf6e7",
     staleBorder: "#f2e0b5",
     staleText: "#7c5510",
@@ -284,10 +295,10 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     commentsBackground: sidebarBackground,
     commentCardBackground: darkRaised,
     link: input.link ?? "#5AA8FF",
-    text: "#F2F3F5",
+    text: "#ECEDEF",
     cursor: colors.almostWhite,
-    textSecondary: "#C2C9D4",
-    textTertiary: "#9AA4B3",
+    textSecondary: "#B4B8C1",
+    textTertiary: "#9097A3",
     textTertiaryOnTint: "#8B95A5",
     textDiffInserted: colors.almostWhite,
     textDiffInsertedBackground: "rgba(63,185,80,0.25)",
@@ -304,7 +315,7 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     shadow: "rgba(0, 0, 0, 0.6)",
 
     modalBackdrop: colors.black50,
-    modalBackground: darkOverlay,
+    modalBackground: darkRaised,
     modalShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
 
@@ -314,7 +325,7 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
       "0 0 0 1px rgb(34 40 52), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
     divider: darkHairline,
     titleBarDivider: darken(0.4, colors.slate),
-    inputBorder: darkHairline,
+    inputBorder: darkLine2,
     inputBorderFocused: colors.slate,
     inputBackground: darkRaised,
     listItemHoverBackground: colors.white10,
@@ -324,16 +335,16 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     buttonNeutralBackground: darkRaised,
     buttonNeutralHoverBackground: darkOverlay,
     buttonNeutralText: colors.white,
-    buttonNeutralBorder: darkHairline,
+    buttonNeutralBorder: darkLine2,
     tooltipBackground: colors.white,
     tooltipText: colors.lightBlack,
     toastBackground: darkRaised,
     toastText: colors.almostWhite,
     quote: colors.almostWhite,
-    code: intellijDark.text,
-    codeBackground: intellijDark.background,
+    code: "#D4D7DD",
+    codeBackground: "#1A1C21",
     codeBorder: darkRaised,
-    codeComment: intellijDark.comment,
+    codeComment: "#8C93A0",
     codePunctuation: intellijDark.text,
     codeProperty: intellijDark.field,
     codeNumber: intellijDark.number,
@@ -343,10 +354,10 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     codeParameter: intellijDark.text,
     codeSelector: intellijDark.tag,
     codeEntity: intellijDark.typeArgument,
-    codeStatement: intellijDark.keyword,
+    codeStatement: intellijDarkKeyword,
     codeInserted: intellijDark.string,
-    codeString: intellijDark.string,
-    codeKeyword: intellijDark.keyword,
+    codeString: "#9AD7A8",
+    codeKeyword: intellijDarkKeyword,
     codeFunction: intellijDark.method,
     codeClassName: intellijDark.text,
     codeImportant: intellijDark.deletion,
@@ -360,24 +371,15 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     noticeWarningText: mix(0.5, colors.warning, colors.white),
     noticeSuccessText: mix(0.5, colors.brand.green, colors.white),
     progressBarBackground: colors.slate,
-    scrollbarBackground: colors.black,
-    scrollbarThumb: colors.lightBlack,
+    scrollbarBackground: darkContent,
+    scrollbarThumb: darkLine2,
+    success: "#5FD69A",
+    warning: "#F2C14E",
+    danger: "#F48A8A",
     staleBackground: "#2b2314",
     staleBorder: "#4a3c1c",
     staleText: "#e0b969",
     freshText: "#4fc08d",
-  };
-};
-
-export const buildPitchBlackTheme = (input: ThemeOverride) => {
-  const colors = buildDarkTheme(input);
-
-  return {
-    ...colors,
-    background: colors.black,
-    codeBackground: colors.almostBlack,
-    commentsBackground: colors.black,
-    commentCardBackground: colors.almostBlack,
   };
 };
 
