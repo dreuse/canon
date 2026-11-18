@@ -23,7 +23,11 @@ import StarredLink from "./StarredLink";
 
 const STARRED_PAGINATION_LIMIT = 10;
 
-function Starred() {
+interface Props {
+  panel?: boolean;
+}
+
+function Starred({ panel }: Props) {
   const { stars } = useStores();
   const { t } = useTranslation();
 
@@ -41,8 +45,52 @@ function Starred() {
   }, [t, error]);
 
   if (!stars.orderedData.length) {
-    return null;
+    if (!panel) {
+      return null;
+    }
+    return loading ? null : (
+      <EmptyState>{t("Nothing starred yet.")}</EmptyState>
+    );
   }
+
+  const list = (
+    <Relative>
+      {reorderStarProps.isDragging && (
+        <DropCursor
+          isActiveDrop={reorderStarProps.isOverCursor}
+          innerRef={dropToReorder}
+          position="top"
+        />
+      )}
+      {createStarProps.isDragging && (
+        <DropCursor
+          isActiveDrop={createStarProps.isOverCursor}
+          innerRef={dropToStarRef}
+          position="top"
+        />
+      )}
+      {stars.orderedData
+        .slice(0, page * STARRED_PAGINATION_LIMIT)
+        .map((star) => (
+          <StarredLink key={star.id} star={star} />
+        ))}
+      {!loading && !end && (
+        <SidebarLink
+          onClick={next}
+          label={`${t("Show more")}…`}
+          disabled={stars.isFetching}
+          depth={0}
+        />
+      )}
+      {loading && (
+        <Flex column>
+          <DelayedMount>
+            <PlaceholderCollections />
+          </DelayedMount>
+        </Flex>
+      )}
+    </Relative>
+  );
 
   return (
     <Flex column>
@@ -52,53 +100,29 @@ function Starred() {
           sectionStarProps.isDragging && sectionStarProps.isOverCursor
         }
       >
-        <Header
-          id="starred"
-          title={t("Starred")}
-          icon={<VoStarredIcon />}
-          count={stars.orderedData.length}
-        >
-          <Relative>
-            {reorderStarProps.isDragging && (
-              <DropCursor
-                isActiveDrop={reorderStarProps.isOverCursor}
-                innerRef={dropToReorder}
-                position="top"
-              />
-            )}
-            {createStarProps.isDragging && (
-              <DropCursor
-                isActiveDrop={createStarProps.isOverCursor}
-                innerRef={dropToStarRef}
-                position="top"
-              />
-            )}
-            {stars.orderedData
-              .slice(0, page * STARRED_PAGINATION_LIMIT)
-              .map((star) => (
-                <StarredLink key={star.id} star={star} />
-              ))}
-            {!loading && !end && (
-              <SidebarLink
-                onClick={next}
-                label={`${t("Show more")}…`}
-                disabled={stars.isFetching}
-                depth={0}
-              />
-            )}
-            {loading && (
-              <Flex column>
-                <DelayedMount>
-                  <PlaceholderCollections />
-                </DelayedMount>
-              </Flex>
-            )}
-          </Relative>
-        </Header>
+        {panel ? (
+          list
+        ) : (
+          <Header
+            id="starred"
+            title={t("Starred")}
+            icon={<VoStarredIcon />}
+            count={stars.orderedData.length}
+          >
+            {list}
+          </Header>
+        )}
       </Section>
     </Flex>
   );
 }
+
+const EmptyState = styled.p`
+  margin: 0;
+  padding: 6px 16px;
+  font-size: 14px;
+  color: ${s("textTertiary")};
+`;
 
 const Section = styled.div<{ $isActiveDrop?: boolean }>`
   border-radius: 8px;

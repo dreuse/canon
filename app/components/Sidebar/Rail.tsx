@@ -83,6 +83,19 @@ const RAIL_PANEL_ATTRIBUTE = "data-rail-panel";
 /** The panels that the rail can show beside its buttons. */
 export type RailPanelId = "collections" | "starred";
 
+/** The storage key of the selected rail panel. */
+export const RAIL_PANEL_STORAGE_KEY = "sidebar-rail-panel";
+
+/**
+ * Narrows a stored value to a known rail panel.
+ *
+ * @param value the stored value.
+ * @returns the panel, or collections when the value is not a known panel.
+ */
+export function toRailPanelId(value: unknown): RailPanelId {
+  return value === "starred" ? "starred" : "collections";
+}
+
 interface RailProps {
   panel: RailPanelId;
   onPanelChange: (panel: RailPanelId) => void;
@@ -304,9 +317,14 @@ export const RailPanel = observer(function RailPanel({
   if (panel === "starred") {
     return (
       <Panel ref={panelRef} hidden={hidden} aria-label={t("Starred")}>
+        <PanelHeader>
+          <PanelTitle id={headingId}>{t("Starred")}</PanelTitle>
+        </PanelHeader>
         <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
-            <Starred />
+            <div role="group" aria-labelledby={headingId}>
+              <Starred panel />
+            </div>
           </SidebarScrollProvider>
         </Scrollable>
       </Panel>

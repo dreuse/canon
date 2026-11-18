@@ -724,6 +724,7 @@
   "Show more": "Show more",
   "Link options": "Link options",
   "Could not load starred documents": "Could not load starred documents",
+  "Nothing starred yet.": "Nothing starred yet.",
   "Starred": "Starred",
   "Up to date": "Up to date",
   "{{ releasesBehind }} versions behind": "{{ releasesBehind }} version behind",

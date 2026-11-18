@@ -13,6 +13,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import stores from "~/stores";
 import { client } from "~/utils/ApiClient";
 import AppSidebar from "./App";
+import { RAIL_PANEL_STORAGE_KEY } from "./Rail";
 import { getHeaderExpandedKey } from "./components/Header";
 import SettingsSidebar from "./Settings";
 
@@ -154,6 +155,7 @@ function getRailLabels() {
 describe("Rail", () => {
   beforeEach(() => {
     toggleSearch.mockClear();
+    Storage.remove(RAIL_PANEL_STORAGE_KEY);
     Storage.remove(getHeaderExpandedKey(PERSONAL_EXPANDED_ID));
     seedStores();
   });
