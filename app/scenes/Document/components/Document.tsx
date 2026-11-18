@@ -40,8 +40,10 @@ import {
   documentEditPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
+import useCommentsLayout from "../hooks/useCommentsLayout";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
+import { SHIFTED_TEXT_MAX_WIDTH } from "./commentsLayout";
 import Contents, { shouldShowContents } from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
@@ -333,12 +335,16 @@ function DocumentScene({
     tocPosition ??
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
-  const showContents = shouldShowContents({
-    tocPosition: tocPos,
-    belowDesktop,
-    isShare,
-    tocVisible: ui.tocVisible,
-  });
+  const commentsLayout = useCommentsLayout();
+  const isTextShifted = commentsLayout.mode === "shifted";
+  const showContents =
+    !isTextShifted &&
+    shouldShowContents({
+      tocPosition: tocPos,
+      belowDesktop,
+      isShare,
+      tocVisible: ui.tocVisible,
+    });
   const tocOffset =
     tocPos === TOCPosition.Left
       ? EditorStyleHelper.tocWidth / -2
@@ -449,6 +455,7 @@ function DocumentScene({
             tocPosition={tocPos}
             showContents={showContents}
             hasTocGutter={hasTocGutter}
+            isTextShifted={isTextShifted}
             style={fullWidthTransformOffsetStyle}
           >
             <React.Suspense
@@ -457,6 +464,7 @@ function DocumentScene({
                   docFullWidth={document.fullWidth}
                   showContents={showContents}
                   tocPosition={tocPos}
+                  isTextShifted={isTextShifted}
                 >
                   <PlaceholderDocument />
                 </EditorContainer>
@@ -466,6 +474,7 @@ function DocumentScene({
                 docFullWidth={document.fullWidth}
                 showContents={showContents}
                 tocPosition={tocPos}
+                isTextShifted={isTextShifted}
               >
                 {revision ? (
                   <RevisionViewer
@@ -536,6 +545,7 @@ type MainProps = {
   tocPosition: TOCPosition | false;
   showContents: boolean;
   hasTocGutter: boolean;
+  isTextShifted: boolean;
 };
 
 function columns(width: string) {
@@ -583,6 +593,18 @@ const Main = styled.div<MainProps>`
     grid-template-columns: ${columns(EditorStyleHelper.documentWidth)};
   `};
 
+  ${({ fullWidth, isTextShifted }: MainProps) =>
+    isTextShifted &&
+    breakpoint("tablet")`
+      --full-width-shift: 0px;
+      grid-template-columns: ${
+        fullWidth
+          ? "minmax(0, 1fr)"
+          : `minmax(0, ${SHIFTED_TEXT_MAX_WIDTH + CONTENT_EDGE}px)`
+      };
+      justify-content: start;
+    `}
+
   @media print {
     display: block;
     max-width: ${({ fullWidth }: MainProps) =>
@@ -626,6 +648,7 @@ type EditorContainerProps = {
   docFullWidth: boolean;
   showContents: boolean;
   tocPosition: TOCPosition | false;
+  isTextShifted: boolean;
 };
 
 const EditorContainer = styled.div<EditorContainerProps>`
@@ -655,6 +678,13 @@ const EditorContainer = styled.div<EditorContainerProps>`
           : "1 / -1"
         : 2};
   `};
+
+  ${({ isTextShifted }: EditorContainerProps) =>
+    isTextShifted &&
+    breakpoint("tablet")`
+      padding: 0 0 0 ${CONTENT_EDGE}px;
+      grid-column: 1;
+    `}
 
   ${({ docFullWidth }: EditorContainerProps) =>
     docFullWidth &&

@@ -19,10 +19,12 @@ import { layoutMarginCards } from "~/editor/components/marginLayout";
 import { useFocusedComment } from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePersistedState from "~/hooks/usePersistedState";
+import useCommentsLayout from "~/scenes/Document/hooks/useCommentsLayout";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSplitView } from "~/components/SplitView/context";
 import { type CommentSortOption, CommentSortType } from "~/types";
+import type { CommentsLayout } from "~/scenes/Document/components/commentsLayout";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 
@@ -35,9 +37,6 @@ const EDITOR_MUTATION_OPTIONS: MutationObserverInit = {
   attributeFilter: ["id", "class"],
 };
 
-const COMMENTS_MARGIN_WIDTH = 300;
-const COMMENTS_MARGIN_OFFSET = 40;
-const MARGIN_CARD_INLINE_END_GAP = 18;
 const FORM_ID = "new-comment-form";
 const LINK_ID = "resolved-link";
 
@@ -72,6 +71,7 @@ export const CommentsMargin = observer(function CommentsMargin({
   const { t } = useTranslation();
   const { ui, comments } = useStores();
   const { pane } = useSplitView();
+  const layout = useCommentsLayout();
   const { editor, isEditorInitialized, setFocusedCommentId } =
     useDocumentContext();
   const focusedComment = useFocusedComment();
@@ -260,6 +260,7 @@ export const CommentsMargin = observer(function CommentsMargin({
       ref={columnRef}
       aria-label={t("Comments")}
       data-testid="comments-margin"
+      $layout={layout}
     >
       <HideGutterIndicators />
       {threads.map((thread) => (
@@ -341,16 +342,18 @@ const HideGutterIndicators = createGlobalStyle`
   }
 `;
 
-const Column = styled.aside`
+const Column = styled.aside<{ $layout: CommentsLayout }>`
   position: relative;
   flex-shrink: 0;
-  width: ${COMMENTS_MARGIN_WIDTH}px;
-  margin-inline-start: ${COMMENTS_MARGIN_OFFSET}px;
+  width: ${(props) => props.$layout.marginWidth}px;
+  margin-inline: ${(props) => props.$layout.marginOffset}px
+    ${(props) => props.$layout.marginEndGap}px;
+  --margin-card-end-gap: ${(props) => props.$layout.cardEndGap}px;
 `;
 
 const Card = styled.div`
   position: absolute;
-  inset-inline: 0 ${MARGIN_CARD_INLINE_END_GAP}px;
+  inset-inline: 0 var(--margin-card-end-gap);
   border-radius: 8px;
 
   &:focus-visible {

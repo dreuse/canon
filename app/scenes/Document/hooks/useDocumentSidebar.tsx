@@ -53,7 +53,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const { ui, documents } = useStores();
   const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
-  const isWide = useMediaQuery(`(min-width: ${breakpoints.desktopWide}px)`);
+  const hasMargin = useMediaQuery(`(min-width: ${breakpoints.desktop}px)`);
   const panel = ui.getRightSidebar(pane);
 
   const slugMatch = useRouteMatch<{ documentSlug: string }>({
@@ -71,7 +71,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   }
   const visiblePanel = panel ?? lastPanel;
 
-  if (isWide && !isSplitView && visiblePanel === "comments") {
+  if (hasMargin && !isSplitView && visiblePanel === "comments") {
     return document ? <CommentsMargin document={document} /> : null;
   }
 

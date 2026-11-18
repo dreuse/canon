@@ -25,6 +25,7 @@ const USER_ID = "user-1";
 const TEAM_ID = "team-1";
 const DOCUMENT_ID = "doc-1";
 const DOCUMENT_SLUG = "integration-guide-abc123def45";
+const DESKTOP_VIEWPORT_QUERY = /min-width:\s*1025px/;
 const WIDE_VIEWPORT_QUERY = /min-width:\s*1440px/;
 const THREAD_IDS = ["thread-1", "thread-2"];
 
@@ -38,7 +39,11 @@ function stubViewport(width: number) {
   window.matchMedia = (query: string) =>
     ({
       media: query,
-      matches: WIDE_VIEWPORT_QUERY.test(query) ? width >= 1440 : false,
+      matches: WIDE_VIEWPORT_QUERY.test(query)
+        ? width >= 1440
+        : DESKTOP_VIEWPORT_QUERY.test(query)
+          ? width >= 1025
+          : false,
       addEventListener: () => {},
       removeEventListener: () => {},
     }) as unknown as MediaQueryList;
@@ -141,8 +146,16 @@ describe("useDocumentSidebar", () => {
     );
   });
 
-  it("R04 renders no margin column below 1440px", () => {
-    stubViewport(1439);
+  it("R27 renders a margin column at 1280px", () => {
+    stubViewport(1280);
+    setPanel("comments");
+    renderSidebar();
+
+    expect(screen.getByTestId("comments-margin")).toBeTruthy();
+  });
+
+  it("R27 renders no margin column below 1025px", () => {
+    stubViewport(1024);
     setPanel("comments");
     renderSidebar();
 
