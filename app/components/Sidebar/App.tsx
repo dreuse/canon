@@ -9,7 +9,6 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { SidebarSection, UserPreference } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import InputSearchPage from "~/components/InputSearchPage";
 import Scrollable from "~/components/Scrollable";
 import { navigateToImport } from "~/actions/definitions/navigation";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -25,7 +24,6 @@ import DraggableSection, {
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
-import RecentDocuments from "./components/RecentDocuments";
 import { PersonalDocs } from "./components/PersonalDocs";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
@@ -98,14 +96,6 @@ function AppSidebar() {
           )}
         </SidebarButton>
         <Overflow>
-          <SearchField>
-            <InputSearchPage
-              source="sidebar"
-              label={t("Search documents")}
-              labelHidden
-              placeholder={`${t("Search docs")}…`}
-            />
-          </SearchField>
           <SidebarNav />
         </Overflow>
         <Scrollable flex shadow ref={setScrollArea}>
@@ -125,7 +115,6 @@ function AppSidebar() {
             </Section>
           </SidebarScrollProvider>
         </Scrollable>
-        <RecentDocuments />
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>
@@ -135,10 +124,6 @@ function AppSidebar() {
 const Overflow = styled.div`
   overflow: hidden;
   flex-shrink: 0;
-`;
-
-const SearchField = styled.div`
-  padding: 0 12px 8px;
 `;
 
 export default observer(AppSidebar);
