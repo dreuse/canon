@@ -4,7 +4,7 @@ import { CommentIcon } from "outline-icons";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { UserPreference } from "@shared/types";
@@ -29,7 +29,9 @@ import CommentForm from "./CommentForm";
 import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
 import Sidebar from "../SidebarLayout";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import useMobile from "~/hooks/useMobile";
+import { breakpoints } from "@shared/styles";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
@@ -43,6 +45,7 @@ function Comments() {
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
   const isMobile = useMobile();
+  const isOverlay = !useMediaQuery(`(min-width: ${breakpoints.desktop}px)`);
 
   const query = useQuery();
   const [viewingResolved, setViewingResolved] = useState(
@@ -204,17 +207,19 @@ function Comments() {
           </Wrapper>
         </Scrollable>
         <AnimatePresence initial={false}>
-          {(!focusedComment || isMobile) && can.comment && !viewingResolved && (
-            <NewCommentForm
-              draft={draft}
-              onSaveDraft={onSaveDraft}
-              documentId={document.id}
-              placeholder={`${t("Add a comment")}…`}
-              autoFocus={false}
-              animatePresence
-              standalone
-            />
-          )}
+          {(!focusedComment || isOverlay) &&
+            can.comment &&
+            !viewingResolved && (
+              <NewCommentForm
+                draft={draft}
+                onSaveDraft={onSaveDraft}
+                documentId={document.id}
+                placeholder={`${t("Add a comment")}…`}
+                autoFocus={false}
+                animatePresence
+                standalone
+              />
+            )}
         </AnimatePresence>
       </>
     );
@@ -223,39 +228,50 @@ function Comments() {
     <TintedSidebar
       title={
         <Flex align="center" justify="space-between" gap={8} auto>
-          <div style={isMobile ? { padding: "0 8px" } : undefined}>
-            {t("Comments")}
-          </div>
+          <div>{isOverlay ? t("Conversations") : t("Comments")}</div>
         </Flex>
       }
       onClose={() => {
         ui.setRightSidebar(null, pane);
         setFocusedCommentId(null);
       }}
+      closeLabel={t("Close conversations")}
       scrollable={false}
     >
       <Filters align="center" justify="space-between" gap={8}>
-        <Segmented role="group">
+        <Segmented role={isOverlay ? "tablist" : "group"} $tabs={isOverlay}>
           <Segment
             $active={!viewingResolved}
+            $tabs={isOverlay}
             onClick={() => setViewingResolved(false)}
-            aria-pressed={!viewingResolved}
+            {...segmentSemantics(isOverlay, !viewingResolved)}
           >
-            {t("Open")} <Count>{openCount}</Count>
+            {isOverlay ? t("Open threads") : t("Open")}{" "}
+            <Count>{openCount}</Count>
           </Segment>
           <Segment
             $active={viewingResolved}
+            $tabs={isOverlay}
             onClick={() => setViewingResolved(true)}
-            aria-pressed={viewingResolved}
+            {...segmentSemantics(isOverlay, viewingResolved)}
           >
-            {t("Resolved")} <Count>{resolvedCount}</Count>
+            {isOverlay ? t("Resolved threads") : t("Resolved")}{" "}
+            <Count>{resolvedCount}</Count>
           </Segment>
         </Segmented>
-        <CommentSortMenu />
+        {!isMobile && <CommentSortMenu />}
       </Filters>
       {content}
     </TintedSidebar>
   );
+}
+
+const TAB_MIN_HEIGHT = 44;
+
+function segmentSemantics(isTab: boolean, active: boolean) {
+  return isTab
+    ? { role: "tab", "aria-selected": active }
+    : { "aria-pressed": active };
 }
 
 const TintedSidebar = styled(Sidebar)`
@@ -267,19 +283,28 @@ const Filters = styled(Flex)`
   padding: 0 12px 10px;
 `;
 
-const Segmented = styled(Flex)`
+const Segmented = styled(Flex)<{ $tabs: boolean }>`
   flex-shrink: 0;
   gap: 2px;
   padding: 2px;
   border-radius: 8px;
   background: ${s("sidebarHoverBackground")};
+
+  ${(props) =>
+    props.$tabs &&
+    css`
+      gap: 16px;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+    `}
 `;
 
 const Count = styled.span`
   font-variant-numeric: tabular-nums;
 `;
 
-const Segment = styled.button<{ $active: boolean }>`
+const Segment = styled.button<{ $active: boolean; $tabs: boolean }>`
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -303,6 +328,19 @@ const Segment = styled.button<{ $active: boolean }>`
   &: ${hover} {
     color: ${s("text")};
   }
+
+  ${(props) =>
+    props.$tabs &&
+    css`
+      min-height: ${TAB_MIN_HEIGHT}px;
+      padding: 0;
+      border: 0;
+      border-bottom: 2px solid
+        ${props.$active ? props.theme.accent : "transparent"};
+      border-radius: 0;
+      background: transparent;
+      font-size: 15px;
+    `}
 `;
 
 const NoComments = styled(Flex)`

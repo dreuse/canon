@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
-import { BackIcon } from "outline-icons";
+import { BackIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { s, ellipsis } from "@shared/styles";
+import { s, ellipsis, breakpoints } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
@@ -17,6 +17,7 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "~/components/primitives/Drawer";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import useMobile from "~/hooks/useMobile";
 import { draggableOnDesktop } from "~/styles";
 
@@ -29,7 +30,11 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   onClose?: () => void;
   /* Whether the sidebar should be scrollable */
   scrollable?: boolean;
+  /* Accessible label of the close button shown when the sidebar is an overlay */
+  closeLabel?: string;
 };
+
+const TOUCH_TARGET = 44;
 
 function SidebarLayout({
   title,
@@ -37,9 +42,11 @@ function SidebarLayout({
   children,
   className,
   scrollable = true,
+  closeLabel,
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
+  const isOverlay = !useMediaQuery(`(min-width: ${breakpoints.desktop}px)`);
   const isWrapped = React.useContext(RightSidebarWrappedContext);
   const [drawerElement, setDrawerElement] =
     React.useState<HTMLDivElement | null>(null);
@@ -52,11 +59,25 @@ function SidebarLayout({
     children
   );
 
-  if (isMobile) {
+  if (isOverlay) {
     return (
-      <Drawer onClose={onClose} defaultOpen>
+      <Drawer
+        onClose={onClose}
+        direction={isMobile ? "bottom" : "right"}
+        defaultOpen
+      >
         <DrawerContent ref={setDrawerElement} className={className}>
-          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerTitle hidden>{title}</DrawerTitle>
+          <Header>
+            <Title aria-hidden>{title}</Title>
+            <CloseButton
+              type="button"
+              aria-label={closeLabel ?? t("Close")}
+              onClick={onClose}
+            >
+              <CloseIcon />
+            </CloseButton>
+          </Header>
           <PortalContext.Provider value={drawerElement}>
             {content}
           </PortalContext.Provider>
@@ -103,6 +124,21 @@ const ForwardIcon = styled(BackIcon)`
   [dir="rtl"] & {
     transform: rotate(0deg);
   }
+`;
+
+const CloseButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: ${TOUCH_TARGET}px;
+  height: ${TOUCH_TARGET}px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: ${s("textSecondary")};
+  cursor: var(--pointer);
 `;
 
 const Title = styled(Flex)`

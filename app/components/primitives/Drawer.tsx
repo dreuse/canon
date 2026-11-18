@@ -85,6 +85,8 @@ const StyledText = styled(Text)`
   flex-shrink: 0;
 `;
 
+const sidePanelWidth = 400;
+
 /** Styled components. */
 const StyledContent = styled(m.div)`
   z-index: ${depths.menu};
@@ -98,6 +100,15 @@ const StyledContent = styled(m.div)`
   max-height: 90vh;
 
   ${borderRadius(8)}
+
+  &[data-vaul-drawer-direction="right"] {
+    top: 0;
+    left: auto;
+    width: min(${sidePanelWidth}px, 100vw);
+    max-height: none;
+    height: 100% !important;
+    border-radius: 0;
+  }
 
   background: ${s("menuBackground")};
 

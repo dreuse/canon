@@ -14,7 +14,6 @@ import {
 import Aside from "~/components/Sidebar/Aside";
 import PlaceholderText from "~/components/PlaceholderText";
 import { useSplitView } from "~/components/SplitView/context";
-import useMobile from "~/hooks/useMobile";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
 import { breakpoints } from "@shared/styles";
@@ -52,7 +51,6 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
 }: DocumentSidebarContentProps) {
   const { ui, documents } = useStores();
   const { pane, isSplitView } = useSplitView();
-  const isMobile = useMobile();
   const hasMargin = useMediaQuery(`(min-width: ${breakpoints.desktop}px)`);
   const panel = ui.getRightSidebar(pane);
 
@@ -99,7 +97,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
     </Route>
   );
 
-  if (isMobile) {
+  if (!hasMargin) {
     return inner;
   }
 
