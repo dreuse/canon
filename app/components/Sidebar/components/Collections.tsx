@@ -7,22 +7,18 @@ import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
-import { createCollection } from "~/actions/definitions/collections";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
 import { useDropRef } from "~/components/DragAndDrop";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
-import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
-
-const headerActions = [createCollection];
 
 function Collections() {
   const { auth, collections, policies, ui } = useStores();
@@ -76,57 +72,50 @@ function Collections() {
   return (
     <SidebarContext.Provider value="collections">
       <Flex column>
-        <Header
-          id="collections"
-          title={t("Collections")}
-          actions={headerActions}
-          primaryAction={createCollection}
-        >
-          <Relative>
-            <PaginatedList<Collection>
-              options={params}
-              aria-label={t("Collections")}
-              items={orderedCollections}
-              activeItemId={
-                activeSidebarContext === "collections"
-                  ? ui.activeCollectionId
-                  : undefined
-              }
-              loading={<PlaceholderCollections />}
-              heading={
-                isDraggingAnyCollection ? (
-                  <DropCursor
-                    isActiveDrop={isCollectionDropping}
-                    innerRef={dropToReorderCollection}
-                    position="top"
-                  />
-                ) : undefined
-              }
-              empty={
-                // No need for empty state if we're displaying the createCollection action
-                can.createCollection ? null : (
-                  <SidebarLink
-                    label={
-                      <Text type="tertiary" size="small" italic>
-                        {t("No collections")}
-                      </Text>
-                    }
-                    onClick={() => {}}
-                    depth={1.5}
-                  />
-                )
-              }
-              renderError={(props) => <StyledError {...props} />}
-              renderItem={(item, index) => (
-                <DraggableCollectionLink
-                  key={item.id}
-                  collection={item}
-                  belowCollection={orderedCollections[index + 1]}
+        <Relative>
+          <PaginatedList<Collection>
+            options={params}
+            aria-label={t("Collections")}
+            items={orderedCollections}
+            activeItemId={
+              activeSidebarContext === "collections"
+                ? ui.activeCollectionId
+                : undefined
+            }
+            loading={<PlaceholderCollections />}
+            heading={
+              isDraggingAnyCollection ? (
+                <DropCursor
+                  isActiveDrop={isCollectionDropping}
+                  innerRef={dropToReorderCollection}
+                  position="top"
                 />
-              )}
-            />
-          </Relative>
-        </Header>
+              ) : undefined
+            }
+            empty={
+              // No need for empty state if we're displaying the createCollection action
+              can.createCollection ? null : (
+                <SidebarLink
+                  label={
+                    <Text type="tertiary" size="small" italic>
+                      {t("No collections")}
+                    </Text>
+                  }
+                  onClick={() => {}}
+                  depth={1.5}
+                />
+              )
+            }
+            renderError={(props) => <StyledError {...props} />}
+            renderItem={(item, index) => (
+              <DraggableCollectionLink
+                key={item.id}
+                collection={item}
+                belowCollection={orderedCollections[index + 1]}
+              />
+            )}
+          />
+        </Relative>
       </Flex>
     </SidebarContext.Provider>
   );

@@ -4,11 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
-import {
-  type NavigationNode,
-  type SidebarSection,
-  UserPreference,
-} from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
@@ -155,54 +151,6 @@ export function useDropToReorderStar(getIndex?: () => string) {
       }),
     }
   );
-}
-
-/**
- * Hook for shared logic that allows dragging a sidebar section by its header.
- *
- * @param section The section to drag.
- * @param title The localized title of the section, shown in the drag preview.
- */
-export function useDragSidebarSection(
-  section: SidebarSection,
-  title: string
-): [{ isDragging: boolean }, React.RefCallback<HTMLElement>] {
-  const [isDragging, dragRef] = useDragRef({
-    type: "sidebarSection",
-    item: () => ({ id: section, title }),
-  });
-
-  return [{ isDragging }, dragRef];
-}
-
-/**
- * Hook for shared logic that allows dropping a sidebar section to reorder it,
- * persisting the new order as a user preference.
- *
- * @param getNewOrder A function that returns the section order after dropping the given section here, or undefined when the drop would not change the order.
- */
-export function useDropToReorderSidebarSection(
-  getNewOrder: (section: SidebarSection) => SidebarSection[] | undefined
-) {
-  const user = useCurrentUser();
-
-  return useDropRef<
-    { id: SidebarSection; title: string },
-    { isOverCursor: boolean; isDragging: boolean }
-  >({
-    accept: "sidebarSection",
-    drop: (item) => {
-      const order = getNewOrder(item.id);
-      if (order) {
-        void user.savePreference(UserPreference.SidebarSectionOrder, order);
-      }
-    },
-    canDrop: (item) => !!getNewOrder(item.id),
-    collect: (monitor) => ({
-      isOverCursor: monitor.isOver() && monitor.canDrop(),
-      isDragging: monitor.getItemType() === "sidebarSection",
-    }),
-  });
 }
 
 /**

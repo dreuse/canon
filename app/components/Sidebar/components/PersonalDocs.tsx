@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { DocumentIcon, PlusIcon } from "outline-icons";
-import { useCallback, useMemo, useRef } from "react";
+import { type MouseEvent, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { PersonalCollectionId } from "@shared/constants";
@@ -12,20 +12,29 @@ import { sortCollection } from "~/actions/definitions/collections";
 import { DocumentSection } from "~/actions/sections";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Flex from "~/components/Flex";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { VoCollectionIcon } from "~/components/Icons/VobysIcons";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
+import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSyncSidebarContext } from "~/hooks/useSyncSidebarContext";
 import { documentEditPath } from "~/utils/routeHelpers";
 import CollectionLinkChildren from "./CollectionLinkChildren";
-import Header from "./Header";
+import { getHeaderExpandedKey } from "./Header";
 import Relative from "./Relative";
 import SidebarAction from "./SidebarAction";
 import SidebarContext, { type SidebarContextType } from "./SidebarContext";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { childDepthFor } from "./SidebarLink";
+
+const PERSONAL_EXPANDED_ID = "personal";
+const PERSONAL_CHILD_DEPTH = childDepthFor(0);
 
 /**
  * The sidebar section that shows the documents in the personal collection of
@@ -44,6 +53,10 @@ export const PersonalDocs = observer(function PersonalDocs() {
     ? !!canCollection.createDocument
     : !!can.createPersonalCollection;
   const [isAddingNew, setIsAddingNew, closeAddingNew] = useBoolean();
+  const [expanded, setExpanded] = usePersistedState<boolean>(
+    getHeaderExpandedKey(PERSONAL_EXPANDED_ID),
+    false
+  );
   const newTitleRef = useRef<RefHandle>(null);
 
   // Opens a temporary row with an editable title, the document is only
@@ -62,10 +75,11 @@ export const PersonalDocs = observer(function PersonalDocs() {
     [canCreate, setIsAddingNew]
   );
   const hasCollection = !!collection;
-  const headerActions = useMemo(
+  const menuActions = useMemo(
     () => (hasCollection ? [newDocAction, sortCollection] : [newDocAction]),
     [hasCollection, newDocAction]
   );
+  const menuAction = useMenuAction(menuActions);
   const activeModels = useMemo(
     () => (collection ? [collection] : undefined),
     [collection]
@@ -125,6 +139,14 @@ export const PersonalDocs = observer(function PersonalDocs() {
     )
   );
 
+  const handleToggle = useCallback(
+    (ev?: MouseEvent<HTMLElement>) => {
+      ev?.preventDefault();
+      setExpanded(!expanded);
+    },
+    [expanded, setExpanded]
+  );
+
   if (!collection && !canCreate) {
     return null;
   }
@@ -133,7 +155,7 @@ export const PersonalDocs = observer(function PersonalDocs() {
     isAddingNew && canCreate ? (
       <SidebarLink
         isActive={() => true}
-        depth={0}
+        depth={PERSONAL_CHILD_DEPTH}
         icon={<DocumentIcon />}
         ellipsis={false}
         label={
@@ -155,18 +177,35 @@ export const PersonalDocs = observer(function PersonalDocs() {
     <SidebarContext.Provider value="personal">
       <ActionContextProvider value={{ activeModels }}>
         <Flex column>
-          <Header
-            id="personal"
-            title={t("Personal")}
-            actions={headerActions}
-            primaryAction={canCreate ? newDocAction : undefined}
-          >
+          <SidebarLink
+            onClick={handleToggle}
+            menu={
+              <DropdownMenu
+                action={menuAction}
+                align="end"
+                ariaLabel={t("Section options")}
+              >
+                <OverflowMenuButton />
+              </DropdownMenu>
+            }
+            onDisclosureClick={handleToggle}
+            expanded={expanded}
+            icon={
+              collection ? (
+                <CollectionIcon collection={collection} />
+              ) : (
+                <VoCollectionIcon />
+              )
+            }
+            label={t("Personal")}
+            depth={0}
+          />
+          {expanded && (
             <Relative>
               {collection ? (
                 <CollectionLinkChildren
                   collection={collection}
                   expanded
-                  childDepth={0}
                   prefetchDocument={documents.prefetchDocument}
                 >
                   {newDocRow}
@@ -174,9 +213,12 @@ export const PersonalDocs = observer(function PersonalDocs() {
               ) : (
                 newDocRow
               )}
-              <SidebarAction action={newDocAction} depth={0} />
+              <SidebarAction
+                action={newDocAction}
+                depth={PERSONAL_CHILD_DEPTH}
+              />
             </Relative>
-          </Header>
+          )}
         </Flex>
       </ActionContextProvider>
     </SidebarContext.Provider>

@@ -91,8 +91,14 @@ const sidebarMinWidth = 240;
 
 const sidebarPadding = 16;
 
+/** The width in pixels of the icon rail at the start of the app sidebar. */
+export const sidebarRailWidth = 56;
+
+/** The width in pixels of the panel beside the icon rail. */
+export const sidebarPanelWidth = 240;
+
 const spacing = {
-  sidebarWidth: 260,
+  sidebarWidth: sidebarRailWidth + sidebarPanelWidth,
   sidebarRightWidth: 300,
   sidebarCollapsedWidth: 16,
   sidebarMinWidth,

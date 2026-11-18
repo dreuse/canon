@@ -10,7 +10,6 @@ import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import { useResizeHandle } from "~/hooks/useResizeHandle";
 import useStores from "~/hooks/useStores";
 import { useSwipeToDismiss } from "~/hooks/useSwipeToDismiss";
 import AccountMenu from "~/menus/AccountMenu";
@@ -18,13 +17,9 @@ import { fadeOnDesktopBackgrounded } from "~/styles";
 import { drawerTransition } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import { TooltipProvider } from "../TooltipContext";
-import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
-import ToggleButton from "./components/ToggleButton";
 import { useTranslation } from "react-i18next";
 import { useDirection } from "@radix-ui/react-direction";
-
-const ANIMATION_MS = 250;
 
 type Props = {
   /** Whether to hide the sidebar content (sets opacity to 0). */
@@ -52,7 +47,6 @@ function Sidebar({
   className,
   ref,
 }: Props) {
-  const [isCollapsing, setCollapsing] = React.useState(false);
   const { t } = useTranslation();
   const theme = useTheme();
   const { ui } = useStores();
@@ -62,92 +56,18 @@ function Sidebar({
   const width = ui.sidebarWidth;
   const sidebarIsClosed = ui.sidebarIsClosed;
   const collapsed = sidebarIsClosed && canCollapse;
-  const maxWidth = theme.sidebarMaxWidth;
-  const minWidth = theme.sidebarResizeMinWidth;
   const direction = useDirection();
 
-  const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
-  const [isAnimating, setAnimating] = React.useState(false);
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
-  const isSmallerThanMinimum = width < minWidth;
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const internalRef = React.useRef<HTMLDivElement | null>(null);
   const backdropRef = React.useRef<HTMLAnchorElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
 
-  const measure = React.useCallback(
-    (event: MouseEvent) =>
-      direction === "rtl" ? offset - event.pageX : event.pageX - offset,
-    [offset, direction]
-  );
-
-  const handleResize = React.useCallback(
-    (newWidth: number) => {
-      const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
-
-      if (canCollapse) {
-        ui.set({
-          sidebarWidth: isSmallerThanCollapsePoint
-            ? theme.sidebarCollapsedWidth
-            : newWidth,
-        });
-      } else {
-        ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
-      }
-    },
-    [ui, theme, minWidth, canCollapse]
-  );
-
-  const handleResizeEnd = React.useCallback(() => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
-    if (isSmallerThanMinimum) {
-      const isSmallerThanCollapsePoint = width < minWidth / 2;
-
-      if (isSmallerThanCollapsePoint && canCollapse) {
-        setAnimating(false);
-        setCollapsing(true);
-        ui.collapseSidebar();
-      } else {
-        ui.set({ sidebarWidth: minWidth });
-        setAnimating(true);
-      }
-    } else if (width > maxWidth) {
-      ui.set({ sidebarWidth: maxWidth });
-      setAnimating(true);
-    }
-  }, [ui, isSmallerThanMinimum, minWidth, maxWidth, width, canCollapse]);
-
-  // The lower bound is the collapse gesture rather than a stop, so only the maximum is stretchable.
-  const { isResizing, startResize } = useResizeHandle({
-    measure,
-    onResize: handleResize,
-    onResizeEnd: handleResizeEnd,
-    max: maxWidth,
-  });
-
   const handleBlur = React.useCallback(() => {
     setHovering(false);
   }, []);
-
-  const handleMouseDown = React.useCallback(
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-      if (!document.hasFocus()) {
-        return;
-      }
-
-      setOffset(
-        direction === "rtl" ? event.pageX + width : event.pageX - width
-      );
-      setAnimating(false);
-      startResize(event);
-    },
-    [width, direction, startResize]
-  );
 
   const handlePointerActivity = React.useCallback(
     (event: React.PointerEvent) => {
@@ -226,30 +146,7 @@ function Sidebar({
     return () => observer.disconnect();
   }, []);
 
-  React.useEffect(() => {
-    if (isAnimating) {
-      setTimeout(() => setAnimating(false), ANIMATION_MS);
-    }
-  }, [isAnimating]);
-
-  React.useEffect(() => {
-    if (isCollapsing) {
-      setTimeout(() => {
-        ui.set({ sidebarWidth: minWidth });
-        setCollapsing(false);
-      }, ANIMATION_MS);
-    }
-  }, [ui, minWidth, isCollapsing]);
-
   useEventListener("blur", handleBlur);
-
-  const handleReset = React.useCallback(() => {
-    ui.set({ sidebarWidth: theme.sidebarWidth });
-  }, [ui, theme.sidebarWidth]);
-
-  React.useEffect(() => {
-    ui.setSidebarResizing(isResizing);
-  }, [ui, isResizing]);
 
   // Subscribe to history rather than the location, so that the sidebar does
   // not re-render on every navigation.
@@ -296,8 +193,6 @@ function Sidebar({
           style={style}
           $hidden={hidden}
           $isHovering={isHovering}
-          $isAnimating={isAnimating}
-          $isSmallerThanMinimum={isSmallerThanMinimum}
           $mobileSidebarVisible={ui.mobileSidebarVisible}
           $collapsed={collapsed}
           $isMobile={isMobile}
@@ -326,12 +221,6 @@ function Sidebar({
                 {accountActions}
               </SidebarButton>
             </AccountMenu>
-          )}
-          {!isMobile && (
-            <ResizeBorder
-              onMouseDown={handleMouseDown}
-              onDoubleClick={sidebarIsClosed ? undefined : handleReset}
-            />
           )}
         </Container>
         <Backdrop
@@ -365,8 +254,6 @@ const Backdrop = styled.a<{ $visible: boolean }>`
 
 type ContainerProps = {
   $mobileSidebarVisible: boolean;
-  $isAnimating: boolean;
-  $isSmallerThanMinimum: boolean;
   $isHovering: boolean;
   $collapsed: boolean;
   $hidden: boolean;
@@ -375,17 +262,7 @@ type ContainerProps = {
 
 const hoverStyles = (props: ContainerProps) => `
   transform: none !important;
-  box-shadow: ${
-    props.$collapsed
-      ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
-      : props.$isSmallerThanMinimum
-        ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-        : "none"
-  };
-
-  ${ToggleButton} {
-    opacity: 1;
-  }
+  box-shadow: ${props.$collapsed ? "rgba(0, 0, 0, 0.2) 1px 0 4px" : "none"};
 `;
 
 const Container = styled(Flex)<ContainerProps>`
@@ -397,9 +274,7 @@ const Container = styled(Flex)<ContainerProps>`
   background: ${s("sidebarBackground")};
   transition:
     box-shadow 150ms ease-in-out,
-    transform ${drawerTransition}
-      ${(props: ContainerProps) =>
-        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
+    transform ${drawerTransition};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
@@ -489,8 +364,7 @@ const Container = styled(Flex)<ContainerProps>`
     min-width: 0;
     transition:
       box-shadow 150ms ease-in-out,
-      transform 150ms ease-out${(props: ContainerProps) =>
-        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
+      transform 150ms ease-out;
     transform: translateX(${(props: ContainerProps) =>
       props.$collapsed
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
@@ -502,12 +376,6 @@ const Container = styled(Flex)<ContainerProps>`
     }
 
     ${(props: ContainerProps) => props.$isHovering && hoverStyles(props)}
-
-    &:hover {
-      ${ToggleButton} {
-        opacity: 1;
-      }
-    }
 
     &:focus-within {
       ${hoverStyles}

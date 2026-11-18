@@ -46,7 +46,6 @@ type PersistedData = Pick<
   | "startHereDismissed"
   | "rightSidebar"
   | "theme"
-  | "sidebarWidth"
   | "sidebarRightWidth"
   | "sidebarCollapsed"
   | "tocVisible"
@@ -93,8 +92,7 @@ class UiStore {
   @observable
   mobileSidebarVisible = false;
 
-  @observable
-  sidebarWidth: number = defaultTheme.sidebarWidth;
+  readonly sidebarWidth: number = defaultTheme.sidebarWidth;
 
   @observable
   sidebarRightWidth: number = defaultTheme.sidebarRightWidth;
@@ -121,9 +119,6 @@ class UiStore {
   // persisted, reset when the split view closes.
   @observable
   splitViewRatio = 0.5;
-
-  @observable
-  sidebarIsResizing = false;
 
   @observable
   debugSafeArea = false;
@@ -174,11 +169,6 @@ class UiStore {
     // or the bounds themselves may have since changed.
     const { sidebarResizeMinWidth: minWidth, sidebarMaxWidth: maxWidth } =
       defaultTheme;
-    this.sidebarWidth = clamp(
-      data.sidebarWidth || defaultTheme.sidebarWidth,
-      minWidth,
-      maxWidth
-    );
     this.sidebarRightWidth = clamp(
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth,
       minWidth,
@@ -396,11 +386,6 @@ class UiStore {
     }
   };
 
-  @action
-  setSidebarResizing = (sidebarIsResizing: boolean): void => {
-    this.sidebarIsResizing = sidebarIsResizing;
-  };
-
   /**
    * Sets the fraction of the split view's width occupied by the primary pane,
    * clamped so that neither pane becomes unusably narrow.
@@ -598,7 +583,6 @@ class UiStore {
       tocVisible: this.tocVisible,
       fontScale: this.fontScale,
       sidebarCollapsed: this.sidebarCollapsed,
-      sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       startHereDismissed: this.startHereDismissed,

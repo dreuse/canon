@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
-import { ActionSeparator, createRootMenuAction, resolve } from "~/actions";
+import { createRootMenuAction, resolve } from "~/actions";
 import {
   VoChevronDownIcon,
   VoChevronRightIcon,
@@ -16,7 +16,6 @@ import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
 import type { Action, ActionVariant } from "~/types";
 import SidebarLink from "./SidebarLink";
-import { SidebarSectionContext } from "./DraggableSection";
 import { hoveredOrMenuOpen } from "./SidebarActions";
 
 type Props = {
@@ -51,20 +50,11 @@ export const Header: React.FC<Props> = ({
   const { t } = useTranslation();
   const actionContext = useActionContext({ isButton: true });
   const [firstRender, setFirstRender] = React.useState(true);
-  const sectionContext = React.useContext(SidebarSectionContext);
-  const dragRef = sectionContext?.dragRef;
-  const sectionActions = sectionContext?.menuActions;
-  const hasMenu = !!(actions?.length || sectionActions?.length);
+  const hasMenu = !!actions?.length;
 
-  // Dangling separators are trimmed when the menu items are rendered.
   const menuAction = React.useMemo(
-    () =>
-      createRootMenuAction([
-        ...(actions ?? []),
-        ActionSeparator,
-        ...(sectionActions ?? []),
-      ]),
-    [actions, sectionActions]
+    () => createRootMenuAction(actions ?? []),
+    [actions]
   );
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
@@ -85,7 +75,6 @@ export const Header: React.FC<Props> = ({
     return (
       <SidebarLink
         onClick={handleClick}
-        innerRef={dragRef ? (element) => dragRef(element ?? null) : undefined}
         icon={icon}
         label={title}
         contextAction={hasMenu ? menuAction : undefined}
@@ -105,7 +94,7 @@ export const Header: React.FC<Props> = ({
         action={hasMenu ? menuAction : undefined}
         ariaLabel={t("Section options")}
       >
-        <H3 ref={dragRef}>
+        <H3>
           <Button onClick={handleClick} disabled={!id}>
             {title}
             {id && <Disclosure $expanded={expanded} size={16} />}
