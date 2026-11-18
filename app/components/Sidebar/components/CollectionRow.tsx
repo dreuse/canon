@@ -1,17 +1,19 @@
 import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PadlockIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
+import styled from "styled-components";
 import type { match } from "react-router";
+import { useSurface } from "@shared/components/SurfaceContext";
+import { resolveIconColor } from "@shared/utils/iconColor";
 import { isTouchDevice } from "@shared/utils/browser";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
@@ -91,6 +93,62 @@ export type CollectionRowProps = {
    */
   children: (newChild: React.ReactNode) => React.ReactNode;
 };
+
+const DOT_SIZE = 10;
+const DOT_RADIUS = 3;
+const DOT_MARGIN = 3;
+const LOCK_SIZE = 20;
+const LOCK_START_MARGIN = 8;
+
+const Dot = styled.span<{ $color?: string }>`
+  width: ${DOT_SIZE}px;
+  height: ${DOT_SIZE}px;
+  border-radius: ${DOT_RADIUS}px;
+  margin: 0 ${DOT_MARGIN}px;
+  flex: none;
+  background: ${(props) => props.$color ?? props.theme.textTertiary};
+`;
+
+const Lock = styled.span`
+  display: flex;
+  align-self: center;
+  flex: none;
+  margin-inline-start: ${LOCK_START_MARGIN}px;
+  color: ${(props) => props.theme.textTertiary};
+
+  svg {
+    fill: currentColor;
+  }
+`;
+
+/**
+ * Small colour dot that stands in for a collection icon in the sidebar.
+ *
+ * @param color the collection colour, or undefined for the default text tone.
+ */
+export function CollectionDot({ color }: { color?: string | null }) {
+  const surface = useSurface();
+
+  return (
+    <Dot
+      data-testid="collection-dot"
+      $color={color ? resolveIconColor(color, surface) : undefined}
+    />
+  );
+}
+
+/**
+ * Padlock shown on the trailing side of a private collection row.
+ */
+export function PrivateLock() {
+  const { t } = useTranslation();
+
+  return (
+    <Lock role="img" aria-label={t("Private collection")}>
+      <PadlockIcon size={LOCK_SIZE} />
+    </Lock>
+  );
+}
 
 function CollectionRow({
   collection,
@@ -182,9 +240,8 @@ function CollectionRow({
     collection.displayName
   );
 
-  const iconElement = icon ?? (
-    <CollectionIcon collection={collection} expanded={expanded} />
-  );
+  const iconElement = icon ?? <CollectionDot color={collection.color} />;
+  const lockElement = collection.isPrivate ? <PrivateLock /> : undefined;
 
   // Touch devices cannot hover to reveal the actions, so the new doc button
   // stays on screen in place of the other actions.
@@ -245,6 +302,8 @@ function CollectionRow({
       expanded={expanded}
       onDisclosureClick={onDisclosureClick}
       icon={iconElement}
+      compactIcon={!icon}
+      trailing={lockElement}
       isActive={isActiveOverride ?? defaultIsActive}
       isActiveDrop={isActiveDropTarget}
       label={labelElement}

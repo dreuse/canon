@@ -956,6 +956,7 @@
   "The document archive is empty at the moment.": "O arquivo de documento está vazio no momento.",
   "Done editing": "Edição concluída",
   "Private": "Privado",
+  "Private collection": "Coleção privada",
   "Drop documents to import": "Solte documentos para importar",
   "{{ usersCount }} users and {{ groupsCount }} groups with access": "{{ usersCount }} usuário e {{ groupsCount }} grupos com acesso",
   "{{ usersCount }} users and {{ groupsCount }} groups with access_plural": "{{ usersCount }} usuários e {{ groupsCount }} grupos com acesso",

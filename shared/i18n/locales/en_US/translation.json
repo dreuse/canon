@@ -713,6 +713,7 @@
   "See all {{ total }}": "See all {{ total }}",
   "{{ remaining }} more": "{{ remaining }} more",
   "{{ remaining }} more_plural": "{{ remaining }} more",
+  "Private collection": "Private collection",
   "New doc": "New doc",
   "New nested document": "New nested document",
   "No collections": "No collections",

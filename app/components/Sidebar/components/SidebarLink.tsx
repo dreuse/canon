@@ -62,6 +62,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   onDisclosureClick?: React.MouseEventHandler<HTMLElement>;
   /** Icon to display on the left side of the link */
   icon?: React.ReactNode;
+  /** Size the icon slot to its content instead of the fixed 24px box */
+  compactIcon?: boolean;
   /** Text label or content to display for the link */
   label?: React.ReactNode;
   /** Optional menu to display on hover or interaction */
@@ -122,6 +124,7 @@ const stopPropagation = (ev: React.MouseEvent) => {
 
 function SidebarLink({
   icon,
+  compactIcon,
   onClick,
   onClickIntent,
   to,
@@ -247,7 +250,11 @@ function SidebarLink({
           tabIndex={-1}
         />
       )}
-      {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
+      {icon && (
+        <IconWrapper aria-hidden $compact={compactIcon}>
+          {icon}
+        </IconWrapper>
+      )}
       <Tooltip content={truncatedLabel} side="right" delayDuration={500}>
         <Label ref={labelRef} $ellipsis={ellipsis}>
           {label}
@@ -325,13 +332,17 @@ function SidebarLink({
   );
 }
 
+const ICON_BOX_SIZE = 24;
+const ICON_MARGIN = 6;
+const COMPACT_ICON_MARGIN = 3;
+
 // accounts for whitespace around icon
-export const IconWrapper = styled.span`
+export const IconWrapper = styled.span<{ $compact?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-inline-end: 6px;
-  width: 24px;
+  margin-inline-end: ${(props) => (props.$compact ? COMPACT_ICON_MARGIN : ICON_MARGIN)}px;
+  width: ${(props) => (props.$compact ? "auto" : `${ICON_BOX_SIZE}px`)};
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;

@@ -12,8 +12,6 @@ import { sortCollection } from "~/actions/definitions/collections";
 import { DocumentSection } from "~/actions/sections";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Flex from "~/components/Flex";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { VoCollectionIcon } from "~/components/Icons/VobysIcons";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -26,6 +24,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSyncSidebarContext } from "~/hooks/useSyncSidebarContext";
 import { documentEditPath } from "~/utils/routeHelpers";
+import { CollectionDot, PrivateLock } from "./CollectionRow";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import { getHeaderExpandedKey } from "./Header";
 import Relative from "./Relative";
@@ -190,13 +189,9 @@ export const PersonalDocs = observer(function PersonalDocs() {
             }
             onDisclosureClick={handleToggle}
             expanded={expanded}
-            icon={
-              collection ? (
-                <CollectionIcon collection={collection} />
-              ) : (
-                <VoCollectionIcon />
-              )
-            }
+            icon={<CollectionDot color={collection?.color} />}
+            compactIcon
+            trailing={<PrivateLock />}
             label={t("Personal")}
             depth={0}
           />
