@@ -214,6 +214,17 @@ export const findSavedPalette = (
 };
 
 /**
+ * Names the palette card to show as chosen for a custom theme.
+ *
+ * @param custom the custom theme, if any.
+ * @returns the default palette name when no accent is set, the preset name for a preset pair, or undefined for a custom pair.
+ */
+export const checkedPaletteName = (
+  custom: Partial<CustomTheme> | undefined
+): PaletteName | undefined =>
+  custom?.accent ? findSavedPalette(custom)?.name : violetPalette.name;
+
+/**
  * Resolves the accent tokens for a theme from the saved custom theme. A saved
  * palette resolves to its tuned pair, a custom accent renders as saved, and
  * a mode with no saved accent resolves to the default palette.

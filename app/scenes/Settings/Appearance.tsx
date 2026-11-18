@@ -8,7 +8,6 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled, { ThemeProvider } from "styled-components";
 import { errToString } from "@shared/utils/error";
-import { s } from "@shared/styles";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import {
   BodyFontFamilyStacks,
@@ -17,9 +16,9 @@ import {
 import { ON_ACCENT, checkAccent } from "@shared/styles/customAccent";
 import type { Palette, PaletteName } from "@shared/styles/palettes";
 import {
-  palettes,
   paletteToCustomTheme,
   findSavedPalette,
+  checkedPaletteName,
   resolveAccent,
 } from "@shared/styles/palettes";
 import type { CustomTheme } from "@shared/types";
@@ -45,11 +44,17 @@ import {
   getAccentBlockReason,
   getAccentFills,
 } from "./components/CustomAccentEditor";
+import {
+  AccentPaletteCards,
+  AccentPalettePreview,
+} from "./components/AccentPaletteCards";
 import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
 
 import { SettingsTitle } from "./components/SettingsTitle";
 const DEFAULT_CODE_THEME = "default";
+const ACCENT_HEADING_ID = "accent-heading";
+const PREVIEW_HEADING_ID = "preview-heading";
 
 function readSavedDraft(team: ReturnType<typeof useCurrentTeam>) {
   const customTheme = team.preferences?.customTheme;
@@ -108,9 +113,6 @@ function Appearance() {
     setAccentDark(next.accentDark);
     setAccentTextDark(next.accentTextDark);
   }, []);
-
-  const isPaletteSelected = (palette: Palette) =>
-    accent?.toLowerCase() === palette.light.fill.toLowerCase();
 
   const [bodyFontFamily, setBodyFontFamily] = useState(saved.bodyFontFamily);
   const [monospaceFontFamily, setMonospaceFontFamily] = useState(
@@ -463,27 +465,6 @@ function Appearance() {
     setAccentTextDark(null);
   }, []);
 
-  const renderSample = (
-    sample: ReturnType<typeof buildLightTheme>,
-    dark: boolean
-  ) => (
-    <PreviewCard $bg={sample.background} $text={sample.text} $divided={dark}>
-      <PreviewTitle>{team.name}</PreviewTitle>
-      <PreviewMeta $color={sample.textSecondary}>
-        <PreviewLink $color={sample.link}>{t("All collections")}</PreviewLink>
-        {` · ${t("updated today")}`}
-      </PreviewMeta>
-      <PreviewButtons>
-        <PreviewPrimary $bg={sample.accent} $fg={sample.accentText}>
-          {t("Publish")}
-        </PreviewPrimary>
-        <PreviewSecondary $border={sample.divider} $fg={sample.text}>
-          {t("Share")}
-        </PreviewSecondary>
-      </PreviewButtons>
-    </PreviewCard>
-  );
-
   return (
     <ThemeProvider theme={newTheme}>
       <Scene title={t("Appearance")} icon={<PaletteIcon />}>
@@ -495,47 +476,28 @@ function Appearance() {
         </SettingsTitle>
 
         <form onSubmit={handleSubmit}>
-          <SettingGroup>{t("Palette")}</SettingGroup>
-          <PaletteBlock>
-            <PaletteFields>
-              <Palettes>
-                {palettes.map((palette) => (
-                  <Swatch
-                    key={palette.name}
-                    type="button"
-                    aria-label={palette.name}
-                    aria-pressed={isPaletteSelected(palette)}
-                    $color={palette.light.fill}
-                    $selected={isPaletteSelected(palette)}
-                    onClick={() => handlePaletteSelect(palette)}
-                  />
-                ))}
-              </Palettes>
+          <AccentSection aria-labelledby={ACCENT_HEADING_ID}>
+            <SectionHeading id={ACCENT_HEADING_ID}>
+              {t("Accent color")}
+            </SectionHeading>
+            <Text as="p" type="secondary">
+              {t(
+                "Appears on primary buttons, links, focus and the active item. Each palette has a tone tuned for each theme, and all pass 4.5:1."
+              )}
+            </Text>
+            <AccentPaletteCards
+              labelledBy={ACCENT_HEADING_ID}
+              checked={checkedPaletteName(customTheme)}
+              onSelect={handlePaletteSelect}
+            />
+            {accent && (
               <Text as="p" type="secondary" size="small">
-                {t(
-                  "A preset is a pair — one accent for light, one lifted for dark."
-                )}{" "}
-                {accent && (
-                  <ButtonLink onClick={handleResetTheme}>
-                    {t("Reset theme")}
-                  </ButtonLink>
-                )}
+                <ButtonLink onClick={handleResetTheme}>
+                  {t("Reset theme")}
+                </ButtonLink>
               </Text>
-            </PaletteFields>
-
-            <PreviewColumn>
-              <PreviewLabel>{t("Preview")}</PreviewLabel>
-              <PreviewFrame>
-                {renderSample(lightPreview, false)}
-                {renderSample(darkPreview, true)}
-              </PreviewFrame>
-              <Text as="p" type="secondary" size="small">
-                {t(
-                  "Both themes, always. An accent is only correct if it is correct twice."
-                )}
-              </Text>
-            </PreviewColumn>
-          </PaletteBlock>
+            )}
+          </AccentSection>
 
           <SettingRow
             border={false}
@@ -565,6 +527,19 @@ function Appearance() {
               onDarkChange={handleDarkChange}
             />
           )}
+
+          <PreviewSection aria-labelledby={PREVIEW_HEADING_ID}>
+            <SectionHeading id={PREVIEW_HEADING_ID}>
+              {t("Preview")}
+            </SectionHeading>
+            <Text as="p" type="secondary">
+              {t("The same color in both themes, as members will see it.")}
+            </Text>
+            <AccentPalettePreview
+              lightTheme={lightPreview}
+              darkTheme={darkPreview}
+            />
+          </PreviewSection>
 
           <SettingGroup>{t("Reading")}</SettingGroup>
           <SettingRow
@@ -669,115 +644,16 @@ function Appearance() {
 
 export default observer(Appearance);
 
-const Palettes = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
+const AccentSection = styled.section`
+  margin-top: 24px;
 `;
 
-const Swatch = styled.button<{ $color: string; $selected: boolean }>`
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  border-radius: 6px;
-  cursor: var(--pointer);
-  background: ${(props) => props.$color};
-  border: 2px solid
-    ${(props) => (props.$selected ? props.theme.text : "transparent")};
-  box-shadow: inset 0 0 0 1px ${s("inputBorder")};
-
-  &:focus-visible {
-    outline: 2px solid ${s("selected")};
-    outline-offset: 2px;
-  }
+const PreviewSection = styled.section`
+  margin-top: 45px;
 `;
 
-const PaletteBlock = styled.div`
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
-  padding-block: 20px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 20px;
-  }
-`;
-
-const PaletteFields = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const PreviewColumn = styled.div`
-  flex: 0 0 300px;
-  width: 300px;
-
-  @media (max-width: 768px) {
-    flex: 1 1 auto;
-    width: 100%;
-  }
-`;
-
-const PreviewLabel = styled.p`
-  margin: 0 0 6px;
-  font-size: 13px;
-  color: ${s("textSecondary")};
-`;
-
-const PreviewFrame = styled.div`
-  border: 1px solid ${s("divider")};
-  border-radius: 9px;
-  overflow: hidden;
-`;
-
-const PreviewCard = styled.div<{
-  $bg: string;
-  $text: string;
-  $divided: boolean;
-}>`
-  padding: 12px 13px;
-  background: ${(props) => props.$bg};
-  color: ${(props) => props.$text};
-  border-top: ${(props) => (props.$divided ? "1px solid" : "0")};
-  border-color: ${s("divider")};
-`;
-
-const PreviewTitle = styled.div`
-  font-size: 14px;
+const SectionHeading = styled.h2`
+  margin: 0 0 4px;
+  font-size: 16px;
   font-weight: 600;
-`;
-
-const PreviewMeta = styled.div<{ $color: string }>`
-  margin-top: 3px;
-  font-size: 12.5px;
-  color: ${(props) => props.$color};
-`;
-
-const PreviewLink = styled.span<{ $color: string }>`
-  color: ${(props) => props.$color};
-`;
-
-const PreviewButtons = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-`;
-
-const PreviewPrimary = styled.span<{ $bg: string; $fg: string }>`
-  padding: 5px 11px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
-  background: ${(props) => props.$bg};
-  color: ${(props) => props.$fg};
-`;
-
-const PreviewSecondary = styled.span<{ $border: string; $fg: string }>`
-  padding: 5px 11px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  border: 1px solid ${(props) => props.$border};
-  color: ${(props) => props.$fg};
 `;
