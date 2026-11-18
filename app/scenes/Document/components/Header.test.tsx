@@ -32,6 +32,8 @@ const COLLECTION_NAME = "Engineering";
 const PRIMARY_SELECTOR = '[data-variant="primary"]';
 const DECREASE_LABEL = "Decrease text size";
 const INCREASE_LABEL = "Increase text size";
+const HEADER_MARGIN_RULE =
+  "margin-inline-end:calc(-1 * var(--comments-margin-width, 0px))";
 
 vi.mock("react-use-measure", () => ({
   default: () => [() => undefined, MEASURED_SIZE],
@@ -188,6 +190,15 @@ describe("Document header", () => {
     runInAction(() => {
       stores.ui.fontScale = FONT_SCALE_DEFAULT;
     });
+  });
+
+  it("R37 extends the header over the comments margin to the window edge", () => {
+    renderHeader({ abilities: { update: true } });
+    const rules = Array.from(document.querySelectorAll("style"))
+      .map((style) => style.textContent ?? "")
+      .join("");
+
+    expect(rules.includes(HEADER_MARGIN_RULE)).toBe(true);
   });
 
   it("R07 renders every breadcrumb level", () => {

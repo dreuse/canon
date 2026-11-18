@@ -10,12 +10,14 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import styled, { createGlobalStyle } from "styled-components";
+import { HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ProsemirrorData } from "@shared/types";
 import type Document from "~/models/Document";
 import { useDocumentContext } from "~/components/DocumentContext";
 import {
+  MARGIN_CARD_GAP,
   layoutMarginCards,
   measureAnchorTop,
 } from "~/editor/components/marginLayout";
@@ -45,6 +47,8 @@ const EDITOR_MUTATION_OPTIONS: MutationObserverInit = {
 };
 
 const CARD_FADE_DELAY_SECONDS = 0.2;
+const CARDS_MIN_TOP = HEADER_HEIGHT + MARGIN_CARD_GAP;
+const MARGIN_WIDTH_PROPERTY = "--comments-margin-width";
 const FORM_ID = "new-comment-form";
 const LINK_ID = "resolved-link";
 
@@ -288,7 +292,7 @@ export const CommentsMargin = observer(function CommentsMargin({
         height: linkRef.current.offsetHeight,
       });
     }
-    const cardTops = layoutMarginCards(cards);
+    const cardTops = layoutMarginCards(cards, MARGIN_CARD_GAP, CARDS_MIN_TOP);
 
     measuredIds.current.clear();
     cards.forEach(({ id, element, height }, index) => {
@@ -343,6 +347,27 @@ export const CommentsMargin = observer(function CommentsMargin({
     isEditorInitialized,
     can.comment,
   ]);
+
+  useLayoutEffect(() => {
+    const slot = slotRef.current;
+    const host = slot?.parentElement;
+    if (!slot || !host) {
+      return;
+    }
+    const publishWidth = () =>
+      host.style.setProperty(
+        MARGIN_WIDTH_PROPERTY,
+        `${slot.getBoundingClientRect().width}px`
+      );
+    const resizeObserver = new ResizeObserver(publishWidth);
+    resizeObserver.observe(slot);
+    publishWidth();
+
+    return () => {
+      resizeObserver.disconnect();
+      host.style.removeProperty(MARGIN_WIDTH_PROPERTY);
+    };
+  }, []);
 
   return (
     <Slot
@@ -446,6 +471,7 @@ const Card = styled(m.div)`
   visibility: hidden;
   inset-inline: 0 var(--margin-card-end-gap);
   border-radius: 8px;
+  scroll-margin-top: ${CARDS_MIN_TOP}px;
 
   &:focus-visible {
     outline: 2px solid ${s("accent")};

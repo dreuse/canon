@@ -69,6 +69,27 @@ describe("layoutMarginCards", () => {
     expect(tops).toEqual([0]);
   });
 
+  it("R37 keeps every card below the minimum top", () => {
+    const minTop = 68;
+    const tops = layoutMarginCards(
+      [
+        { anchorTop: 10, height: 40 },
+        { anchorTop: 300, height: 40 },
+        { anchorTop: null, height: 40 },
+      ],
+      MARGIN_CARD_GAP,
+      minTop
+    );
+
+    expect(tops).toEqual([minTop, 300, 300 + 40 + MARGIN_CARD_GAP]);
+  });
+
+  it("R37 starts an orphan at the minimum top", () => {
+    expect(
+      layoutMarginCards([{ anchorTop: null, height: 40 }], MARGIN_CARD_GAP, 68)
+    ).toEqual([68]);
+  });
+
   it("R04 returns no tops for no cards", () => {
     expect(layoutMarginCards([])).toEqual([]);
   });

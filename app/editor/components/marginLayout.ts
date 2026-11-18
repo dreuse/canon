@@ -11,15 +11,17 @@ interface MarginCard {
 /**
  * Computes the top of each margin card. A card sits level with its anchor,
  * moves below the previous card when they would overlap, and cards without an
- * anchor stack after every anchored card.
+ * anchor stack after every anchored card. No card sits above the minimum top.
  *
  * @param cards the cards in any order, each with its anchor top and height.
  * @param gap the space kept between stacked cards.
+ * @param minTop the lowest top a card may take.
  * @returns the top of each card, in the order the cards were given.
  */
 export function layoutMarginCards(
   cards: MarginCard[],
-  gap = MARGIN_CARD_GAP
+  gap = MARGIN_CARD_GAP,
+  minTop = 0
 ): number[] {
   const tops = Array.from({ length: cards.length }, () => 0);
   const anchored = cards
@@ -30,10 +32,10 @@ export function layoutMarginCards(
     .map((card, index) => ({ card, index }))
     .filter(({ card }) => typeof card.anchorTop !== "number");
 
-  let nextFree = 0;
+  let nextFree = minTop;
 
   [...anchored, ...orphans].forEach(({ card, index }) => {
-    const top = Math.max(card.anchorTop ?? 0, nextFree);
+    const top = Math.max(card.anchorTop ?? minTop, nextFree);
     tops[index] = top;
     nextFree = top + card.height + gap;
   });

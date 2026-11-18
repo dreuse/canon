@@ -1,9 +1,10 @@
-import { act, render, renderHook } from "@testing-library/react";
+import { act, cleanup, render, renderHook } from "@testing-library/react";
 import { runInAction } from "mobx";
 import { Provider } from "mobx-react";
 import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { vi } from "vitest";
+import { HEADER_HEIGHT } from "@shared/constants";
 import { UserRole } from "@shared/types";
 import { light } from "@shared/styles/theme";
 import {
@@ -28,11 +29,16 @@ const COMMENT_DATA = { type: "doc", content: [{ type: "paragraph" }] };
 const CARD_HEIGHT = 100;
 const GROWN_HEIGHT = 160;
 const SHIFT = 40;
+const ANCHOR_START = 200;
+const CARDS_MIN_TOP = HEADER_HEIGHT + MARGIN_CARD_GAP;
 const FORM_SELECTOR = "[data-margin-form]";
 const SLOT_SELECTOR = "[data-margin-slot]";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const CENTRED_MARGIN_TOTAL_WIDTH = 340;
 const SPRING_BOUNCE = 0.2;
+const MARGIN_WIDTH_PROPERTY = "--comments-margin-width";
+const LIVE_SLOT_WIDTH = 123;
+const CARD_SCROLL_MARGIN_RULE = `scroll-margin-top:${CARDS_MIN_TOP}px;`;
 
 type ObserverCallback = () => void;
 
@@ -225,7 +231,7 @@ describe("CommentsMargin placement", () => {
     anchorReads = 0;
     THREAD_IDS.forEach((id, index) => {
       cardHeights.set(id, CARD_HEIGHT);
-      addAnchor(id, index * 300);
+      addAnchor(id, ANCHOR_START + index * 300);
     });
     stubOffsetHeight();
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
@@ -258,47 +264,56 @@ describe("CommentsMargin placement", () => {
 
   it("R35 applies new tops in the DOM when a resize observer reports, before any frame", async () => {
     await renderMargin();
-    anchorTops.set(THREAD_IDS[1], 300 + SHIFT);
+    anchorTops.set(THREAD_IDS[1], ANCHOR_START + 300 + SHIFT);
 
     fireResizeObservers();
 
-    expect(topOf(getCard(THREAD_IDS[1]))).toBe(300 + SHIFT);
+    expect(topOf(getCard(THREAD_IDS[1]))).toBe(ANCHOR_START + 300 + SHIFT);
     expect(frameCallbacks).toHaveLength(0);
   });
 
   it("R35 applies new tops in the DOM when the editor changes, before any frame", async () => {
     await renderMargin();
-    anchorTops.set(THREAD_IDS[2], 600 + SHIFT);
+    anchorTops.set(THREAD_IDS[2], ANCHOR_START + 600 + SHIFT);
 
     await act(async () => {
       editorDom.appendChild(document.createElement("p"));
       await Promise.resolve();
     });
 
-    expect(topOf(getCard(THREAD_IDS[2]))).toBe(600 + SHIFT);
+    expect(topOf(getCard(THREAD_IDS[2]))).toBe(ANCHOR_START + 600 + SHIFT);
   });
 
   it("R35 applies new tops in the DOM on window resize, before any frame", async () => {
     await renderMargin();
-    anchorTops.set(THREAD_IDS[0], 50);
+    anchorTops.set(THREAD_IDS[0], ANCHOR_START + 50);
 
     window.dispatchEvent(new Event("resize"));
 
-    expect(topOf(getCard(THREAD_IDS[0]))).toBe(50);
+    expect(topOf(getCard(THREAD_IDS[0]))).toBe(ANCHOR_START + 50);
   });
 
   it("R35 moves the cards below in the same pass when a card grows", async () => {
-    THREAD_IDS.forEach((id) => anchorTops.set(id, 0));
+    THREAD_IDS.forEach((id) => anchorTops.set(id, CARDS_MIN_TOP));
     await renderMargin();
     cardHeights.set(THREAD_IDS[0], GROWN_HEIGHT);
 
     fireResizeObservers();
 
-    expect(topOf(getCard(THREAD_IDS[1]))).toBe(GROWN_HEIGHT + MARGIN_CARD_GAP);
+    expect(topOf(getCard(THREAD_IDS[1]))).toBe(
+      CARDS_MIN_TOP + GROWN_HEIGHT + MARGIN_CARD_GAP
+    );
     expect(topOf(getCard(THREAD_IDS[2]))).toBe(
-      GROWN_HEIGHT + CARD_HEIGHT + MARGIN_CARD_GAP * 2
+      CARDS_MIN_TOP + GROWN_HEIGHT + CARD_HEIGHT + MARGIN_CARD_GAP * 2
     );
     expect(visibleCardsOverlap()).toBe(false);
+  });
+
+  it("R37 keeps the first card below the document header", async () => {
+    THREAD_IDS.forEach((id) => anchorTops.set(id, 0));
+    await renderMargin();
+
+    expect(topOf(getCard(THREAD_IDS[0]))).toBeGreaterThan(HEADER_HEIGHT);
   });
 
   it("R35 keeps a card hidden until it has a height", async () => {
@@ -321,7 +336,7 @@ describe("CommentsMargin placement", () => {
   });
 
   it("R35 keeps cards from overlapping while heights settle", async () => {
-    THREAD_IDS.forEach((id) => anchorTops.set(id, 0));
+    THREAD_IDS.forEach((id) => anchorTops.set(id, CARDS_MIN_TOP));
     await renderMargin();
 
     [135, 120, 165].forEach((height) => {
@@ -386,7 +401,7 @@ describe("CommentsMargin motion", () => {
     frameCallbacks = [];
     THREAD_IDS.forEach((id, index) => {
       cardHeights.set(id, CARD_HEIGHT);
-      addAnchor(id, index * 300);
+      addAnchor(id, ANCHOR_START + index * 300);
     });
     stubOffsetHeight();
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
@@ -458,5 +473,82 @@ describe("CommentsMargin motion", () => {
     expect(getSlot().style.width).toBe(`${CENTRED_MARGIN_TOTAL_WIDTH}px`);
     expect(getSlot().style.opacity).toBe("1");
     expect(getCard(THREAD_IDS[0]).style.opacity).toBe("1");
+  });
+});
+
+describe("CommentsMargin header offset", () => {
+  const originalGetBoundingClientRect =
+    HTMLElement.prototype.getBoundingClientRect;
+
+  beforeEach(() => {
+    resizeCallbacks.length = 0;
+    cardHeights.clear();
+    anchorTops.clear();
+    THREAD_IDS.forEach((id, index) => {
+      cardHeights.set(id, CARD_HEIGHT);
+      addAnchor(id, ANCHOR_START + index * 300);
+    });
+    stubOffsetHeight();
+    seedStores();
+    HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
+      return this.hasAttribute("data-margin-slot")
+        ? ({ width: LIVE_SLOT_WIDTH, top: 0 } as DOMRect)
+        : originalGetBoundingClientRect.call(this);
+    };
+  });
+
+  afterEach(() => {
+    HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    anchorElements.splice(0).forEach((anchor) => anchor.remove());
+    editorDom?.remove();
+    if (originalOffsetHeight) {
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "offsetHeight",
+        originalOffsetHeight
+      );
+    }
+    vi.restoreAllMocks();
+  });
+
+  function getSlotParent() {
+    const parent =
+      document.querySelector<HTMLElement>(SLOT_SELECTOR)?.parentElement;
+    if (!parent) {
+      throw new Error("no margin slot parent");
+    }
+    return parent;
+  }
+
+  it("R37 keeps a scrolled-to card clear of the document header", async () => {
+    await renderMargin();
+    const rules = Array.from(document.querySelectorAll("style"))
+      .map((style) => style.textContent ?? "")
+      .join("");
+
+    expect(rules.includes(CARD_SCROLL_MARGIN_RULE)).toBe(true);
+  });
+
+  it("R37 publishes the live slot width for the header to read", async () => {
+    await renderMargin();
+    act(fireResizeObservers);
+
+    expect(getSlotParent().style.getPropertyValue(MARGIN_WIDTH_PROPERTY)).toBe(
+      `${LIVE_SLOT_WIDTH}px`
+    );
+  });
+
+  it("R37 clears the published width when the margin closes", async () => {
+    await renderMargin();
+    act(fireResizeObservers);
+    const parent = getSlotParent();
+
+    expect(parent.style.getPropertyValue(MARGIN_WIDTH_PROPERTY)).toBe(
+      `${LIVE_SLOT_WIDTH}px`
+    );
+
+    cleanup();
+
+    expect(parent.style.getPropertyValue(MARGIN_WIDTH_PROPERTY)).toBe("");
   });
 });

@@ -416,6 +416,7 @@ const ConversationsButton = observer(function ConversationsButton_({
 });
 
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
+  margin-inline-end: calc(-1 * var(--comments-margin-width, 0px));
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
 `;
