@@ -10,7 +10,8 @@ import {
   TeamPreference,
   UserPreference,
 } from "@shared/types";
-import { Theme } from "~/stores/UiStore";
+import type { UserPreferences } from "@shared/types";
+import type { Theme } from "~/stores/UiStore";
 import Button from "~/components/Button";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
@@ -25,6 +26,9 @@ import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
 import SettingRow from "./components/SettingRow";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsTitle } from "./components/SettingsTitle";
+import { ThemeCards } from "./components/ThemeCards";
+
+const SAVED_TOAST_ID = "preference-saved";
 
 function Preferences() {
   const { t } = useTranslation();
@@ -46,70 +50,28 @@ function Preferences() {
     []
   );
 
-  const themeOptions: Option[] = React.useMemo(
-    () =>
-      [
-        { type: "item", label: t("Light"), value: Theme.Light },
-        { type: "item", label: t("Dark"), value: Theme.Dark },
-        { type: "item", label: t("System"), value: Theme.System },
-      ] satisfies Option[],
+  const announceSaved = React.useCallback(
+    (name: string, undo: () => void) => {
+      toast.success(t("Preference saved: {{ name }}", { name }), {
+        id: SAVED_TOAST_ID,
+        action: { label: t("Undo"), onClick: undo },
+      });
+    },
     [t]
   );
 
-  const handleUseCursorPointerChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.UseCursorPointer, checked);
-      toast.success(t("Preferences saved"));
+  const changePreference = React.useCallback(
+    async <K extends UserPreference>(
+      key: K,
+      name: string,
+      value: NonNullable<UserPreferences[K]>,
+      fallback?: UserPreferences[K]
+    ) => {
+      const previous = user.getPreference(key, fallback);
+      await user.savePreference(key, value);
+      announceSaved(name, () => user.savePreference(key, previous));
     },
-    [user, t]
-  );
-
-  const handleCodeBlockLineNumbersChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.CodeBlockLineNumers, checked);
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
-  );
-
-  const handleCommentsInGutterChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.CommentsInGutter, checked);
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
-  );
-
-  const handleShowDocumentStatsChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.ShowDocumentStats, checked);
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
-  );
-
-  const handleSeamlessEditChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.SeamlessEdit, !checked);
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
-  );
-
-  const handleRememberLastPathChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.RememberLastPath, checked);
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
-  );
-
-  const handleEnableSmartTextChange = React.useCallback(
-    async (checked: boolean) => {
-      await user.savePreference(UserPreference.EnableSmartText, checked);
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
+    [user, announceSaved]
   );
 
   const notificationBadgeOptions: Option[] = React.useMemo(
@@ -133,31 +95,22 @@ function Preferences() {
     [t]
   );
 
-  const handleNotificationBadgeChange = React.useCallback(
-    async (value: string) => {
-      await user.savePreference(
-        UserPreference.NotificationBadge,
-        value as NotificationBadgeType
-      );
-      toast.success(t("Preferences saved"));
-    },
-    [user, t]
-  );
-
   const handleLanguageChange = React.useCallback(
     async (language: string) => {
+      const previous = user.language;
       await user.save({ language });
-      toast.success(t("Preferences saved"));
+      announceSaved(t("Language"), () => user.save({ language: previous }));
     },
-    [t, user]
+    [t, user, announceSaved]
   );
 
   const handleThemeChange = React.useCallback(
-    (theme: string) => {
-      ui.setTheme(theme as Theme);
-      toast.success(t("Preferences saved"));
+    (theme: Theme) => {
+      const previous = ui.theme;
+      ui.setTheme(theme);
+      announceSaved(t("Theme"), () => ui.setTheme(previous));
     },
-    [t, ui]
+    [t, ui, announceSaved]
   );
 
   const showDeleteAccount = () => {
@@ -173,7 +126,20 @@ function Preferences() {
         <Trans>Manage settings that affect your personal experience.</Trans>
       </SettingsTitle>
 
-      <SettingsSection title={t("Display")}>
+      <SettingsSection
+        title={t("Theme")}
+        description={t(
+          "The accent color comes from the workspace and shows in both themes."
+        )}
+      >
+        <ThemeCards
+          label={t("Theme")}
+          checked={ui.theme}
+          onSelect={handleThemeChange}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t("Languages")}>
         <SettingRow
           label={t("Language")}
           name="language"
@@ -206,73 +172,6 @@ function Preferences() {
             labelHidden
           />
         </SettingRow>
-        <SettingRow
-          name="theme"
-          label={t("Theme")}
-          description={t("Choose your preferred interface color scheme.")}
-        >
-          <InputSelect
-            options={themeOptions}
-            value={ui.theme}
-            onChange={handleThemeChange}
-            label={t("Theme")}
-            labelHidden
-          />
-        </SettingRow>
-        <SettingRow
-          name={UserPreference.UseCursorPointer}
-          label={t("Use pointer cursor")}
-          description={t(
-            "Show a hand cursor when hovering over interactive elements."
-          )}
-        >
-          <Switch
-            id={UserPreference.UseCursorPointer}
-            name={UserPreference.UseCursorPointer}
-            checked={user.getPreference(UserPreference.UseCursorPointer)}
-            onChange={handleUseCursorPointerChange}
-          />
-        </SettingRow>
-        <SettingRow
-          name={UserPreference.CodeBlockLineNumers}
-          label={t("Show line numbers")}
-          description={t("Show line numbers on code blocks in documents.")}
-        >
-          <Switch
-            id={UserPreference.CodeBlockLineNumers}
-            name={UserPreference.CodeBlockLineNumers}
-            checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
-            onChange={handleCodeBlockLineNumbersChange}
-          />
-        </SettingRow>
-        <SettingRow
-          name={UserPreference.CommentsInGutter}
-          label={t("Show comment marker")}
-          description={t(
-            "Display a marker beside lines in the editor that contain comments."
-          )}
-        >
-          <Switch
-            id={UserPreference.CommentsInGutter}
-            name={UserPreference.CommentsInGutter}
-            checked={user.getPreference(UserPreference.CommentsInGutter)}
-            onChange={handleCommentsInGutterChange}
-          />
-        </SettingRow>
-        <SettingRow
-          name={UserPreference.ShowDocumentStats}
-          label={t("Show editing stats")}
-          description={t(
-            "Display live word, character, and paragraph counts while editing."
-          )}
-        >
-          <Switch
-            id={UserPreference.ShowDocumentStats}
-            name={UserPreference.ShowDocumentStats}
-            checked={user.getPreference(UserPreference.ShowDocumentStats)}
-            onChange={handleShowDocumentStatsChange}
-          />
-        </SettingRow>
       </SettingsSection>
 
       <SettingsSection title={t("Behavior")}>
@@ -292,21 +191,14 @@ function Preferences() {
                 team.getPreference(TeamPreference.SeamlessEdit)
               )
             }
-            onChange={handleSeamlessEditChange}
-          />
-        </SettingRow>
-        <SettingRow
-          name={UserPreference.RememberLastPath}
-          label={t("Remember previous location")}
-          description={t(
-            "Automatically return to the document you were last viewing when the app is reopened."
-          )}
-        >
-          <Switch
-            id={UserPreference.RememberLastPath}
-            name={UserPreference.RememberLastPath}
-            checked={!!user.getPreference(UserPreference.RememberLastPath)}
-            onChange={handleRememberLastPathChange}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.SeamlessEdit,
+                t("Separate editing"),
+                !checked,
+                team.getPreference(TeamPreference.SeamlessEdit)
+              )
+            }
           />
         </SettingRow>
         <SettingRow
@@ -320,7 +212,111 @@ function Preferences() {
             id={UserPreference.EnableSmartText}
             name={UserPreference.EnableSmartText}
             checked={!!user.getPreference(UserPreference.EnableSmartText)}
-            onChange={handleEnableSmartTextChange}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.EnableSmartText,
+                t("Smart text replacements"),
+                checked
+              )
+            }
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.RememberLastPath}
+          label={t("Remember previous location")}
+          description={t(
+            "Automatically return to the document you were last viewing when the app is reopened."
+          )}
+        >
+          <Switch
+            id={UserPreference.RememberLastPath}
+            name={UserPreference.RememberLastPath}
+            checked={!!user.getPreference(UserPreference.RememberLastPath)}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.RememberLastPath,
+                t("Remember previous location"),
+                checked
+              )
+            }
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.CommentsInGutter}
+          label={t("Show comment marker")}
+          description={t(
+            "Display a marker beside lines in the editor that contain comments."
+          )}
+        >
+          <Switch
+            id={UserPreference.CommentsInGutter}
+            name={UserPreference.CommentsInGutter}
+            checked={user.getPreference(UserPreference.CommentsInGutter)}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.CommentsInGutter,
+                t("Show comment marker"),
+                checked
+              )
+            }
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.ShowDocumentStats}
+          label={t("Show editing stats")}
+          description={t(
+            "Display live word, character, and paragraph counts while editing."
+          )}
+        >
+          <Switch
+            id={UserPreference.ShowDocumentStats}
+            name={UserPreference.ShowDocumentStats}
+            checked={user.getPreference(UserPreference.ShowDocumentStats)}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.ShowDocumentStats,
+                t("Show editing stats"),
+                checked
+              )
+            }
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.CodeBlockLineNumers}
+          label={t("Show line numbers")}
+          description={t("Show line numbers on code blocks in documents.")}
+        >
+          <Switch
+            id={UserPreference.CodeBlockLineNumers}
+            name={UserPreference.CodeBlockLineNumers}
+            checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.CodeBlockLineNumers,
+                t("Show line numbers"),
+                checked
+              )
+            }
+          />
+        </SettingRow>
+        <SettingRow
+          name={UserPreference.UseCursorPointer}
+          label={t("Use pointer cursor")}
+          description={t(
+            "Show a hand cursor when hovering over interactive elements."
+          )}
+        >
+          <Switch
+            id={UserPreference.UseCursorPointer}
+            name={UserPreference.UseCursorPointer}
+            checked={user.getPreference(UserPreference.UseCursorPointer)}
+            onChange={(checked: boolean) =>
+              changePreference(
+                UserPreference.UseCursorPointer,
+                t("Use pointer cursor"),
+                checked
+              )
+            }
           />
         </SettingRow>
         <AutoLaunchSetting />
@@ -334,7 +330,13 @@ function Preferences() {
           <InputSelect
             options={notificationBadgeOptions}
             value={user.getPreference(UserPreference.NotificationBadge)}
-            onChange={handleNotificationBadgeChange}
+            onChange={(value: string) =>
+              changePreference(
+                UserPreference.NotificationBadge,
+                t("Notification badge"),
+                value as NotificationBadgeType
+              )
+            }
             label={t("Notification badge")}
             labelHidden
           />
@@ -351,7 +353,7 @@ function Preferences() {
             )}
           >
             <span>
-              <Button onClick={showDeleteAccount} neutral>
+              <Button onClick={showDeleteAccount} neutral danger>
                 {t("Delete account…")}
               </Button>
             </span>
