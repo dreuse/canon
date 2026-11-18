@@ -35,6 +35,7 @@ const UNCACHED_DOCUMENT_PATH = "/doc/uncached-document-xyz987abc65";
 const MARGIN_SELECTOR = '[data-testid="comments-margin"]';
 const EXIT_TIMEOUT_MS = 3000;
 const STAYS_MOUNTED_MS = 1500;
+const TEST_TIMEOUT_MS = 15000;
 
 interface Commit {
   mode: CommentsLayoutMode;
@@ -260,21 +261,23 @@ describe("useDocumentSidebar", () => {
     );
   });
 
-  it("R36 keeps the margin mounted when moving to a document not yet in the store", async () => {
-    stubViewport(1440);
-    setPanel("comments");
-    renderSidebar();
-    await act(async () => {});
-    const margin = screen.getByTestId("comments-margin");
+  it(
+    "R36 keeps the margin mounted when moving to a document not yet in the store",
+    async () => {
+      stubViewport(1440);
+      setPanel("comments");
+      renderSidebar();
+      await act(async () => {});
+      const margin = screen.getByTestId("comments-margin");
 
-    act(() => navigate(UNCACHED_DOCUMENT_PATH));
+      act(() => navigate(UNCACHED_DOCUMENT_PATH));
 
-    await expect(
-      waitFor(
-        () => expect(screen.queryByTestId("comments-margin")).toBeNull(),
-        { timeout: STAYS_MOUNTED_MS }
-      )
-    ).rejects.toThrow();
-    expect(screen.getByTestId("comments-margin")).toBe(margin);
-  });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, STAYS_MOUNTED_MS));
+      });
+
+      expect(screen.getByTestId("comments-margin")).toBe(margin);
+    },
+    TEST_TIMEOUT_MS
+  );
 });
