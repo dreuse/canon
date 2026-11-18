@@ -86,7 +86,7 @@ function SearchActions() {
     () =>
       results.map((result, index) =>
         createInternalLinkAction({
-          id: `search-result-${result.document.id}`,
+          id: `search-result:${result.document.url}`,
           name: result.document.title,
           description: result.context,
           keywords: searchQuery,

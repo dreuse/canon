@@ -1373,7 +1373,7 @@ export const searchDocumentsForQueryActionFactory = (query: string) =>
   createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
-      t("Search documents for “{{ searchQuery }}”", { searchQuery: query }),
+      t("Search “{{ searchQuery }}” in all documents", { searchQuery: query }),
     analyticsName: "Search documents",
     section: SearchResultsSection,
     priority: -1,

@@ -129,7 +129,7 @@ function SharedSearchActions() {
     () =>
       results.map((result, index) =>
         createAction({
-          id: `shared-search-${result.document.id}`,
+          id: `shared-search:${result.document.id}`,
           name: result.document.title,
           description: result.context,
           keywords: searchQuery,
@@ -158,7 +158,7 @@ function SharedSearchActions() {
     () =>
       recentDocs.map((doc) =>
         createAction({
-          id: `shared-recent-doc-${doc.id}`,
+          id: `shared-recent-doc:${doc.id}`,
           name: doc.title,
           analyticsName: "Open recent shared document",
           section: RecentSection,

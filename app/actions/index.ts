@@ -382,7 +382,7 @@ export async function performAction(
  * which declares no priority is still ordered by its priority rather than by
  * match score. Must be larger than the largest declared priority in magnitude.
  */
-const sectionPriorityOffset = 10;
+export const sectionPriorityOffset = 10;
 
 function hasVisibleItems(items: MenuItem[]) {
   const applicableTypes = ["button", "link", "route", "group", "submenu"];

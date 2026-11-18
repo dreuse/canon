@@ -43,6 +43,7 @@ const useRecentDocumentActions = (count = recentDocumentCount) => {
         count
       ).map((item) =>
         createInternalLinkAction({
+          id: `recent-doc:${documentPath(item)}`,
           name: item.displayTitle,
           analyticsName: "Recently viewed document",
           section: RecentSection,
