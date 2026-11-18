@@ -48,6 +48,10 @@ type Props = {
   collapseThreshold?: number;
   /** Number of replies to display when collapsed */
   collapseNumDisplayed?: number;
+  /** Whether the thread is shown as a card in the margin beside the text */
+  margin?: boolean;
+  /** Called instead of clearing the focus when the focused thread is resolved */
+  onResolveFocused?: (threadId: string) => void;
 };
 
 function CommentThread({
@@ -57,6 +61,8 @@ function CommentThread({
   focused,
   collapseThreshold = 5,
   collapseNumDisplayed = 3,
+  margin = false,
+  onResolveFocused,
 }: Props) {
   const [scrollOnMount] = React.useState(focused && !window.location.hash);
   // Whether to play the entrance animation, captured once at mount so that
@@ -131,9 +137,13 @@ function CommentThread({
   const handleThreadUpdate = React.useCallback(
     (attrs: { resolved: boolean }) => {
       editor?.updateComment(thread.id, attrs);
+      if (attrs.resolved && focused && onResolveFocused) {
+        onResolveFocused(thread.id);
+        return;
+      }
       setFocusedCommentId(null);
     },
-    [editor, thread.id, setFocusedCommentId]
+    [editor, thread.id, setFocusedCommentId, focused, onResolveFocused]
   );
 
   const handleAddReaction = React.useCallback(
@@ -254,10 +264,12 @@ function CommentThread({
     <Thread
       ref={topRef}
       data-comment-thread
+      data-recessed={recessed || undefined}
       layout="position"
       transition={{ layout: { duration: 0.2, ease: "easeOut" } }}
       $focused={focused}
       $recessed={recessed}
+      $margin={margin}
       onClick={handleClickThread}
     >
       {/* The entrance transform lives on an inner element so it does not
@@ -337,7 +349,39 @@ function CommentThread({
           )}
         </ResizingHeightContainer>
       </ThreadInner>
-      {!focused && !draft && commentsInThread.length > 0 && (
+      {margin && commentsInThread.length > 0 && (
+        <MarginFooter align="center" justify="space-between" gap={14}>
+          {!focused && !draft && canReply ? (
+            <MarginLink onClick={setAutoFocusOn}>{t("Reply")}</MarginLink>
+          ) : (
+            <span />
+          )}
+          <EventBoundary>
+            <Flex align="center" gap={14}>
+              {!thread.isResolved && (
+                <MarginResolveLink
+                  width="auto"
+                  height="auto"
+                  hideOnActionDisabled
+                  aria-label={t("Resolve")}
+                  action={resolveCommentActionFactory({
+                    comment: thread,
+                    onResolve: () => handleThreadUpdate({ resolved: true }),
+                  })}
+                />
+              )}
+              <ThreadAction
+                as={CommentMenu}
+                comment={thread}
+                onEdit={() => handleCommentEditStart(thread.id)}
+                onDelete={() => editor?.removeComment(thread.id)}
+                onUpdate={handleThreadUpdate}
+              />
+            </Flex>
+          </EventBoundary>
+        </MarginFooter>
+      )}
+      {!margin && !focused && !draft && commentsInThread.length > 0 && (
         <Footer align="center" justify="space-between" gap={8}>
           {canReply ? (
             <Reply onClick={setAutoFocusOn}>{t("Reply")}…</Reply>
@@ -395,6 +439,29 @@ const Reply = styled.button`
   &: ${hover} {
     color: ${s("textSecondary")};
   }
+`;
+
+const marginLinkStyle = css`
+  flex-grow: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: ${s("textTertiary")};
+
+  &:${hover} {
+    color: ${s("textSecondary")};
+  }
+`;
+
+const MarginLink = styled(Reply)`
+  ${marginLinkStyle}
+`;
+
+const MarginResolveLink = styled(NudeButton)`
+  ${marginLinkStyle}
+`;
+
+const MarginFooter = styled(Flex)`
+  padding: 0 12px 10px;
 `;
 
 const Footer = styled(Flex)`
@@ -459,6 +526,7 @@ const ShowMore = styled.div`
 const Thread = styled(m.div)<{
   $focused: boolean;
   $recessed: boolean;
+  $margin: boolean;
 }>`
   margin-block: 0 10px;
   margin-inline: 12px 18px;
@@ -482,6 +550,29 @@ const Thread = styled(m.div)<{
     css`
       opacity: 0.5;
       cursor: default;
+    `}
+
+  ${(props) =>
+    props.$margin &&
+    css`
+      margin: 0;
+      border-radius: 8px;
+      box-shadow: none;
+
+      ${
+        props.$recessed &&
+        css`
+          opacity: 0.72;
+        `
+      }
+
+      ${
+        props.$focused &&
+        css`
+          border-color: ${transparentize(0.45, props.theme.link)};
+          box-shadow: 0 8px 24px ${props.theme.shadow};
+        `
+      }
     `}
 `;
 

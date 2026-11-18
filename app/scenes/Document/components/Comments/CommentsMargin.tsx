@@ -1,6 +1,7 @@
 import { isEqual } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import {
+  type KeyboardEvent,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -9,6 +10,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import styled, { createGlobalStyle } from "styled-components";
+import { s } from "@shared/styles";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ProsemirrorData } from "@shared/types";
 import type Document from "~/models/Document";
@@ -20,7 +22,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSplitView } from "~/components/SplitView/context";
-import { CommentSortType } from "~/types";
+import { type CommentSortOption, CommentSortType } from "~/types";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 
@@ -35,7 +37,9 @@ const EDITOR_MUTATION_OPTIONS: MutationObserverInit = {
 
 const COMMENTS_MARGIN_WIDTH = 300;
 const COMMENTS_MARGIN_OFFSET = 40;
+const MARGIN_CARD_INLINE_END_GAP = 18;
 const FORM_ID = "new-comment-form";
+const LINK_ID = "resolved-link";
 
 function findAnchorElement(threadId: string): Element | null {
   const marker = window.document.getElementById(`comment-${threadId}`);
@@ -68,22 +72,98 @@ export const CommentsMargin = observer(function CommentsMargin({
   const { t } = useTranslation();
   const { ui, comments } = useStores();
   const { pane } = useSplitView();
-  const { editor, isEditorInitialized } = useDocumentContext();
+  const { editor, isEditorInitialized, setFocusedCommentId } =
+    useDocumentContext();
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
   const columnRef = useRef<HTMLElement>(null);
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
   const formRef = useRef<HTMLDivElement>(null);
+  const linkRef = useRef<HTMLDivElement>(null);
+  const shouldFocusFirstCard = useRef(false);
+  const [viewingResolved, setViewingResolved] = useState(false);
   const [tops, setTops] = useState<Record<string, number>>({});
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-new`,
     undefined
   );
-  const threads = comments.unresolvedThreadsInDocument(document.id, {
+  const sort: CommentSortOption = {
     type: CommentSortType.OrderInDocument,
     referencedCommentIds: editor?.getComments().map((c) => c.id) ?? [],
-  });
+  };
+  const openThreads = comments.unresolvedThreadsInDocument(document.id, sort);
+  const resolvedCount = comments.resolvedThreadsInDocumentCount(document.id);
+  const showResolved = viewingResolved && resolvedCount > 0;
+  const threads = showResolved
+    ? comments.resolvedThreadsInDocument(document.id, sort)
+    : openThreads;
+  const firstThreadId = threads[0]?.id;
+  const isFocusedInList = threads.some(
+    (thread) => thread.id === focusedComment?.id
+  );
   const threadKey = threads.map((thread) => thread.id).join();
+
+  useEffect(() => {
+    if (focusedComment && !focusedComment.isResolved) {
+      setViewingResolved(false);
+    }
+  }, [focusedComment]);
+
+  useEffect(() => {
+    if (resolvedCount === 0) {
+      setViewingResolved(false);
+    }
+  }, [resolvedCount]);
+
+  const handleResolveFocused = useCallback(
+    (threadId: string) => {
+      const orderedThreads = comments
+        .threadsInDocument(document.id, {
+          type: CommentSortType.OrderInDocument,
+          referencedCommentIds: editor?.getComments().map((c) => c.id) ?? [],
+        })
+        .filter((thread) => thread.id === threadId || !thread.isResolved);
+      const index = orderedThreads.findIndex(
+        (thread) => thread.id === threadId
+      );
+      const neighbour = orderedThreads[index + 1] ?? orderedThreads[index - 1];
+      setFocusedCommentId(neighbour?.id ?? null);
+    },
+    [comments, document.id, editor, setFocusedCommentId]
+  );
+
+  const handleShowResolved = useCallback(() => {
+    shouldFocusFirstCard.current = true;
+    setViewingResolved(true);
+  }, []);
+
+  const handleShowOpen = useCallback(() => {
+    shouldFocusFirstCard.current = true;
+    setViewingResolved(false);
+  }, []);
+
+  const handleCardKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    threadId: string
+  ) => {
+    if (event.key === "Enter" && event.target === event.currentTarget) {
+      setFocusedCommentId(threadId);
+    }
+  };
+
+  useEffect(() => {
+    if (!firstThreadId) {
+      shouldFocusFirstCard.current = false;
+      return;
+    }
+    if (!shouldFocusFirstCard.current || !(firstThreadId in tops)) {
+      return;
+    }
+    shouldFocusFirstCard.current = false;
+    const card = cardRefs.current.get(firstThreadId);
+    card?.focus({ preventScroll: true });
+    card?.scrollIntoView({ block: "nearest" });
+  }, [tops, firstThreadId]);
 
   useKeyDown("Escape", () => ui.setRightSidebar(null, pane));
 
@@ -98,9 +178,10 @@ export const CommentsMargin = observer(function CommentsMargin({
       const anchor = findAnchorElement(id);
       return {
         id,
-        anchorTop: anchor
-          ? anchor.getBoundingClientRect().top - columnTop
-          : null,
+        anchorTop:
+          anchor && !showResolved
+            ? anchor.getBoundingClientRect().top - columnTop
+            : null,
         height: card.offsetHeight,
       };
     });
@@ -111,17 +192,25 @@ export const CommentsMargin = observer(function CommentsMargin({
         height: formRef.current.offsetHeight,
       });
     }
+    if (linkRef.current) {
+      cards.push({
+        id: LINK_ID,
+        anchorTop: null,
+        height: linkRef.current.offsetHeight,
+      });
+    }
     const cardTops = layoutMarginCards(cards);
     const next = Object.fromEntries(
       cards.map(({ id }, index) => [id, cardTops[index]])
     );
 
     setTops((previous) => (isEqual(previous, next) ? previous : next));
-  }, [isEditorInitialized]);
+  }, [isEditorInitialized, showResolved]);
 
   useLayoutEffect(measure, [
     measure,
     threadKey,
+    resolvedCount,
     isEditorInitialized,
     can.comment,
   ]);
@@ -135,6 +224,9 @@ export const CommentsMargin = observer(function CommentsMargin({
     cardRefs.current.forEach((card) => resizeObserver.observe(card));
     if (formRef.current) {
       resizeObserver.observe(formRef.current);
+    }
+    if (linkRef.current) {
+      resizeObserver.observe(linkRef.current);
     }
     window.addEventListener("resize", measure);
 
@@ -154,7 +246,14 @@ export const CommentsMargin = observer(function CommentsMargin({
       resizeObserver.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [measure, threadKey, editor, isEditorInitialized, can.comment]);
+  }, [
+    measure,
+    threadKey,
+    resolvedCount,
+    editor,
+    isEditorInitialized,
+    can.comment,
+  ]);
 
   return (
     <Column
@@ -174,6 +273,11 @@ export const CommentsMargin = observer(function CommentsMargin({
             }
           }}
           data-margin-card={thread.id}
+          role="article"
+          aria-label={thread.createdBy?.name}
+          tabIndex={0}
+          aria-current={focusedComment?.id === thread.id ? "true" : undefined}
+          onKeyDown={(event) => handleCardKeyDown(event, thread.id)}
           style={{
             top: tops[thread.id] ?? 0,
             visibility: thread.id in tops ? undefined : "hidden",
@@ -182,12 +286,14 @@ export const CommentsMargin = observer(function CommentsMargin({
           <CommentThread
             comment={thread}
             document={document}
-            recessed={!!focusedComment && focusedComment.id !== thread.id}
+            recessed={isFocusedInList && focusedComment?.id !== thread.id}
             focused={focusedComment?.id === thread.id}
+            margin
+            onResolveFocused={handleResolveFocused}
           />
         </Card>
       ))}
-      {can.comment && isEditorInitialized && (
+      {can.comment && isEditorInitialized && !showResolved && (
         <FormCard
           ref={formRef}
           data-margin-form
@@ -205,6 +311,25 @@ export const CommentsMargin = observer(function CommentsMargin({
             standalone
           />
         </FormCard>
+      )}
+      {(showResolved || resolvedCount > 0) && (
+        <LinkRow
+          ref={linkRef}
+          style={{
+            top: tops[LINK_ID] ?? 0,
+            visibility: LINK_ID in tops ? undefined : "hidden",
+          }}
+        >
+          {showResolved ? (
+            <ResolvedLink onClick={handleShowOpen}>
+              {t("Back to open threads")}
+            </ResolvedLink>
+          ) : (
+            <ResolvedLink onClick={handleShowResolved}>
+              {t("{{ count }} resolved thread", { count: resolvedCount })}
+            </ResolvedLink>
+          )}
+        </LinkRow>
       )}
     </Column>
   );
@@ -225,9 +350,34 @@ const Column = styled.aside`
 
 const Card = styled.div`
   position: absolute;
+  inset-inline: 0 ${MARGIN_CARD_INLINE_END_GAP}px;
+  border-radius: 8px;
+
+  &:focus-visible {
+    outline: 2px solid ${s("accent")};
+    outline-offset: 2px;
+  }
+`;
+
+const LinkRow = styled.div`
+  position: absolute;
   inset-inline: 0;
 `;
 
+const ResolvedLink = styled.button`
+  border: 0;
+  padding: 0;
+  background: none;
+  color: ${s("textTertiary")};
+  font-size: 13px;
+  line-height: 18px;
+  cursor: var(--pointer);
+
+  &:hover {
+    color: ${s("textSecondary")};
+  }
+`;
+
 const FormCard = styled(Card)`
-  padding: 10px 18px 12px 12px;
+  padding: 10px 0 12px 12px;
 `;
