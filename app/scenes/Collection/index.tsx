@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { useState, useEffect, useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import {
   useParams,
   useHistory,
@@ -15,7 +14,6 @@ import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
@@ -24,7 +22,6 @@ import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import useMobile from "~/hooks/useMobile";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -49,7 +46,6 @@ const CollectionScene = observer(function CollectionScene_() {
   const history = useHistory();
   const match = useRouteMatch();
   const location = useLocation();
-  const { t } = useTranslation();
   const user = useCurrentUser();
   const { documents, collections, shares, ui } = useStores();
   const [error, setError] = useState<Error | undefined>();
@@ -57,7 +53,6 @@ const CollectionScene = observer(function CollectionScene_() {
   useTrackLastVisitedPath(currentPath);
   const sidebarContext = useLocationSidebarContext();
   const isEditRoute = match.path === matchCollectionEdit;
-  const isMobile = useMobile();
 
   const id = params.collectionSlug || "";
   const urlId = id.split("-").pop() ?? "";
@@ -141,26 +136,11 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Error404 />;
   }
 
-  const headerSearch = isMobile ? undefined : (
-    <InputSearchPage
-      source="collection"
-      placeholder={`${t("Search in collection")}…`}
-      label={t("Search in collection")}
-      collectionId={collection.id}
-    />
-  );
-
   return (
     <Scene
       centered={false}
       textTitle={collection.displayName}
-      left={
-        collection.isArchived ? (
-          <CollectionBreadcrumb collection={collection} />
-        ) : (
-          headerSearch
-        )
-      }
+      left={<CollectionBreadcrumb collection={collection} />}
       title={
         <>
           <CollectionIcon collection={collection} expanded />

@@ -15,7 +15,6 @@ import { createCollection } from "~/actions/definitions/collections";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import { PageHeader } from "~/components/PageHeader";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -33,7 +32,6 @@ import type Event from "~/models/Event";
 import {
   documentPath,
   newDocumentPath,
-  searchPath,
   settingsPath,
 } from "~/utils/routeHelpers";
 
@@ -48,8 +46,6 @@ const FAVOURITE_LIMIT = 5;
 const TEMPLATE_LIMIT = 3;
 
 const DRAFT_LIMIT = 3;
-
-const RECENT_SEARCH_LIMIT = 3;
 
 const COLLECTION_DOCUMENT_LIMIT = 3;
 
@@ -216,7 +212,6 @@ function Home() {
     collections,
     stars,
     templates,
-    searches,
     auth,
     ui,
   } = useStores();
@@ -242,8 +237,7 @@ function Home() {
     void notifications.fetchPage({ limit: 25 });
     void stars.fetchPage({ limit: 100 });
     void templates.fetchPage({ limit: 100 });
-    void searches.fetchPage({ limit: 25 });
-  }, [documents, events, notifications, stars, templates, searches]);
+  }, [documents, events, notifications, stars, templates]);
 
   React.useEffect(() => {
     if (!onboardingCollection) {
@@ -296,13 +290,6 @@ function Home() {
   const favourites = stars.orderedData
     .flatMap((star) => (star.document ? [star.document] : []))
     .slice(0, FAVOURITE_LIMIT);
-
-  const recentSearches = searches.recent.slice(0, RECENT_SEARCH_LIMIT);
-
-  const documentCount = collections.orderedData.reduce(
-    (total, collection) => total + (collection.documentCount ?? 0),
-    0
-  );
 
   const startHereItems = (onboardingCollection?.sortedDocuments ?? []).map(
     (node) => ({
@@ -384,30 +371,6 @@ function Home() {
             </>
           }
         />
-
-        <SearchRow>
-          <InputSearchPage
-            source="home"
-            label={t("Search")}
-            labelHidden
-            placeholder={t("Search in {{ number }} documents", {
-              number: documentCount,
-            })}
-          />
-        </SearchRow>
-        {recentSearches.length > 0 && (
-          <RecentSearches>
-            {recentSearches.map((search) => (
-              <SearchPill
-                key={search.id}
-                to={searchPath({ query: search.query, ref: "home" })}
-              >
-                {search.query}
-              </SearchPill>
-            ))}
-            <RecentSearchLabel>{t("recent searches")}</RecentSearchLabel>
-          </RecentSearches>
-        )}
 
         <PinnedDocuments
           pins={pins}
@@ -719,40 +682,6 @@ const rowDivider = css`
   &:last-child {
     border-bottom: 0;
   }
-`;
-
-const SearchRow = styled.div`
-  margin-bottom: 10px;
-
-  > * {
-    max-width: 100%;
-  }
-`;
-
-const RecentSearches = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-`;
-
-const SearchPill = styled(Link)`
-  padding: 4px 11px;
-  border: 1px solid ${s("divider")};
-  border-radius: 14px;
-  font-size: 13px;
-  color: ${s("textSecondary")};
-
-  &:hover {
-    background: ${s("listItemHoverBackground")};
-    color: ${s("text")};
-  }
-`;
-
-const RecentSearchLabel = styled.span`
-  font-size: 13px;
-  color: ${s("textTertiary")};
 `;
 
 const Grid = styled.div<{ $withRail: boolean }>`
