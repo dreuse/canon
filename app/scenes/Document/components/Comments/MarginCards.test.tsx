@@ -1,5 +1,12 @@
 import * as React from "react";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { runInAction } from "mobx";
 import { observer, Provider } from "mobx-react";
 import { MemoryRouter } from "react-router-dom";
@@ -15,6 +22,7 @@ import { SplitViewContext } from "~/components/SplitView/context";
 import type { Editor } from "~/editor";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import stores from "~/stores";
+import { sidebarAppearDuration } from "~/styles/animations";
 import { client } from "~/utils/ApiClient";
 import { CommentsMargin } from "./CommentsMargin";
 
@@ -185,6 +193,23 @@ describe("margin cards", () => {
     expect(getCard(OPEN_THREAD_IDS[2]).getAttribute("aria-current")).toBe(
       "true"
     );
+  });
+
+  it("R04 unmounting clears pending scroll timers", async () => {
+    const editor = createEditorStub(OPEN_THREAD_IDS, () => {});
+    await renderMargin();
+    vi.useFakeTimers();
+    try {
+      act(() => installEditor(editor));
+      await act(async () => activateComment(OPEN_THREAD_IDS[0]));
+
+      cleanup();
+      vi.advanceTimersByTime(sidebarAppearDuration * 2);
+
+      expect(editor.revealComment).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("R04 each card is reachable by Tab", async () => {

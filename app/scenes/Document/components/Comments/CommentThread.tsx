@@ -212,52 +212,64 @@ function CommentThread({
 
   React.useEffect(() => {
     if (focused) {
+      const timers: ReturnType<typeof setTimeout>[] = [];
+
       if (scrollOnMount) {
-        setTimeout(() => {
-          if (!topRef.current) {
-            return;
-          }
-          scrollIntoView(topRef.current, {
-            scrollMode: "if-needed",
-            behavior: "auto",
-            block: "nearest",
-            boundary: (parent) =>
-              // Prevents body and other parent elements from being scrolled
-              parent.id !== "comments",
-          });
-        }, sidebarAppearDuration);
+        timers.push(
+          setTimeout(() => {
+            if (!topRef.current) {
+              return;
+            }
+            scrollIntoView(topRef.current, {
+              scrollMode: "if-needed",
+              behavior: "auto",
+              block: "nearest",
+              boundary: (parent) =>
+                // Prevents body and other parent elements from being scrolled
+                parent.id !== "comments",
+            });
+          }, sidebarAppearDuration)
+        );
       } else {
-        setTimeout(() => {
-          if (!topRef.current) {
-            return;
-          }
-          // Scroll the whole into view when its mark is clicked
-          scrollIntoView(topRef.current, {
-            scrollMode: "if-needed",
-            behavior: "smooth",
-            block: "nearest",
-            boundary: (parent) =>
-              // Prevents body and other parent elements from being scrolled
-              parent.id !== "comments",
-          });
-        }, 0);
+        timers.push(
+          setTimeout(() => {
+            if (!topRef.current) {
+              return;
+            }
+            // Scroll the whole into view when its mark is clicked
+            scrollIntoView(topRef.current, {
+              scrollMode: "if-needed",
+              behavior: "smooth",
+              block: "nearest",
+              boundary: (parent) =>
+                // Prevents body and other parent elements from being scrolled
+                parent.id !== "comments",
+            });
+          }, 0)
+        );
       }
 
       const getCommentMarkElement = () =>
         window.document?.getElementById(`comment-${thread.id}`);
       const isMarkVisible = !!getCommentMarkElement();
 
-      setTimeout(
-        () => {
-          editor?.revealComment(thread.id);
-          getCommentMarkElement()?.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        },
-        isMarkVisible ? 0 : sidebarAppearDuration
+      timers.push(
+        setTimeout(
+          () => {
+            editor?.revealComment(thread.id);
+            getCommentMarkElement()?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          },
+          isMarkVisible ? 0 : sidebarAppearDuration
+        )
       );
+
+      return () => timers.forEach(clearTimeout);
     }
+
+    return undefined;
   }, [focused, scrollOnMount, thread.id, editor]);
 
   return (
