@@ -6,17 +6,16 @@ import { useHistory } from "react-router-dom";
 import styled, { ThemeProvider, keyframes, useTheme } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
+import { sidebarRailWidth } from "@shared/styles/theme";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useEventListener from "~/hooks/useEventListener";
 import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useStores from "~/hooks/useStores";
 import { useSwipeToDismiss } from "~/hooks/useSwipeToDismiss";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { drawerTransition, fadeIn, fadeOut } from "~/styles/animations";
-import Desktop from "~/utils/Desktop";
 import { TooltipProvider } from "../TooltipContext";
 import SidebarButton from "./components/SidebarButton";
 import { useTranslation } from "react-i18next";
@@ -59,99 +58,12 @@ function Sidebar({
   const belowDesktop = useBelowDesktop();
   const isDrawer = drawer ?? belowDesktop;
   const width = ui.sidebarWidth;
-  const sidebarIsClosed = ui.sidebarIsClosed;
-  const collapsed = sidebarIsClosed && canCollapse;
+  const collapsed = ui.sidebarIsClosed && canCollapse && !isDrawer;
   const direction = useDirection();
 
-  const [isHovering, setHovering] = React.useState(false);
-  const [hasPointerMoved, setPointerMoved] = React.useState(false);
-  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const internalRef = React.useRef<HTMLDivElement | null>(null);
   const backdropRef = React.useRef<HTMLDivElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
-
-  const handleBlur = React.useCallback(() => {
-    setHovering(false);
-  }, []);
-
-  const handlePointerActivity = React.useCallback(
-    (event: React.PointerEvent) => {
-      if (sidebarIsClosed) {
-        // don't reveal while a button is held, e.g. selecting text near the edge
-        if (event.buttons !== 0) {
-          return;
-        }
-        // clear the timeout when mouse exits
-        if (hoverTimeoutRef.current) {
-          clearTimeout(hoverTimeoutRef.current);
-        }
-        setHovering(document.hasFocus());
-        setPointerMoved(true);
-      }
-    },
-    [sidebarIsClosed]
-  );
-
-  const handlePointerLeave = React.useCallback(
-    (ev: React.PointerEvent) => {
-      if (hasPointerMoved) {
-        // clear any previous timeout
-        if (hoverTimeoutRef.current) {
-          clearTimeout(hoverTimeoutRef.current);
-        }
-
-        // add a short delay when mouse exits the sidebar before closing
-        hoverTimeoutRef.current = setTimeout(() => {
-          const withinSidebar =
-            direction === "rtl"
-              ? ev.pageX > window.innerWidth - width
-              : ev.pageX < width;
-
-          setHovering(
-            document.hasFocus() &&
-              withinSidebar &&
-              ev.pageY < window.innerHeight &&
-              ev.pageY > 0
-          );
-        }, 500);
-      }
-    },
-    [width, direction, hasPointerMoved]
-  );
-
-  React.useEffect(() => {
-    if (sidebarIsClosed) {
-      setHovering(false);
-      setPointerMoved(false);
-    }
-  }, [sidebarIsClosed]);
-
-  // Reset stale hover state when the sidebar becomes visible after being
-  // hidden via display:none (e.g. returning from settings). Without this, a
-  // pointer-leave event never fires when navigating away while hovering, so
-  // isHovering stays true and the sidebar appears expanded until the cursor
-  // re-enters and leaves.
-  React.useEffect(() => {
-    const el = internalRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    let wasVisible = false;
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        const nowVisible = entry.isIntersecting;
-        if (nowVisible && !wasVisible) {
-          setHovering(false);
-          setPointerMoved(false);
-        }
-        wasVisible = nowVisible;
-      }
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEventListener("blur", handleBlur);
 
   // Subscribe to history rather than the location, so that the sidebar does
   // not re-render on every navigation.
@@ -201,8 +113,11 @@ function Sidebar({
 
   // On mobile the width comes from the viewport, not the resizable desktop width.
   const style = React.useMemo(
-    () => (isDrawer ? undefined : { width: `${width}px` }),
-    [isDrawer, width]
+    () =>
+      isDrawer
+        ? undefined
+        : { width: `${collapsed ? sidebarRailWidth : width}px` },
+    [isDrawer, collapsed, width]
   );
 
   // On mobile the sidebar is a drawer, so it uses the drawer colors.
@@ -231,14 +146,8 @@ function Sidebar({
       ref={mergedRef}
       style={style}
       $hidden={hidden}
-      $isHovering={isHovering}
       $mobileSidebarVisible={ui.mobileSidebarVisible}
-      $collapsed={collapsed}
-      $isDrawer={isDrawer}
       className={className}
-      onPointerDown={handlePointerActivity}
-      onPointerMove={handlePointerActivity}
-      onPointerLeave={handlePointerLeave}
       column
     >
       {isDrawer && <Dialog.Title hidden>{t("Main navigation")}</Dialog.Title>}
@@ -330,16 +239,8 @@ const slideOut = keyframes`
 
 type ContainerProps = {
   $mobileSidebarVisible: boolean;
-  $isHovering: boolean;
-  $collapsed: boolean;
   $hidden: boolean;
-  $isDrawer: boolean;
 };
-
-const hoverStyles = (props: ContainerProps) => `
-  transform: none !important;
-  box-shadow: ${props.$collapsed ? "rgba(0, 0, 0, 0.2) 1px 0 4px" : "none"};
-`;
 
 const Container = styled(Flex)<ContainerProps>`
   position: fixed;
@@ -440,13 +341,7 @@ const Container = styled(Flex)<ContainerProps>`
       if (props.$hidden) {
         return "0";
       }
-      if (props.$isHovering) {
-        return "1";
-      }
-      if (props.$isDrawer) {
-        return "1";
-      }
-      return props.$collapsed ? "0" : "1";
+      return "1";
     }};
   }
 
@@ -454,27 +349,10 @@ const Container = styled(Flex)<ContainerProps>`
     z-index: ${depths.sidebar};
     margin: 0;
     min-width: 0;
-    transition:
-      box-shadow 150ms ease-in-out,
-      transform 150ms ease-out;
-    transform: translateX(${(props: ContainerProps) =>
-      props.$collapsed
-        ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
-        : 0});
+    transform: none;
 
     [dir="rtl"] & {
-      transform: translateX(${(props: ContainerProps) =>
-        props.$collapsed ? `calc(100% - 8px)` : 0});
-    }
-
-    ${(props: ContainerProps) => props.$isHovering && hoverStyles(props)}
-
-    &:focus-within {
-      ${hoverStyles}
-
-      & > div {
-        opacity: 1;
-      }
+      transform: none;
     }
   `};
 `;

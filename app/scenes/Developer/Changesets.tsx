@@ -15,6 +15,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { runInAction } from "mobx";
+import { sidebarRailWidth } from "@shared/styles/theme";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 /**
@@ -97,7 +98,9 @@ function Changesets() {
   return (
     <Scene title="Changeset Playground" centered>
       <Sidebar
-        style={{ left: (ui.sidebarCollapsed ? 16 : ui.sidebarWidth) + 8 }}
+        style={{
+          left: (ui.sidebarCollapsed ? sidebarRailWidth : ui.sidebarWidth) + 8,
+        }}
         column
       >
         <Flex style={{ padding: "0 8px 32px" }} shrink={false} column>

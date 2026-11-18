@@ -78,6 +78,7 @@ const PANEL_ROW_INSET = 8;
 const PANEL_HEADER_PADDING_START = 16;
 const PANEL_HEADER_PADDING_END = 12;
 const PANEL_HEADER_HEIGHT = 36;
+const RAIL_PANEL_ATTRIBUTE = "data-rail-panel";
 
 /** The panels that the rail can show beside its buttons. */
 export type RailPanelId = "collections" | "starred";
@@ -96,7 +97,7 @@ export const Rail = observer(function Rail({
   onPanelChange,
 }: RailProps) {
   const { t } = useTranslation();
-  const { notifications } = useStores();
+  const { notifications, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team.id);
@@ -110,12 +111,14 @@ export const Rail = observer(function Rail({
   }, [query]);
 
   const handleShowCollections = React.useCallback(() => {
+    ui.expandSidebar();
     onPanelChange("collections");
-  }, [onPanelChange]);
+  }, [ui, onPanelChange]);
 
   const handleShowStarred = React.useCallback(() => {
+    ui.expandSidebar();
     onPanelChange("starred");
-  }, [onPanelChange]);
+  }, [ui, onPanelChange]);
 
   const unread = notifications.approximateUnreadCount;
   const searchLabel = t("Search ({{ shortcut }})", {
@@ -215,6 +218,7 @@ export const Rail = observer(function Rail({
           <RailButton
             aria-label={t("Collections")}
             aria-pressed={panel === "collections"}
+            data-rail-panel="collections"
             onClick={handleShowCollections}
           >
             <VoCollectionIcon size={ICON_SIZE} />
@@ -227,6 +231,7 @@ export const Rail = observer(function Rail({
           <RailButton
             aria-label={t("Starred")}
             aria-pressed={panel === "starred"}
+            data-rail-panel="starred"
             onClick={handleShowStarred}
           >
             <VoStarredIcon size={ICON_SIZE} />
@@ -272,6 +277,7 @@ export const Rail = observer(function Rail({
 
 interface RailPanelProps {
   panel: RailPanelId;
+  hidden?: boolean;
 }
 
 /**
@@ -280,14 +286,24 @@ interface RailPanelProps {
  */
 export const RailPanel = observer(function RailPanel({
   panel,
+  hidden,
 }: RailPanelProps) {
   const { t } = useTranslation();
   const headingId = React.useId();
   const [scrollArea, setScrollArea] = React.useState<HTMLElement | null>(null);
+  const panelRef = React.useRef<HTMLElement>(null);
+
+  React.useLayoutEffect(() => {
+    if (hidden && panelRef.current?.contains(document.activeElement)) {
+      document
+        .querySelector<HTMLElement>(`[${RAIL_PANEL_ATTRIBUTE}="${panel}"]`)
+        ?.focus();
+    }
+  }, [hidden, panel]);
 
   if (panel === "starred") {
     return (
-      <Panel aria-label={t("Starred")}>
+      <Panel ref={panelRef} hidden={hidden} aria-label={t("Starred")}>
         <Scrollable flex shadow ref={setScrollArea}>
           <SidebarScrollProvider value={scrollArea}>
             <Starred />
@@ -298,7 +314,7 @@ export const RailPanel = observer(function RailPanel({
   }
 
   return (
-    <Panel aria-label={t("Collections")}>
+    <Panel ref={panelRef} hidden={hidden} aria-label={t("Collections")}>
       <PanelHeader>
         <PanelTitle id={headingId}>{t("Collections")}</PanelTitle>
         <NudeButton
@@ -512,6 +528,10 @@ const Panel = styled.nav`
   padding-block: ${RAIL_PADDING_BLOCK}px;
   background: ${s("sidebarBackground")};
   border-inline-end: 1px solid ${s("divider")};
+
+  &[hidden] {
+    display: none;
+  }
 `;
 
 const PanelHeader = styled.div`

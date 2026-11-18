@@ -38,7 +38,7 @@ function AppSidebar() {
         ) : (
           <Shell>
             <Rail panel={panel} onPanelChange={setPanel} />
-            <RailPanel panel={panel} />
+            <RailPanel panel={panel} hidden={ui.sidebarIsClosed} />
           </Shell>
         )}
       </DragActiveProvider>

@@ -100,7 +100,7 @@ export const sidebarPanelWidth = 240;
 const spacing = {
   sidebarWidth: sidebarRailWidth + sidebarPanelWidth,
   sidebarRightWidth: 300,
-  sidebarCollapsedWidth: 16,
+  sidebarCollapsedWidth: sidebarRailWidth,
   sidebarMinWidth,
   sidebarMaxWidth: 500,
   /** The narrowest a sidebar can be resized to, including its padding. */
