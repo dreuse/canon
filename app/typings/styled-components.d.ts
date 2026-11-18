@@ -144,6 +144,7 @@ declare module "styled-components" {
     commentMarkBackground: string;
     commentsBackground: string;
     commentCardBackground: string;
+    cardBackground: string;
     commentedImageOutlineLight: string;
     commentedImageOutlineDark: string;
     sidebarBackground: string;

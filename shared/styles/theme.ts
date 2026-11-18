@@ -29,6 +29,7 @@ const darkRaised = "#35383F";
 const darkOverlay = "#464950";
 const darkHairline = "#2E3138";
 const darkLine2 = "#3A3D46";
+const darkCard = "#272930";
 const lightLine = "#ECECE8";
 const lightLine2 = "#E0E0DB";
 const lightText3 = "#5F6673";
@@ -211,6 +212,7 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     backgroundQuaternary: sidebarActiveBackground,
     commentsBackground: sidebarBackground,
     commentCardBackground: colors.white,
+    cardBackground: colors.white,
     link: input.link ?? colors.accent,
     cursor: colors.almostBlack,
     text: "#16181D",
@@ -294,6 +296,7 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     backgroundQuaternary: lighten(0.06, darkOverlay),
     commentsBackground: sidebarBackground,
     commentCardBackground: darkRaised,
+    cardBackground: darkCard,
     link: input.link ?? "#5AA8FF",
     text: "#ECEDEF",
     cursor: colors.almostWhite,

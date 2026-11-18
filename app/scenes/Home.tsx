@@ -15,13 +15,11 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css, type DefaultTheme } from "styled-components";
-import { PersonalCollectionId } from "@shared/constants";
 import { s } from "@shared/styles";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { actionToMenuItem } from "~/actions";
-import { importDocument } from "~/actions/definitions/documents";
 import { inviteUser } from "~/actions/definitions/users";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import LanguagePrompt from "~/components/LanguagePrompt";
@@ -42,6 +40,8 @@ import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import type Document from "~/models/Document";
 import type Event from "~/models/Event";
 import { ActivityFilter, matchesActivityFilter } from "./homeActivityFilter";
+import { HomeFirstRun } from "./HomeFirstRun";
+import { useHomeImportAction } from "./useHomeImportAction";
 import {
   documentPath,
   newDocumentPath,
@@ -266,14 +266,12 @@ function NeedsRow({
   );
 }
 
-function Home() {
+const HomeContent = observer(function HomeContent() {
   const { documents, events, notifications, collections, auth, ui } =
     useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-  const personalCollection = collections.personal;
-  const canPersonal = usePolicy(personalCollection);
   const { t } = useTranslation();
   const belowDesktop = useBelowDesktop();
   const { pins, count } = usePinnedDocuments("home");
@@ -390,14 +388,8 @@ function Home() {
         ? t("Yesterday")
         : groupFormat.format(day);
 
-  const importItem = actionToMenuItem(importDocument, {
-    ...context,
-    activeCollectionId: personalCollection?.id ?? PersonalCollectionId,
-  });
   const inviteItem = actionToMenuItem(inviteUser, context);
-  const canImport = personalCollection
-    ? !!canPersonal.createDocument
-    : !!can.createPersonalCollection;
+  const { importItem, canImport } = useHomeImportAction();
 
   const filters = [
     { value: ActivityFilter.All, label: t("All") },
@@ -711,7 +703,7 @@ function Home() {
       </Page>
     </Scene>
   );
-}
+});
 
 const Page = styled.div`
   max-width: 1080px;
@@ -1186,5 +1178,37 @@ const DismissButton = styled.button`
     color: ${s("text")};
   }
 `;
+
+function Home() {
+  const { documents } = useStores();
+  const { t } = useTranslation();
+  const hasDocuments = documents.all.length > 0;
+  const [isWorkspaceEmpty, setIsWorkspaceEmpty] = React.useState<
+    boolean | undefined
+  >();
+
+  React.useEffect(() => {
+    if (hasDocuments) {
+      return;
+    }
+    let ignore = false;
+    documents
+      .fetchPage({ limit: 1 })
+      .then((results) => !ignore && setIsWorkspaceEmpty(results.length === 0))
+      .catch(() => !ignore && setIsWorkspaceEmpty(false));
+
+    return () => {
+      ignore = true;
+    };
+  }, [documents, hasDocuments]);
+
+  if (hasDocuments || isWorkspaceEmpty === false) {
+    return <HomeContent />;
+  }
+  if (isWorkspaceEmpty === undefined) {
+    return <Scene measure="index" icon={<HomeIcon />} title={t("Home")} />;
+  }
+  return <HomeFirstRun />;
+}
 
 export default observer(Home);

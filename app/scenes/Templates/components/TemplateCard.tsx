@@ -33,7 +33,7 @@ interface Props {
  * @param template the template to read.
  * @returns the text of the first block that has text, or an empty string.
  */
-function firstLineOfText(template: Template): string {
+export function firstLineOfText(template: Template): string {
   return (
     template.data?.content
       ?.map((node) => ProsemirrorDataHelper.toPlainText(node))

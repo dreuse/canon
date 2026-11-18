@@ -94,6 +94,16 @@ function seedActivity() {
   addEvent("e4", "revisions.create", YESTERDAY_TITLE, 24);
 }
 
+function addPublishedDocument() {
+  stores.documents.add({
+    id: "doc-published",
+    title: CONTINUE_TITLE,
+    data: ProsemirrorDataHelper.getEmpty(),
+    collectionId: COLLECTION_ID,
+    publishedAt: new Date().toISOString(),
+  });
+}
+
 function renderHome() {
   return render(
     <Provider rootStore={stores}>
@@ -172,6 +182,7 @@ describe("Home sections", () => {
       createPersonalCollection: true,
       readTemplate: true,
     });
+    addPublishedDocument();
     renderHome();
     expect(screen.queryByText("Invite people")).toBeNull();
     expect(screen.getByText("New document")).toBeTruthy();
@@ -187,8 +198,10 @@ describe("Home sections", () => {
 
   it("R09 hides Needs you when nothing needs the user", () => {
     stores.documents.clear();
+    addPublishedDocument();
     vi.mocked(client.post).mockResolvedValue({ data: [], pagination: {} });
     renderHome();
+    expect(screen.getByRole("group", { name: "Quick actions" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: /Needs you/ })).toBeNull();
   });
 
@@ -208,6 +221,14 @@ describe("Home sections", () => {
     expect(isBefore(today, screen.getByText(EDIT_TITLE))).toBe(true);
     expect(isBefore(screen.getByText(EDIT_TITLE), yesterday)).toBe(true);
     expect(isBefore(yesterday, screen.getByText(YESTERDAY_TITLE))).toBe(true);
+  });
+
+  it("R09 shows an activity event added after the first render", async () => {
+    renderHome();
+    expect(screen.queryByText("Late arrival")).toBeNull();
+    runInAction(() => addEvent("late", "revisions.create", "Late arrival", 0));
+
+    expect(await screen.findByText("Late arrival")).toBeTruthy();
   });
 
   it("R03 Tudo shows every event", () => {
@@ -265,6 +286,7 @@ describe("Home side column and own rows", () => {
   beforeEach(() => {
     seedStores({ createDocument: true });
     seedActivity();
+    addPublishedDocument();
   });
 
   it("R09 shows Start here in the side column when an onboarding collection is set", () => {
@@ -281,8 +303,6 @@ describe("Home side column and own rows", () => {
       name: "Omni",
       preferences: { [TeamPreference.OnboardingCollectionId]: "onboarding" },
     });
-    stores.documents.clear();
-    vi.mocked(client.post).mockResolvedValue({ data: [], pagination: {} });
     renderHome();
 
     const aside = screen.getByText("Start here").closest("aside");
