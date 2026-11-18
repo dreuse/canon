@@ -4,7 +4,8 @@ import {
   TableView as ProsemirrorTableView,
 } from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { TableLayout, TableStyle } from "../types";
+import { isTableFullWidth } from "../lib/table";
+import { TableStyle } from "../types";
 import { HEADER_HEIGHT } from "../../constants";
 import { isBrowser } from "../../utils/browser";
 
@@ -81,7 +82,7 @@ export class TableView extends ProsemirrorTableView {
 
     this.dom.classList.toggle(
       EditorStyleHelper.tableFullWidth,
-      node.attrs.layout !== TableLayout.narrow
+      isTableFullWidth(node.attrs.layout)
     );
 
     this.dom.classList.toggle(

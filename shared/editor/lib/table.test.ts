@@ -1,12 +1,14 @@
 import { Schema } from "prosemirror-model";
 import { TableMap } from "prosemirror-tables";
 import { doc, table, td, tr } from "@shared/test/editor";
+import { TableLayout } from "../types";
 import {
   cellWidget,
   getCellAttrs,
   getCellSpan,
   getCellsStartingInColumn,
   getCellsStartingInRow,
+  isTableFullWidth,
   isValidCellAlignment,
   isValidCellMarks,
 } from "./table";
@@ -270,5 +272,20 @@ describe("cellWidget", () => {
     expect(widget.from).toBe(2);
     expect(widget.spec.side).toBe(-1);
     expect(widget.spec.key).toBe("grip");
+  });
+});
+
+describe("isTableFullWidth", () => {
+  it("R13 keeps a table without a layout in the text column", () => {
+    expect(isTableFullWidth(null)).toBe(false);
+    expect(isTableFullWidth(undefined)).toBe(false);
+  });
+
+  it("R13 keeps a narrow table in the text column", () => {
+    expect(isTableFullWidth(TableLayout.narrow)).toBe(false);
+  });
+
+  it("R13 lets an explicit full-width table break out", () => {
+    expect(isTableFullWidth(TableLayout.fullWidth)).toBe(true);
   });
 });

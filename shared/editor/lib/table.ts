@@ -3,7 +3,7 @@ import { TableMap, type MutableAttrs } from "prosemirror-tables";
 import { Decoration, type EditorView } from "prosemirror-view";
 import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
-import type { TableLayout, TableStyle, NodeAttrMark } from "../types";
+import { TableLayout, type TableStyle, type NodeAttrMark } from "../types";
 import { readableColor } from "polished";
 
 export interface TableAttrs {
@@ -17,6 +17,17 @@ export interface CellAttrs {
   colwidth: number[] | null;
   alignment: "center" | "left" | "right" | null;
   marks?: NodeAttrMark[];
+}
+
+/**
+ * Whether a table breaks out of the text column. Only an explicit full-width
+ * layout does, so a table without a layout stays within the text column.
+ *
+ * @param layout the layout attribute of the table.
+ * @returns true when the table is full width.
+ */
+export function isTableFullWidth(layout: TableLayout | null | undefined) {
+  return layout === TableLayout.fullWidth;
 }
 
 const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);

@@ -96,6 +96,58 @@ const diagramTheme = (theme: DefaultTheme) => css`
   --pele-font-mono: ${theme.fontFamilyMono};
 `;
 
+const DIAGRAM_BOX_LIFT = 0.015;
+const DIAGRAM_BOX_RADIUS = "8px";
+const DIAGRAM_BOX_PADDING = "28px 20px";
+const CODE_SCROLLBAR_THICKNESS = "thin";
+
+const diagramBoxBackground = (theme: DefaultTheme) =>
+  theme.isDark ? lighten(DIAGRAM_BOX_LIFT, theme.background) : theme.background;
+
+/**
+ * Builds the box around a diagram, a card surface with a 1px line.
+ *
+ * @param theme the current theme.
+ * @returns the css for the diagram box.
+ */
+export const mermaidBoxStyle = (theme: DefaultTheme) => `
+  background: ${diagramBoxBackground(theme)};
+  border: 1px solid ${theme.divider};
+  border-radius: ${DIAGRAM_BOX_RADIUS};
+  padding: ${DIAGRAM_BOX_PADDING};
+  --pele-bg: ${diagramBoxBackground(theme)};
+`;
+
+/**
+ * Builds the margin and padding of the horizontal scroll area of a table. A
+ * read-only table has no gutter, so it stays within the text column. The
+ * editor keeps the gutter that holds the row grips.
+ *
+ * @param readOnly whether the editor is read-only.
+ * @returns the css for the scroll area spacing.
+ */
+export const tableScrollableStyle = (readOnly: boolean) => {
+  const gutter = readOnly ? 0 : EditorStyleHelper.padding;
+  const sideMargin = gutter ? `-${gutter}px` : "0";
+
+  return `
+  margin: -1em ${sideMargin} -0.5em;
+  padding-left: ${gutter}px;
+  padding-right: ${gutter}px;
+`;
+};
+
+/**
+ * Builds a thin scrollbar in the surface tone for a code block.
+ *
+ * @param theme the current theme.
+ * @returns the css for the code scrollbar.
+ */
+export const codeScrollbarStyle = (theme: DefaultTheme) => `
+  scrollbar-width: ${CODE_SCROLLBAR_THICKNESS};
+  scrollbar-color: ${theme.scrollbarThumb} ${theme.codeBackground};
+`;
+
 /**
  * Builds the colors of a notice block from its base and text colors. The tint
  * is not opaque, so colors for content in the notice are blended onto it.
@@ -2374,20 +2426,14 @@ mark {
 
 .${EditorStyleHelper.mermaidDiagram} {
   ${diagramTheme(props.theme)}
+  ${mermaidBoxStyle(props.theme)}
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: var(--full-width-size, calc(var(--container-width) - ${
-    EditorStyleHelper.padding * 2
-  }px));
+  width: 100%;
   margin: 0.75em 0;
-  margin-inline-start: var(--full-width-shift, calc((100% - var(--full-width-size, calc(var(--container-width) - ${
-    EditorStyleHelper.padding * 2
-  }px))) / 2));
   min-height: 1.6em;
-  border-radius: ${EditorStyleHelper.blockRadius};
-  padding: 8px;
   user-select: none;
   cursor: default;
 
@@ -2410,8 +2456,8 @@ mark {
 
   .edgeLabel .labelBkg,
   .edgeLabel rect {
-    background-color: ${props.theme.codeBackground} !important;
-    fill: ${props.theme.codeBackground} !important;
+    background-color: var(--pele-bg) !important;
+    fill: var(--pele-bg) !important;
   }
   `
       : ""
@@ -2433,6 +2479,7 @@ mark {
 pre {
   display: block;
   overflow-x: auto;
+  ${codeScrollbarStyle(props.theme)}
   padding: 0.75em 1em;
   line-height: 1.4em;
   position: relative;
@@ -2970,7 +3017,7 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
 
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
-  margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
+  ${tableScrollableStyle(!!props.readOnly)}
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
@@ -2978,8 +3025,6 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   overflow-anchor: none;
   padding-top: 1em;
   padding-bottom: .5em;
-  padding-left: ${EditorStyleHelper.padding}px;
-  padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
 
   &:hover {
@@ -3024,21 +3069,21 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
 }
 
 .${EditorStyleHelper.tableShadowLeft}::before {
-  left: -${EditorStyleHelper.padding}px;
+  left: -${props.readOnly ? 0 : EditorStyleHelper.padding}px;
   right: auto;
   box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
     props.theme.isDark ? 1 : 0.25
   });
-  border-left: ${EditorStyleHelper.padding}px solid ${props.theme.background};
+  border-left: ${props.readOnly ? 0 : EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
 .${EditorStyleHelper.tableShadowRight}::after {
-  right: -${EditorStyleHelper.padding}px;
+  right: -${props.readOnly ? 0 : EditorStyleHelper.padding}px;
   left: auto;
   box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
     props.theme.isDark ? 1 : 0.25
   });
-  border-right: ${EditorStyleHelper.padding}px solid ${props.theme.background};
+  border-right: ${props.readOnly ? 0 : EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
 .block-menu-trigger {
