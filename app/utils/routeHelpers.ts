@@ -201,8 +201,27 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
  */
 export function newTemplatePath(collectionId?: string) {
   return collectionId
-    ? settingsPath("templates") + `/new?collectionId=${collectionId}`
-    : `${settingsPath("templates")}/new`;
+    ? `${templatesPath()}/new?collectionId=${collectionId}`
+    : `${templatesPath()}/new`;
+}
+
+/**
+ * Returns the path to the templates page.
+ *
+ * @returns the path to the templates page.
+ */
+export function templatesPath(): string {
+  return "/templates";
+}
+
+/**
+ * Returns the path to the editor of a template.
+ *
+ * @param urlId the url id of the template.
+ * @returns the path to the template screen.
+ */
+export function templatePath(urlId: string): string {
+  return `${templatesPath()}/${urlId}`;
 }
 
 /**

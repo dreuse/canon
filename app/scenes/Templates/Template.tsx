@@ -20,7 +20,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
-import { collectionPath, settingsPath } from "~/utils/routeHelpers";
+import { collectionPath, templatesPath } from "~/utils/routeHelpers";
 import type Template from "~/models/Template";
 import history from "~/utils/history";
 
@@ -76,7 +76,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
         name: t("Templates"),
         section: NavigationSection,
         icon: <ShapesIcon />,
-        to: settingsPath("templates"),
+        to: templatesPath(),
       }),
       ...(collection
         ? [
@@ -101,7 +101,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
     setSaving(true);
     try {
       await (template.isDraft ? template.publish() : template.save());
-      history.push(settingsPath("templates"));
+      history.push(templatesPath());
     } catch (error) {
       toast.error(errToString(error));
     } finally {

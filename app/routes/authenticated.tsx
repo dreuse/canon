@@ -16,12 +16,13 @@ import useQueryNotices from "~/hooks/useQueryNotices";
 import useKeyboardShortcutsQuery from "~/hooks/useKeyboardShortcutsQuery";
 import lazy from "@shared/utils/lazyWithRetry";
 import * as Scenes from "./scenes";
+import { TemplatesRoutes } from "./templates";
 import {
   archivePath,
   draftsPath,
   homePath,
   searchPath,
-  settingsPath,
+  templatesPath,
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
   matchUserId as userId,
@@ -109,11 +110,9 @@ function AuthenticatedRoutes() {
               />
               <Redirect from="/dashboard" to={homePath()} />
               <Redirect exact from="/starred" to={homePath()} />
-              <Redirect
-                exact
-                from="/templates"
-                to={settingsPath("templates")}
-              />
+              {can.readTemplate && (
+                <Route path={templatesPath()} component={TemplatesRoutes} />
+              )}
               <Redirect exact from="/collections/*" to="/collection/*" />
               <Route
                 exact

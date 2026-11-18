@@ -54,8 +54,8 @@ const Application = lazy(() => import("~/scenes/Settings/Application"));
 const GroupMembers = lazy(() => import("~/scenes/Settings/GroupMembers"), {
   exportName: "GroupMembersScene",
 });
-const Template = lazy(() => import("~/scenes/Settings/Template"));
-const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
+const Template = lazy(() => import("~/scenes/Templates/Template"));
+const TemplateNew = lazy(() => import("~/scenes/Templates/TemplateNew"));
 
 function SettingsRoutes() {
   const configs = useSettingsConfig();

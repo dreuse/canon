@@ -6,7 +6,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Scene from "~/components/Scene";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { settingsPath } from "~/utils/routeHelpers";
+import { templatePath, templatesPath } from "~/utils/routeHelpers";
 import history from "~/utils/history";
 
 function TemplateNewScene() {
@@ -24,10 +24,10 @@ function TemplateNewScene() {
           { title: "", collectionId },
           { publish: false }
         );
-        history.replace(template.path);
+        history.replace(templatePath(template.urlId));
       } catch (_err) {
         toast.error(t("Couldn’t create the template. Try again?"));
-        history.replace(settingsPath("templates"));
+        history.replace(templatesPath());
       }
     }
 
