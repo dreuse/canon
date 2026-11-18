@@ -1,6 +1,7 @@
 import { useDirection } from "@radix-ui/react-direction";
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
+import { useKBar } from "kbar";
 import { CloseIcon, MenuIcon, SidebarIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
@@ -16,11 +17,14 @@ import { metaDisplay } from "@shared/utils/keyboard";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { VoBellIcon, VoSearchIcon } from "~/components/Icons/VobysIcons";
+import NotificationsPopover from "~/components/Notifications/NotificationsPopover";
 import { useSidebarCollapsed } from "~/components/SidebarCollapsedContext";
 import { useSplitView } from "~/components/SplitView/context";
 import Tooltip from "~/components/Tooltip";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useEventListener from "~/hooks/useEventListener";
-import useMobile from "~/hooks/useMobile";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useStores from "~/hooks/useStores";
 import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
@@ -34,6 +38,10 @@ export { HEADER_HEIGHT };
 type Props = {
   left?: React.ReactNode;
   title: React.ReactNode;
+  /** An icon shown before the title once the page has scrolled. */
+  icon?: React.ReactNode;
+  /** Whether to show the title, search and notifications in the header below the desktop breakpoint. */
+  topBar?: boolean;
   actions?:
     | ((props: { isCompact: boolean }) => React.ReactNode)
     | React.ReactNode;
@@ -42,14 +50,62 @@ type Props = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
-function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
+const NavigationShortcuts = observer(function NavigationShortcuts() {
+  const { t } = useTranslation();
+  const { notifications } = useStores();
+  const { query } = useKBar();
+  const unread = notifications.approximateUnreadCount;
+  const handleSearch = React.useCallback(() => query.toggle(), [query]);
+
+  return (
+    <>
+      <ShortcutButton
+        aria-label={t("Search")}
+        onClick={handleSearch}
+        icon={<VoSearchIcon />}
+        neutral
+        borderOnHover
+      />
+      <NotificationsPopover>
+        <ShortcutButton
+          aria-label={
+            unread > 0
+              ? t("Notifications, {{ count }} new", { count: unread })
+              : t("Notifications")
+          }
+          icon={
+            <BellIcon>
+              <VoBellIcon />
+              {unread > 0 && <UnreadDot />}
+            </BellIcon>
+          }
+          neutral
+          borderOnHover
+        />
+      </NotificationsPopover>
+    </>
+  );
+});
+
+function Header({
+  left,
+  title,
+  icon,
+  topBar,
+  actions,
+  hasSidebar,
+  className,
+  ref,
+}: Props) {
   const { ui } = useStores();
   const { t } = useTranslation();
   const { pane, isSplitView } = useSplitView();
-  const isMobile = useMobile();
+  const belowDesktop = useBelowDesktop();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const sidebarCollapsed = useSidebarCollapsed();
-  const hasMobileSidebar = hasSidebar && isMobile;
-  const hasDesktopSidebar = hasSidebar && !isMobile;
+  const hasMobileSidebar = hasSidebar && belowDesktop;
+  const hasDesktopSidebar = hasSidebar && !belowDesktop;
+  const titleInBreadcrumbs = hasMobileSidebar && topBar && !left;
   const [internalMeasureRef, size] = useMeasure();
   const scrollbarWidth = useWindowScrollbarWidth() ?? 0;
   const direction = useDirection();
@@ -101,6 +157,7 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
         shrink={false}
         className={className}
         $passThrough={passThrough}
+        $topBar={titleInBreadcrumbs}
         $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
         $scrollbarInset={isAtWindowEnd ? scrollbarWidth : undefined}
       >
@@ -130,23 +187,33 @@ function Header({ left, title, actions, hasSidebar, className, ref }: Props) {
           <Breadcrumbs ref={setBreadcrumbRef}>
             {hasMobileSidebar && (
               <MobileMenuButton
+                aria-label={t("Open menu")}
+                aria-haspopup="dialog"
+                aria-expanded={ui.mobileSidebarVisible}
                 onClick={ui.toggleMobileSidebar}
                 icon={<MenuIcon />}
                 neutral
+                borderOnHover
               />
             )}
             {left}
+            {titleInBreadcrumbs && <BreadcrumbTitle>{title}</BreadcrumbTitle>}
           </Breadcrumbs>
         ) : null}
 
-        {isScrolled && !isCompact ? (
+        {isScrolled && !isCompact && !titleInBreadcrumbs ? (
           <Title onClick={handleClickTitle}>
-            <Fade>{title}</Fade>
+            <Fade>
+              {icon}
+              {icon && <>&nbsp;</>}
+              {title}
+            </Fade>
           </Title>
         ) : (
           <div />
         )}
         <Actions align="center" justify="flex-end">
+          {titleInBreadcrumbs && user && <NavigationShortcuts />}
           {typeof actions === "function" ? actions({ isCompact }) : actions}
           {isSplitView && (
             <Tooltip content={t("Close pane")} side="bottom">
@@ -266,6 +333,7 @@ const Actions = styled(Flex)`
 
 type WrapperProps = {
   $passThrough?: boolean;
+  $topBar?: boolean;
   $insetTitleAdjust?: boolean;
   /** Width of the window scrollbar that the end of the header falls behind. */
   $scrollbarInset?: number;
@@ -297,6 +365,12 @@ const Wrapper = styled(Flex)<WrapperProps>`
       background: ${transparentize(0.2, props.theme.background)};
       backdrop-filter: blur(20px);
       `};
+
+  ${(props) =>
+    props.$topBar &&
+    css`
+      border-bottom: 1px solid ${s("divider")};
+    `}
 
   padding: 6px 16px;
   padding-inline-end: ${endPadding(16)};
@@ -394,12 +468,49 @@ const Title = styled("div")`
   }
 `;
 
+const touchTarget = css`
+  min-width: ${MOBILE_TOUCH_TARGET}px;
+  min-height: ${MOBILE_TOUCH_TARGET}px;
+`;
+
 const MobileMenuButton = styled(Button)`
   pointer-events: auto;
+  ${touchTarget}
 
   @media print {
     display: none;
   }
+`;
+
+const ShortcutButton = styled(Button)`
+  position: relative;
+  ${touchTarget}
+`;
+
+const BellIcon = styled.span`
+  position: relative;
+  display: inline-flex;
+`;
+
+const UNREAD_DOT_SIZE = 7;
+
+const UnreadDot = styled.span`
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: ${UNREAD_DOT_SIZE}px;
+  height: ${UNREAD_DOT_SIZE}px;
+  border-radius: 50%;
+  background: ${s("link")};
+`;
+
+const BreadcrumbTitle = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 600;
 `;
 
 const SidebarToggle = styled("div")<{ $visible: boolean }>`

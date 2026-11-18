@@ -23,6 +23,7 @@ import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
 import Time from "~/components/Time";
 import useActionContext from "~/hooks/useActionContext";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import useStores from "~/hooks/useStores";
@@ -222,6 +223,7 @@ function Home() {
   const theme = useTheme();
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const belowDesktop = useBelowDesktop();
   const { pins, count } = usePinnedDocuments("home");
   const context = useActionContext({ isMenu: false, isCommandBar: false });
 
@@ -346,7 +348,12 @@ function Home() {
     drafts.length > 0;
 
   return (
-    <Scene measure="index" icon={<HomeIcon />} title={t("Home")}>
+    <Scene
+      measure="index"
+      icon={<HomeIcon />}
+      title={t("Home")}
+      actions={belowDesktop ? <NewDocumentMenu /> : undefined}
+    >
       <ResizingHeightContainer>
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
@@ -373,7 +380,7 @@ function Home() {
                   {t("Templates")}
                 </Button>
               )}
-              <NewDocumentMenu />
+              {!belowDesktop && <NewDocumentMenu />}
             </>
           }
         />

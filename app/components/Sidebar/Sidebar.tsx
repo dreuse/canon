@@ -1,20 +1,21 @@
+import * as Dialog from "@radix-ui/react-dialog";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
-import styled, { ThemeProvider, useTheme } from "styled-components";
+import styled, { ThemeProvider, keyframes, useTheme } from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEventListener from "~/hooks/useEventListener";
-import useMobile from "~/hooks/useMobile";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useStores from "~/hooks/useStores";
 import { useSwipeToDismiss } from "~/hooks/useSwipeToDismiss";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
-import { drawerTransition } from "~/styles/animations";
+import { drawerTransition, fadeIn, fadeOut } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import { TooltipProvider } from "../TooltipContext";
 import SidebarButton from "./components/SidebarButton";
@@ -34,6 +35,8 @@ type Props = {
   children: React.ReactNode;
   /** Buttons to render alongside the account row at the foot of the sidebar. */
   accountActions?: React.ReactNode;
+  /** Whether to render as a drawer, defaults to the viewport being below the desktop breakpoint. */
+  drawer?: boolean;
   /** Ref to the sidebar container. */
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -45,6 +48,7 @@ function Sidebar({
   canCollapse = true,
   showAccountMenu = true,
   className,
+  drawer,
   ref,
 }: Props) {
   const { t } = useTranslation();
@@ -52,7 +56,8 @@ function Sidebar({
   const { ui } = useStores();
   const history = useHistory();
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const isMobile = useMobile();
+  const belowDesktop = useBelowDesktop();
+  const isDrawer = drawer ?? belowDesktop;
   const width = ui.sidebarWidth;
   const sidebarIsClosed = ui.sidebarIsClosed;
   const collapsed = sidebarIsClosed && canCollapse;
@@ -62,7 +67,7 @@ function Sidebar({
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const internalRef = React.useRef<HTMLDivElement | null>(null);
-  const backdropRef = React.useRef<HTMLAnchorElement | null>(null);
+  const backdropRef = React.useRef<HTMLDivElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
 
   const handleBlur = React.useCallback(() => {
@@ -158,16 +163,52 @@ function Sidebar({
     [ui, history]
   );
 
+  React.useEffect(() => {
+    if (!isDrawer) {
+      ui.hideMobileSidebar();
+    }
+  }, [ui, isDrawer]);
+
+  const returnFocusRef = React.useRef<HTMLElement | null>(null);
+
+  const handleOpenAutoFocus = React.useCallback(() => {
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+  }, []);
+
+  const handleCloseAutoFocus = React.useCallback((event: Event) => {
+    event.preventDefault();
+    const active = document.activeElement;
+    if (
+      !active ||
+      active === document.body ||
+      internalRef.current?.contains(active)
+    ) {
+      returnFocusRef.current?.focus();
+    }
+  }, []);
+
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (!open) {
+        ui.hideMobileSidebar();
+      }
+    },
+    [ui]
+  );
+
   // On mobile the width comes from the viewport, not the resizable desktop width.
   const style = React.useMemo(
-    () => (isMobile ? undefined : { width: `${width}px` }),
-    [isMobile, width]
+    () => (isDrawer ? undefined : { width: `${width}px` }),
+    [isDrawer, width]
   );
 
   // On mobile the sidebar is a drawer, so it uses the drawer colors.
   const sidebarTheme = React.useMemo(
     () =>
-      isMobile
+      isDrawer
         ? {
             ...theme,
             sidebarBackground: theme.menuBackground,
@@ -175,81 +216,116 @@ function Sidebar({
             sidebarActiveBackground: theme.menuItemSelected,
           }
         : theme,
-    [isMobile, theme]
+    [isDrawer, theme]
   );
 
   useSwipeToDismiss(internalRef, backdropRef, {
-    enabled: isMobile && ui.mobileSidebarVisible,
+    enabled: isDrawer && ui.mobileSidebarVisible,
     side: direction === "rtl" ? "right" : "left",
     onDismiss: ui.hideMobileSidebar,
   });
 
+  const container = (
+    <Container
+      id="sidebar"
+      ref={mergedRef}
+      style={style}
+      $hidden={hidden}
+      $isHovering={isHovering}
+      $mobileSidebarVisible={ui.mobileSidebarVisible}
+      $collapsed={collapsed}
+      $isDrawer={isDrawer}
+      className={className}
+      onPointerDown={handlePointerActivity}
+      onPointerMove={handlePointerActivity}
+      onPointerLeave={handlePointerLeave}
+      column
+    >
+      {isDrawer && <Dialog.Title hidden>{t("Main navigation")}</Dialog.Title>}
+      {children}
+
+      {user && showAccountMenu && (
+        <AccountMenu>
+          <SidebarButton
+            title={user.name}
+            position="bottom"
+            image={
+              <Avatar
+                alt={t("Avatar of {{ name }}", { name: user.name })}
+                model={user}
+                size={24}
+                showHoverCard={false}
+              />
+            }
+          >
+            {accountActions}
+          </SidebarButton>
+        </AccountMenu>
+      )}
+    </Container>
+  );
+
   return (
     <ThemeProvider theme={sidebarTheme}>
       <TooltipProvider>
-        <Container
-          id="sidebar"
-          ref={mergedRef}
-          style={style}
-          $hidden={hidden}
-          $isHovering={isHovering}
-          $mobileSidebarVisible={ui.mobileSidebarVisible}
-          $collapsed={collapsed}
-          $isMobile={isMobile}
-          className={className}
-          onPointerDown={handlePointerActivity}
-          onPointerMove={handlePointerActivity}
-          onPointerLeave={handlePointerLeave}
-          column
-        >
-          {children}
-
-          {user && showAccountMenu && (
-            <AccountMenu>
-              <SidebarButton
-                title={user.name}
-                position="bottom"
-                image={
-                  <Avatar
-                    alt={t("Avatar of {{ name }}", { name: user.name })}
-                    model={user}
-                    size={24}
-                    showHoverCard={false}
-                  />
-                }
-              >
-                {accountActions}
-              </SidebarButton>
-            </AccountMenu>
-          )}
-        </Container>
-        <Backdrop
-          ref={backdropRef}
-          $visible={ui.mobileSidebarVisible}
-          onClick={ui.hideMobileSidebar}
-          aria-hidden
-        />
+        {isDrawer ? (
+          <Dialog.Root
+            open={ui.mobileSidebarVisible}
+            onOpenChange={handleOpenChange}
+          >
+            <DrawerOverlay ref={backdropRef} />
+            <Dialog.Content
+              asChild
+              aria-describedby={undefined}
+              onOpenAutoFocus={handleOpenAutoFocus}
+              onCloseAutoFocus={handleCloseAutoFocus}
+            >
+              {container}
+            </Dialog.Content>
+          </Dialog.Root>
+        ) : (
+          container
+        )}
       </TooltipProvider>
     </ThemeProvider>
   );
 }
 
-const Backdrop = styled.a<{ $visible: boolean }>`
+const DrawerOverlay = styled(Dialog.Overlay)`
   position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  cursor: default;
+  inset: 0;
   z-index: ${depths.mobileSidebar - 1};
   background: ${s("backdrop")};
-  opacity: ${(props) => (props.$visible ? 1 : 0)};
-  pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
-  transition: opacity ${drawerTransition};
 
-  ${breakpoint("tablet")`
-    display: none;
-  `};
+  &[data-state="open"] {
+    animation: ${fadeIn} ${drawerTransition};
+  }
+
+  &[data-state="closed"] {
+    animation: ${fadeOut} ${drawerTransition};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+const slideIn = keyframes`
+  from {
+    transform: translateX(var(--drawer-offset));
+  }
+  to {
+    transform: translateX(0);
+  }
+`;
+
+const slideOut = keyframes`
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--drawer-offset));
+  }
 `;
 
 type ContainerProps = {
@@ -257,7 +333,7 @@ type ContainerProps = {
   $isHovering: boolean;
   $collapsed: boolean;
   $hidden: boolean;
-  $isMobile: boolean;
+  $isDrawer: boolean;
 };
 
 const hoverStyles = (props: ContainerProps) => `
@@ -285,11 +361,28 @@ const Container = styled(Flex)<ContainerProps>`
   padding-bottom: var(--sab, 0px);
   ${fadeOnDesktopBackgrounded()}
 
-  ${breakpoint("mobile", "tablet")`
+  ${breakpoint("mobile", "desktop")`
     /* Leaves a strip of the page visible to tap and close, as in Material navigation drawers. */
     width: calc(100% - 56px);
     max-width: 360px;
     min-width: 0;
+    --drawer-offset: -100%;
+
+    [dir="rtl"] & {
+      --drawer-offset: 100%;
+    }
+
+    &[data-state="open"] {
+      animation: ${slideIn} ${drawerTransition};
+    }
+
+    &[data-state="closed"] {
+      animation: ${slideOut} ${drawerTransition};
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none !important;
+    }
     border-start-end-radius: 8px;
     border-end-end-radius: 8px;
     /* The negative spread keeps the shadow off the edge side, so a stretch cannot reveal it. */
@@ -350,15 +443,14 @@ const Container = styled(Flex)<ContainerProps>`
       if (props.$isHovering) {
         return "1";
       }
-      if (props.$isMobile) {
-        return props.$mobileSidebarVisible ? "1" : "0";
-      } else {
-        return props.$collapsed ? "0" : "1";
+      if (props.$isDrawer) {
+        return "1";
       }
+      return props.$collapsed ? "0" : "1";
     }};
   }
 
-  ${breakpoint("tablet")`
+  ${breakpoint("desktop")`
     z-index: ${depths.sidebar};
     margin: 0;
     min-width: 0;

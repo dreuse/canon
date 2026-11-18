@@ -24,6 +24,7 @@ import HeaderBranding from "~/components/Sharing/components/HeaderBranding";
 import { useTeamContext } from "~/components/TeamContext";
 import Tooltip from "~/components/Tooltip";
 import env from "~/env";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
@@ -41,6 +42,7 @@ function SharedDocumentHeader({ document }: Props) {
   const { t } = useTranslation();
   const { ui, shares } = useStores();
   const isMobileMedia = useMobile();
+  const belowDesktop = useBelowDesktop();
   const isEditingFocus = useEditingFocus();
 
   // Set CSS variable for header offset (used by sticky table headers)
@@ -106,7 +108,11 @@ function SharedDocumentHeader({ document }: Props) {
   );
 
   const hasSidebar = !!(sharedTree && sharedTree.children?.length);
-  const tocInLeft = !isMobile && hasSidebar && tocPosition === TOCPosition.Left;
+  const tocInLeft =
+    !isMobile &&
+    !belowDesktop &&
+    hasSidebar &&
+    tocPosition === TOCPosition.Left;
 
   return (
     <StyledHeader
@@ -141,12 +147,14 @@ function SharedDocumentHeader({ document }: Props) {
       actions={
         <>
           <SearchHighlightChip />
-          {hasHeadings && isMobile && (
+          {hasHeadings && (isMobile || belowDesktop) && (
             <Action>
               <TableOfContentsMenu />
             </Action>
           )}
-          {hasHeadings && !isMobile && !tocInLeft && <Action>{toc}</Action>}
+          {hasHeadings && !isMobile && !belowDesktop && !tocInLeft && (
+            <Action>{toc}</Action>
+          )}
           {allowSubscriptions !== false && env.EMAIL_ENABLED && (
             <SubscribeAction shareId={shareId} documentId={document.id} />
           )}

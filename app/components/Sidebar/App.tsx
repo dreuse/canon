@@ -1,8 +1,10 @@
 import { observer } from "mobx-react";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { DrawerNav } from "./Drawer";
 import { Rail, RailPanel, type RailPanelId } from "./Rail";
 import Sidebar from "./Sidebar";
 import { DragActiveProvider } from "./components/DragActiveContext";
@@ -12,6 +14,7 @@ import HistoryNavigation from "./components/HistoryNavigation";
 function AppSidebar() {
   const { documents, ui, collections } = useStores();
   const user = useCurrentUser();
+  const belowDesktop = useBelowDesktop();
   const [panel, setPanel] = useState<RailPanelId>("collections");
 
   useEffect(() => {
@@ -23,13 +26,21 @@ function AppSidebar() {
   }, [documents, collections, user.isViewer]);
 
   return (
-    <Sidebar hidden={!ui.readyToShow} showAccountMenu={false}>
+    <Sidebar
+      hidden={!ui.readyToShow}
+      showAccountMenu={false}
+      drawer={belowDesktop}
+    >
       <DragActiveProvider>
         <DragPlaceholder />
-        <Shell>
-          <Rail panel={panel} onPanelChange={setPanel} />
-          <RailPanel panel={panel} />
-        </Shell>
+        {belowDesktop ? (
+          <DrawerNav />
+        ) : (
+          <Shell>
+            <Rail panel={panel} onPanelChange={setPanel} />
+            <RailPanel panel={panel} />
+          </Shell>
+        )}
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>

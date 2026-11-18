@@ -332,7 +332,10 @@ export const RailPanel = observer(function RailPanel({
   );
 });
 
-const PanelFooter = observer(function PanelFooter() {
+/**
+ * Footer of the navigation panel with the Archive and Trash links, which also accept dropped documents.
+ */
+export const PanelFooter = observer(function PanelFooter() {
   const { t } = useTranslation();
   const { documents, policies, dialogs } = useStores();
   const team = useCurrentTeam();

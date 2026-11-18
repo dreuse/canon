@@ -177,7 +177,7 @@
   "Disconnect analytics": "Desconectar analítics",
   "Home": "Início",
   "Drafts": "Rascunhos",
-  "Search": "Busca",
+  "Search": "Buscar",
   "Trash": "Lixeira",
   "Settings": "Configurações",
   "Import docs": "Importar documentos",
@@ -500,7 +500,7 @@
   "Open document history": "Abrir histórico de documentos",
   "Jump to search": "Ir para pesquisa",
   "Jump to home": "Ir para a tela inicial",
-  "Table of contents": "Índice",
+  "Table of contents": "Sumário",
   "Toggle statistics": "Alternar estatísticas",
   "Focus search input": "Focar pesquisa",
   "Open this guide": "Abrir este guia",
@@ -2137,5 +2137,7 @@
   "{{ count }} document has not been reviewed in over {{ period }}": "{{ count }} documento não é revisado há mais de {{ period }}",
   "{{ count }} document has not been reviewed in over {{ period }}_plural": "{{ count }} documentos não são revisados há mais de {{ period }}",
   "Theme, accent color, fonts, text size and code.": "Tema, cor de destaque, fontes, tamanho do texto e código.",
-  "Theme, accent color, fonts and text size. Everyone on the team sees these.": "Tema, cor de destaque, fontes e tamanho do texto. Toda a equipe vê essas configurações."
+  "Theme, accent color, fonts and text size. Everyone on the team sees these.": "Tema, cor de destaque, fontes e tamanho do texto. Toda a equipe vê essas configurações.",
+  "Open menu": "Abrir menu",
+  "Close menu": "Fechar menu"
 }

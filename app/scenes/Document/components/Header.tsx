@@ -26,6 +26,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -76,6 +77,7 @@ function DocumentHeader({
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobileMedia = useMobile();
+  const belowDesktop = useBelowDesktop();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
 
@@ -179,10 +181,14 @@ function DocumentHeader({
         ) : (
           <Flex align="center" gap={8}>
             <DocumentBreadcrumb document={document} showCurrent>
-              {toc} <FontSizeControl />{" "}
-              <StarAction>
-                <Star document={document} color={theme.textSecondary} />
-              </StarAction>
+              {!belowDesktop && (
+                <>
+                  {toc} <FontSizeControl />{" "}
+                  <StarAction>
+                    <Star document={document} color={theme.textSecondary} />
+                  </StarAction>
+                </>
+              )}
             </DocumentBreadcrumb>
             <VerifiedBadge document={document} />
           </Flex>
@@ -206,7 +212,7 @@ function DocumentHeader({
         <>
           <ObservingBanner />
           <SearchHighlightChip />
-          {isMobile && (
+          {(isMobile || belowDesktop) && (
             <Action>
               <TableOfContentsMenu />
             </Action>

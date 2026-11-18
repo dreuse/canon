@@ -42,15 +42,9 @@ const Scene: React.FC<Props> = ({
     <PageTitle title={textTitle ?? (typeof title === "string" ? title : "")} />
     <Header
       hasSidebar
-      title={
-        icon ? (
-          <>
-            {icon}&nbsp;{title}
-          </>
-        ) : (
-          title
-        )
-      }
+      title={title}
+      icon={icon}
+      topBar
       actions={actions}
       left={left}
     />

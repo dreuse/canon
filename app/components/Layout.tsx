@@ -98,11 +98,11 @@ const Content = styled(Flex)<ContentProps>`
     margin: 0 !important;
   }
 
-  ${breakpoint("mobile", "tablet")`
+  ${breakpoint("mobile", "desktop")`
     margin-inline-start: 0 !important;
   `}
 
-  ${breakpoint("tablet")`
+  ${breakpoint("desktop")`
     ${(props: ContentProps) =>
       props.$hasSidebar &&
       props.$sidebarCollapsed &&

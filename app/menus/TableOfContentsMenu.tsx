@@ -89,7 +89,7 @@ function TableOfContentsMenu() {
 
     return [
       createActionGroup({
-        name: t("Contents"),
+        name: t("On this page"),
         actions: childActions,
       }),
     ];

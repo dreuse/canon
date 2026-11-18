@@ -8,7 +8,11 @@ import { breakpoint } from "@shared/styles/breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
 import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
+import {
+  DocumentPreference,
+  HeadingPrefixStyle,
+  type TOCPosition,
+} from "@shared/types";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Time from "~/components/Time";
@@ -24,6 +28,33 @@ const MAX_HEADING_LEVEL = 4;
 
 interface Props {
   document: Document;
+}
+
+interface ShowContentsOptions {
+  tocPosition: TOCPosition | false | undefined;
+  belowDesktop: boolean;
+  isShare: boolean;
+  tocVisible: boolean | undefined;
+}
+
+/**
+ * Whether the sticky contents rail renders beside the document. Below the
+ * desktop breakpoint the header menu lists the contents instead.
+ *
+ * @param options the layout and preference state of the document.
+ * @returns true when the rail renders.
+ */
+export function shouldShowContents({
+  tocPosition,
+  belowDesktop,
+  isShare,
+  tocVisible,
+}: ShowContentsOptions) {
+  return (
+    !!tocPosition &&
+    !belowDesktop &&
+    (isShare ? tocVisible !== false : tocVisible === true)
+  );
 }
 
 function Contents({ document }: Props) {

@@ -29,7 +29,7 @@ import type { Properties } from "~/types";
 import useEventListener from "~/hooks/useEventListener";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import useMobile from "~/hooks/useMobile";
+import useBelowDesktop from "~/hooks/useBelowDesktop";
 import useStores from "~/hooks/useStores";
 import isTextInput from "~/utils/isTextInput";
 import Logger from "~/utils/Logger";
@@ -42,7 +42,7 @@ import {
 } from "~/utils/routeHelpers";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
-import Contents from "./Contents";
+import Contents, { shouldShowContents } from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices, { DocumentNotice } from "./Notices";
@@ -111,7 +111,7 @@ function DocumentScene({
 }: Props) {
   const { auth, ui, dialogs } = useStores();
   const documentContext = useDocumentContext();
-  const isMobile = useMobile();
+  const belowDesktop = useBelowDesktop();
   const { t } = useTranslation();
   const history = useHistory<LocationState>();
   const sidebarContext = useLocationSidebarContext();
@@ -333,11 +333,12 @@ function DocumentScene({
     tocPosition ??
     ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
       TOCPosition.Left);
-  // Hide on mobile at render time so the stored preference is kept intact.
-  const showContents =
-    tocPos &&
-    !isMobile &&
-    (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+  const showContents = shouldShowContents({
+    tocPosition: tocPos,
+    belowDesktop,
+    isShare,
+    tocVisible: ui.tocVisible,
+  });
   const tocOffset =
     tocPos === TOCPosition.Left
       ? EditorStyleHelper.tocWidth / -2
