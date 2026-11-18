@@ -24,6 +24,7 @@ const DOCUMENT_ID = "doc-1";
 const OPEN_THREAD_IDS = ["open-1", "open-2", "open-3"];
 const RESOLVED_THREAD_IDS = ["resolved-1", "resolved-2", "resolved-3"];
 const RESOLVED_AT = "2026-11-18T10:00:00.000Z";
+const MEASURED_CARD_HEIGHT = 100;
 const COMMENT_DATA = { type: "doc", content: [{ type: "paragraph" }] };
 
 class ResizeObserverStub {
@@ -152,7 +153,14 @@ function getCardIds() {
 
 describe("margin cards", () => {
   beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(
+      MEASURED_CARD_HEIGHT
+    );
     seedStores();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("R04 clicking a comment mark activates its card", async () => {

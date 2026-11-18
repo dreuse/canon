@@ -1,4 +1,3 @@
-import { isEqual } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import {
   type KeyboardEvent,
@@ -42,6 +41,18 @@ const EDITOR_MUTATION_OPTIONS: MutationObserverInit = {
 
 const FORM_ID = "new-comment-form";
 const LINK_ID = "resolved-link";
+
+interface MeasuredCard {
+  id: string;
+  element: HTMLElement;
+  anchorTop: number | null;
+  height: number;
+}
+
+function placeCard(element: HTMLElement, top: number, height: number) {
+  element.style.top = `${top}px`;
+  element.style.visibility = height > 0 ? "visible" : "hidden";
+}
 
 function findAnchorElement(threadId: string): Element | null {
   const marker = window.document.getElementById(`comment-${threadId}`);
@@ -107,8 +118,7 @@ export const CommentsMargin = observer(function CommentsMargin({
   const linkRef = useRef<HTMLDivElement>(null);
   const shouldFocusFirstCard = useRef(false);
   const [viewingResolved, setViewingResolved] = useState(false);
-  const [tops, setTops] = useState<Record<string, number>>({});
-  const [offset, setOffset] = useState(0);
+  const measuredIds = useRef(new Set<string>());
   const appliedOffset = useRef(0);
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-new`,
@@ -183,14 +193,17 @@ export const CommentsMargin = observer(function CommentsMargin({
       shouldFocusFirstCard.current = false;
       return;
     }
-    if (!shouldFocusFirstCard.current || !(firstThreadId in tops)) {
+    if (
+      !shouldFocusFirstCard.current ||
+      !measuredIds.current.has(firstThreadId)
+    ) {
       return;
     }
     shouldFocusFirstCard.current = false;
     const card = cardRefs.current.get(firstThreadId);
     card?.focus({ preventScroll: true });
     card?.scrollIntoView({ block: "nearest" });
-  }, [tops, firstThreadId]);
+  }, [threadKey, isEditorInitialized, firstThreadId]);
 
   useKeyDown("Escape", () => ui.setRightSidebar(null, pane));
 
@@ -201,17 +214,19 @@ export const CommentsMargin = observer(function CommentsMargin({
     }
 
     const text = editor?.view.dom;
-    setOffset(
+    const offset =
       layout.mode === "centred" && text
         ? measureCentredOffset(column, text, appliedOffset.current)
-        : 0
-    );
+        : 0;
+    appliedOffset.current = offset;
+    column.style.transform = offset ? `translateX(${offset}px)` : "";
 
     const columnTop = column.getBoundingClientRect().top;
-    const cards = [...cardRefs.current].map(([id, card]) => {
+    const cards: MeasuredCard[] = [...cardRefs.current].map(([id, card]) => {
       const anchor = findAnchorElement(id);
       return {
         id,
+        element: card,
         anchorTop:
           anchor && !showResolved
             ? anchor.getBoundingClientRect().top - columnTop
@@ -222,6 +237,7 @@ export const CommentsMargin = observer(function CommentsMargin({
     if (formRef.current) {
       cards.push({
         id: FORM_ID,
+        element: formRef.current,
         anchorTop: null,
         height: formRef.current.offsetHeight,
       });
@@ -229,21 +245,21 @@ export const CommentsMargin = observer(function CommentsMargin({
     if (linkRef.current) {
       cards.push({
         id: LINK_ID,
+        element: linkRef.current,
         anchorTop: null,
         height: linkRef.current.offsetHeight,
       });
     }
     const cardTops = layoutMarginCards(cards);
-    const next = Object.fromEntries(
-      cards.map(({ id }, index) => [id, cardTops[index]])
-    );
 
-    setTops((previous) => (isEqual(previous, next) ? previous : next));
+    measuredIds.current.clear();
+    cards.forEach(({ id, element, height }, index) => {
+      placeCard(element, cardTops[index], height);
+      if (height > 0) {
+        measuredIds.current.add(id);
+      }
+    });
   }, [editor, isEditorInitialized, layout.mode, showResolved]);
-
-  useLayoutEffect(() => {
-    appliedOffset.current = offset;
-  }, [offset]);
 
   useLayoutEffect(measure, [
     measure,
@@ -253,7 +269,7 @@ export const CommentsMargin = observer(function CommentsMargin({
     can.comment,
   ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver(measure);
     const main = window.document.querySelector(MAIN_CONTENT_SELECTOR);
     if (main) {
@@ -271,18 +287,12 @@ export const CommentsMargin = observer(function CommentsMargin({
     }
     window.addEventListener("resize", measure);
 
-    let frame = 0;
-    const scheduleMeasure = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
-    };
-    const mutationObserver = new MutationObserver(scheduleMeasure);
+    const mutationObserver = new MutationObserver(measure);
     if (editor?.view.dom) {
       mutationObserver.observe(editor.view.dom, EDITOR_MUTATION_OPTIONS);
     }
 
     return () => {
-      cancelAnimationFrame(frame);
       mutationObserver.disconnect();
       resizeObserver.disconnect();
       window.removeEventListener("resize", measure);
@@ -302,7 +312,6 @@ export const CommentsMargin = observer(function CommentsMargin({
       aria-label={t("Comments")}
       data-testid="comments-margin"
       $layout={layout}
-      style={{ transform: offset ? `translateX(${offset}px)` : undefined }}
     >
       <HideGutterIndicators />
       {threads.map((thread) => (
@@ -321,10 +330,6 @@ export const CommentsMargin = observer(function CommentsMargin({
           tabIndex={0}
           aria-current={focusedComment?.id === thread.id ? "true" : undefined}
           onKeyDown={(event) => handleCardKeyDown(event, thread.id)}
-          style={{
-            top: tops[thread.id] ?? 0,
-            visibility: thread.id in tops ? undefined : "hidden",
-          }}
         >
           <CommentThread
             comment={thread}
@@ -340,10 +345,6 @@ export const CommentsMargin = observer(function CommentsMargin({
         <FormCard
           ref={formRef}
           data-margin-form
-          style={{
-            top: tops[FORM_ID] ?? 0,
-            visibility: FORM_ID in tops ? undefined : "hidden",
-          }}
         >
           <CommentForm
             draft={draft}
@@ -358,10 +359,6 @@ export const CommentsMargin = observer(function CommentsMargin({
       {(showResolved || resolvedCount > 0) && (
         <LinkRow
           ref={linkRef}
-          style={{
-            top: tops[LINK_ID] ?? 0,
-            visibility: LINK_ID in tops ? undefined : "hidden",
-          }}
         >
           {showResolved ? (
             <ResolvedLink onClick={handleShowOpen}>
@@ -395,6 +392,8 @@ const Column = styled.aside<{ $layout: CommentsLayout }>`
 
 const Card = styled.div`
   position: absolute;
+  top: 0;
+  visibility: hidden;
   inset-inline: 0 var(--margin-card-end-gap);
   border-radius: 8px;
 
@@ -406,6 +405,8 @@ const Card = styled.div`
 
 const LinkRow = styled.div`
   position: absolute;
+  top: 0;
+  visibility: hidden;
   inset-inline: 0;
 `;
 
