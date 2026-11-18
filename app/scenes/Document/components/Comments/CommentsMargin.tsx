@@ -15,7 +15,10 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ProsemirrorData } from "@shared/types";
 import type Document from "~/models/Document";
 import { useDocumentContext } from "~/components/DocumentContext";
-import { layoutMarginCards } from "~/editor/components/marginLayout";
+import {
+  layoutMarginCards,
+  measureAnchorTop,
+} from "~/editor/components/marginLayout";
 import { useFocusedComment } from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePersistedState from "~/hooks/usePersistedState";
@@ -260,13 +263,12 @@ export const CommentsMargin = observer(function CommentsMargin({
     const columnTop = column.getBoundingClientRect().top;
     const cards: MeasuredCard[] = [...cardRefs.current].map(([id, card]) => {
       const anchor = findAnchorElement(id);
+      const top =
+        anchor && text && !showResolved ? measureAnchorTop(anchor, text) : null;
       return {
         id,
         element: card,
-        anchorTop:
-          anchor && !showResolved
-            ? anchor.getBoundingClientRect().top - columnTop
-            : null,
+        anchorTop: top === null ? null : top - columnTop,
         height: card.offsetHeight,
       };
     });

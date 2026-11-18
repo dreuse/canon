@@ -108,7 +108,8 @@ function addAnchor(threadId: string, top: number) {
     anchorReads += 1;
     return { top: anchorTops.get(threadId) ?? 0 } as DOMRect;
   };
-  document.body.appendChild(anchor);
+  anchor.getClientRects = () =>
+    [{ top, width: 10, height: 18 }] as unknown as DOMRectList;
   anchorElements.push(anchor);
   anchorTops.set(threadId, top);
 }
@@ -116,6 +117,7 @@ function addAnchor(threadId: string, top: number) {
 function createEditorStub() {
   editorDom = document.createElement("div");
   document.body.appendChild(editorDom);
+  anchorElements.forEach((anchor) => editorDom.appendChild(anchor));
   return {
     view: { dom: editorDom, state: { doc: undefined } },
     getHeadings: () => [],

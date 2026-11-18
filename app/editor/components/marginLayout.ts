@@ -40,3 +40,34 @@ export function layoutMarginCards(
 
   return tops;
 }
+
+/**
+ * Measures the top of the text a margin card belongs to. An anchor that does
+ * not render, such as one inside a folded toggle block, is measured at the
+ * nearest ancestor inside the root that does render. An ancestor with a zero-height
+ * box does not count as rendered.
+ *
+ * @param anchor the element the card is anchored to.
+ * @param root the editor element that bounds the search.
+ * @returns the top in viewport pixels, or null when nothing renders.
+ */
+export function measureAnchorTop(
+  anchor: Element,
+  root: Element
+): number | null {
+  if (anchor.getClientRects().length > 0) {
+    return anchor.getBoundingClientRect().top;
+  }
+
+  for (
+    let element = anchor.parentElement;
+    element && element !== root && root.contains(element);
+    element = element.parentElement
+  ) {
+    if ([...element.getClientRects()].some((rect) => rect.height > 0)) {
+      return element.getBoundingClientRect().top;
+    }
+  }
+
+  return null;
+}
