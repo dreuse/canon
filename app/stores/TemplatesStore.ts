@@ -39,6 +39,7 @@ export default class TemplatesStore extends Store<Template> {
     options?: {
       title?: string;
       publish?: boolean;
+      collectionId?: string;
     }
   ) => {
     const res = await client.post("/templates.duplicate", {

@@ -23,6 +23,7 @@ function TemplateMenu({ template, onEdit, neutral }: Props) {
       <DropdownMenu
         action={rootAction}
         align="end"
+        restoreFocus
         ariaLabel={t("Template options")}
       >
         <OverflowMenuButton neutral={neutral} />

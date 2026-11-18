@@ -245,7 +245,7 @@ function MenuGroup(props: MenuGroupProps) {
 MenuGroup.displayName = "MenuGroup";
 
 type BaseItemProps = {
-  label: string;
+  label: React.ReactNode;
   icon?: React.ReactElement;
   disabled?: boolean;
   shortcut?: string[];

@@ -46,6 +46,8 @@ type Props = {
   prepend?: React.ReactNode;
   /** Additional component to display at the bottom of the top-level menu */
   append?: React.ReactNode;
+  /** Return focus to the trigger when the menu closes, defaults to false. */
+  restoreFocus?: boolean;
   /** Callback when menu is opened */
   onOpen?: () => void;
   /** Callback when menu is closed */
@@ -62,6 +64,7 @@ export const DropdownMenu = observer(function DropdownMenu({
   minWidth,
   prepend,
   append,
+  restoreFocus = false,
   onOpen,
   onClose,
   ...rest
@@ -159,7 +162,7 @@ export const DropdownMenu = observer(function DropdownMenu({
           aria-label={ariaLabel}
           onAnimationStart={disablePointerEvents}
           onAnimationEnd={enablePointerEvents}
-          onCloseAutoFocus={preventDefault}
+          onCloseAutoFocus={restoreFocus ? undefined : preventDefault}
           style={minWidth ? { minWidth } : undefined}
           onEscapeKeyDown={handleEscapeKeyDown}
           onKeyDownCapture={handleKeyDownCapture}

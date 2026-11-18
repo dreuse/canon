@@ -40,7 +40,7 @@ export const ActionSeparator: TActionSeparator = {
 };
 
 export function createAction(
-  definition: Optional<Omit<Action, "type" | "variant">, "id">
+  definition: Optional<Omit<Action, "type" | "variant">, "id" | "perform">
 ): Action {
   return {
     ...definition,
@@ -160,6 +160,14 @@ export function actionToMenuItem(
 
       switch (action.variant) {
         case "action":
+          if (action.render) {
+            return {
+              type: "custom",
+              visible,
+              content: action.render(context),
+            };
+          }
+
           return {
             type: "button",
             title,

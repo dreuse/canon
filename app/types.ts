@@ -169,6 +169,8 @@ export type Action = BaseAction & {
   dangerous?: boolean;
   tooltip?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   perform: (context: ActionContext) => unknown;
+  /** Renders custom menu content in place of a menu button. */
+  render?: (context: ActionContext) => React.ReactNode;
 };
 
 export type InternalLinkAction = BaseAction & {

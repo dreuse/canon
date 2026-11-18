@@ -1,7 +1,9 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PadlockIcon, PlusIcon } from "outline-icons";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { PersonalCollectionId } from "@shared/constants";
+import { TeamPreference } from "@shared/types";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
@@ -40,8 +42,18 @@ function NewTemplateMenu() {
     [policies, collections.orderedData]
   );
 
+  const personalCollectionId = collections.personal?.id;
+  const showPersonal = !!team.getPreference(TeamPreference.PersonalDocs);
+
   const allActions = useMemo(
     () => [
+      createInternalLinkAction({
+        name: t("Only you"),
+        section: DocumentSection,
+        icon: <PadlockIcon />,
+        visible: showPersonal && can.createTemplate,
+        to: newTemplatePath(personalCollectionId ?? PersonalCollectionId),
+      }),
       createInternalLinkAction({
         name: t("Save in workspace"),
         section: DocumentSection,
@@ -55,7 +67,7 @@ function NewTemplateMenu() {
         actions: collectionActions,
       }),
     ],
-    [t, team, can, collectionActions]
+    [t, team, can, collectionActions, showPersonal, personalCollectionId]
   );
 
   const rootAction = useMenuAction(allActions);

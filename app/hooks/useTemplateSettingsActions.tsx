@@ -4,15 +4,15 @@ import { useTranslation } from "react-i18next";
 import type Template from "~/models/Template";
 import { ActionSeparator, createAction } from "~/actions";
 import {
-  copyTemplate,
   deleteTemplate,
   duplicateTemplate,
-  moveTemplate,
   publishTemplate,
 } from "~/actions/definitions/templates";
 import { ActiveTemplateSection } from "~/actions/sections";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { useMenuAction } from "~/hooks/useMenuAction";
+import { createTemplateShareAction } from "~/menus/TemplateShareMenu";
 
 /**
  * Hook that constructs the action menu for template management operations.
@@ -27,6 +27,7 @@ export function useTemplateSettingsActions(
 ) {
   const { t } = useTranslation();
   const can = usePolicy(template);
+  const isMobile = useMobile();
 
   const actions = React.useMemo(
     () =>
@@ -34,21 +35,19 @@ export function useTemplateSettingsActions(
         ? []
         : [
             createAction({
-              name: `${t("Edit")}…`,
+              name: t("Edit"),
               visible: !!can.update && !!onEdit,
               icon: <EditIcon />,
               section: ActiveTemplateSection,
               perform: () => onEdit?.(),
             }),
             publishTemplate,
+            createTemplateShareAction(template, t, isMobile),
             duplicateTemplate,
-            moveTemplate,
-            ActionSeparator,
-            copyTemplate,
             ActionSeparator,
             deleteTemplate,
           ],
-    [can.update, onEdit, t, template]
+    [can.update, isMobile, onEdit, t, template]
   );
 
   return useMenuAction(actions);

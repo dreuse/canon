@@ -1,10 +1,8 @@
 import copy from "copy-to-clipboard";
 import {
   CaseSensitiveIcon,
-  CollectionIcon,
   CopyIcon,
   DuplicateIcon,
-  MoveIcon,
   NewDocumentIcon,
   PlusIcon,
   PrintIcon,
@@ -14,9 +12,10 @@ import {
 } from "outline-icons";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
+import { PersonalCollectionId } from "@shared/constants";
+import { TeamPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
 import {
   createAction,
   createActionWithChildren,
@@ -39,8 +38,6 @@ import {
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
-import { AvatarSize } from "~/components/Avatar";
-import TeamLogo from "~/components/TeamLogo";
 
 export const createTemplate = createInternalLinkAction({
   name: ({ t }) => t("New template"),
@@ -66,7 +63,7 @@ export const manageTemplates = createInternalLinkAction({
 export const deleteTemplate = dialogActionFactory({
   analyticsName: "Delete template",
   section: ActiveTemplateSection,
-  name: (t) => `${t("Delete")}…`,
+  name: (t) => t("Delete"),
   title: (t, { getActiveModels }) =>
     getActiveModels(Template).length === 1
       ? t("Delete template")
@@ -166,64 +163,6 @@ export const publishTemplate = createAction({
   },
 });
 
-export const moveTemplateToWorkspace = createAction({
-  name: ({ t }) => t("Move to workspace"),
-  analyticsName: "Move template to workspace",
-  section: ActiveTemplateSection,
-  icon: ({ stores }) => {
-    const { team } = stores.auth;
-    return <TeamLogo model={team} size={AvatarSize.Small} />;
-  },
-  visible: (context) => !!singleActiveTemplate(context)?.collectionId,
-  perform: async (context) => {
-    const { stores, t } = context;
-    const template = singleActiveTemplate(context);
-    if (!template) {
-      return;
-    }
-
-    try {
-      await template.save({ collectionId: null });
-      toast.success(t("Template moved"));
-      stores.dialogs.closeAllModals();
-    } catch (_err) {
-      toast.error(t("Couldn’t move the template. Try again?"));
-    }
-  },
-});
-
-export const moveTemplateToCollection = createAction({
-  name: ({ t }) => t("Move to collection"),
-  analyticsName: "Move template to collection",
-  section: ActiveTemplateSection,
-  icon: <CollectionIcon />,
-  visible: (context) => !!singleActiveTemplate(context),
-  perform: (context) => {
-    const { stores, t } = context;
-    const template = singleActiveTemplate(context);
-    if (!template) {
-      return;
-    }
-
-    stores.dialogs.openModal({
-      title: t("Move template"),
-      content: <TemplateMove template={template} />,
-    });
-  },
-});
-
-export const moveTemplate = createActionWithChildren({
-  name: ({ t }) => t("Move"),
-  analyticsName: "Move template",
-  section: ActiveTemplateSection,
-  icon: <MoveIcon />,
-  visible: (context) => {
-    const template = singleActiveTemplate(context);
-    return !!template && context.stores.policies.abilities(template.id).move;
-  },
-  children: [moveTemplateToWorkspace, moveTemplateToCollection],
-});
-
 export const createDocumentFromTemplate = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document from template",
@@ -278,7 +217,14 @@ export const duplicateTemplate = createAction({
     performBatchOnActiveModels(
       context,
       Template,
-      (template) => context.stores.templates.duplicate(template),
+      (template) =>
+        context.stores.templates.duplicate(template, {
+          collectionId: context.stores.auth.team?.getPreference(
+            TeamPreference.PersonalDocs
+          )
+            ? PersonalCollectionId
+            : undefined,
+        }),
       (templates, succeeded, t) =>
         templates.length === 1
           ? undefined
@@ -343,7 +289,6 @@ export const rootTemplateActions = [
   createTemplate,
   publishTemplate,
   duplicateTemplate,
-  moveTemplate,
   createDocumentFromTemplate,
   copyTemplate,
   printTemplate,
