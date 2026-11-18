@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "{{ number }}분 읽기",
   "Document title": "문서 제목",
   "Last updated": "마지막 업데이트",
-  "Type '/' to insert, or start writing…": "'/'를 입력하여 삽입하거나 쓰기 시작...",
   "Hide contents": "내용 숨기기",
   "Show contents": "내용 보기",
   "available when headings are added": "제목 추가 후 사용 가능",

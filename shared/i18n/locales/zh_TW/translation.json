@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "閱讀時間 {{ number }} 分鐘",
   "Document title": "文件標題",
   "Last updated": "最後更新時間",
-  "Type '/' to insert, or start writing…": "輸入「/」以插入，或開始撰寫…",
   "Hide contents": "隱藏目錄內容",
   "Show contents": "顯示目錄內容",
   "available when headings are added": "新增標題後可用",

@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "Doba čtení: {{ number }} min",
   "Document title": "Název dokumentu",
   "Last updated": "Poslední aktualizace",
-  "Type '/' to insert, or start writing…": "Pro vložení stiskněte „/“ nebo začněte psát…",
   "Hide contents": "Skrýt obsah",
   "Show contents": "Zobrazit obsah",
   "available when headings are added": "k dispozici po přidání nadpisů",

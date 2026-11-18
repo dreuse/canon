@@ -68,11 +68,28 @@ class DocumentContext {
     );
   }
 
+  /**
+   * Whether the editor body is a single empty text block, so it holds no text
+   * and no images, rules, embeds or tables. False until the editor has a document.
+   */
+  @computed
+  get isBodyEmpty(): boolean {
+    const doc = this.editorDoc;
+    const onlyChild = doc?.firstChild;
+    return (
+      !!doc &&
+      doc.childCount === 1 &&
+      !!onlyChild?.isTextblock &&
+      onlyChild.content.size === 0
+    );
+  }
+
   @action
   setDocument = (document: Document) => {
     // Reset the focused comment when navigating between documents
     if (this.document && this.document.id !== document.id) {
       this.focusedCommentId = null;
+      this.editorDoc = undefined;
     }
     this.document = document;
     this.updateState();
@@ -116,7 +133,7 @@ class DocumentContext {
 
   @action
   updateState = () => {
-    this.editorDoc = this.editor?.view.state.doc;
+    this.editorDoc = this.editor?.view.state.doc ?? this.editorDoc;
     this.updateHeadings();
     this.updateTasks();
   };

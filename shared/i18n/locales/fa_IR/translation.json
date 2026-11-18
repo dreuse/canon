@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "زمان مطالعه {{ number }} دقیقه",
   "Document title": "عنوان سند",
   "Last updated": "آخرین به‌روزرسانی",
-  "Type '/' to insert, or start writing…": "برای درج، '/' را تایپ کنید یا شروع به نوشتن کنید…",
   "Hide contents": "مخفی کردن محتوا",
   "Show contents": "نمایش محتوا",
   "available when headings are added": "زمانی که عنوان‌ها اضافه شوند فعال می‌شود",

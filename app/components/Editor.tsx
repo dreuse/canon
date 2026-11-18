@@ -139,6 +139,11 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
     [updateComments]
   );
 
+  const mergedRef = React.useMemo(
+    () => mergeRefs([ref, localRef, handleRefChanged]),
+    [ref, handleRefChanged]
+  );
+
   // Read-only content that needs no node views or plugins is rendered from
   // the schema alone, avoiding an editor view per instance.
   const staticHTML = React.useMemo(() => {
@@ -176,7 +181,7 @@ function Editor({ ref, ...props }: Props & { ref?: React.Ref<SharedEditor> }) {
           <React.Suspense fallback={<PlaceholderDocument delay={500} />}>
             <AsyncEditor
               key={props.extensions?.length || 0}
-              ref={mergeRefs([ref, localRef, handleRefChanged])}
+              ref={mergedRef}
               uploadFile={handleUploadFile}
               embeds={embeds}
               userPreferences={preferences}

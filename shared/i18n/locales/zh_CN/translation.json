@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "已读 {{ number }} 分钟",
   "Document title": "文档标题",
   "Last updated": "最后更新",
-  "Type '/' to insert, or start writing…": "输入'/'来插入，或开始写...",
   "Hide contents": "隐藏内容",
   "Show contents": "显示内容",
   "available when headings are added": "当添加标题时可用",

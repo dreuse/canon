@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "{{ number }} dakika okuma",
   "Document title": "Belge başlığı",
   "Last updated": "Son güncelleme",
-  "Type '/' to insert, or start writing…": "Eklemek için '/' yazın veya yazmaya başlayın…",
   "Hide contents": "İçeriği gizle",
   "Show contents": "İçeriği göster",
   "available when headings are added": "başlıklar eklendiğinde kullanılabilir",

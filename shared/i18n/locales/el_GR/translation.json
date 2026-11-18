@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "{{ number }} λεπτά ανάγνωσης",
   "Document title": "Τίτλος εγγράφου",
   "Last updated": "Τελευταία ενημέρωση",
-  "Type '/' to insert, or start writing…": "Πληκτρολογήστε '/' για εισαγωγή ή αρχίστε να γράφετε…",
   "Hide contents": "Απόκρυψη περιεχομένων",
   "Show contents": "Εμφάνιση περιεχομένων",
   "available when headings are added": "διαθέσιμο όταν προστεθούν επικεφαλίδες",

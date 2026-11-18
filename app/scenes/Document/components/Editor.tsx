@@ -40,6 +40,7 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
+import { EmptyStarters, useShowStarters } from "./EmptyStarters";
 import { first } from "es-toolkit/compat";
 import useShare from "@shared/hooks/useShare";
 import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
@@ -61,6 +62,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     autosave?: boolean;
     publish?: boolean;
   }) => void;
+  onSelectTemplate?: (template: Template) => void;
   children?: React.ReactNode;
   ref?: React.Ref<SharedEditor>;
 };
@@ -92,10 +94,17 @@ function DocumentEditor(props: Props) {
     readOnly,
     children,
     multiplayer,
+    onSelectTemplate,
     ref,
     ...rest
   } = props;
   const can = usePolicy(document);
+  const showStarters = useShowStarters({
+    document,
+    readOnly,
+    template: rest.template,
+  });
+  const collection = useStores().collections.get(document.collectionId ?? "");
   const commentingEnabled = !!team?.commentingEnabled;
 
   const iconColor = document.color ?? (first(colorPalette) as string);
@@ -197,6 +206,10 @@ function DocumentEditor(props: Props) {
     updateState: updateDocState,
   } = useDocumentContext();
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
+  const mergedEditorRef = React.useMemo(
+    () => mergeRefs([ref, editorRef, handleRefChanged]),
+    [ref, handleRefChanged]
+  );
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   const childOffsetHeight = childRef.current?.offsetHeight || 0;
@@ -204,9 +217,11 @@ function DocumentEditor(props: Props) {
     () => ({
       padding: "0 32px",
       margin: "0 -32px",
-      paddingBottom: `calc(30vh - ${childOffsetHeight}px)`,
+      paddingBottom: showStarters
+        ? undefined
+        : `calc(30vh - ${childOffsetHeight}px)`,
     }),
-    [childOffsetHeight]
+    [childOffsetHeight, showStarters]
   );
 
   const handleInit = React.useCallback(
@@ -244,6 +259,17 @@ function DocumentEditor(props: Props) {
             {t("Last updated")} <Time dateTime={document.updatedAt} addSuffix />
           </SharedMeta>
         ) : null
+      ) : showStarters && isDraft ? (
+        <SharedMeta type="tertiary">
+          {collection
+            ? t(
+                "Draft in {{ collectionName }} · visible only to you until published",
+                {
+                  collectionName: collection.name,
+                }
+              )
+            : t("Draft · visible only to you until published")}
+        </SharedMeta>
       ) : !rest.template ? (
         <DocumentMeta
           document={document as Document}
@@ -262,9 +288,11 @@ function DocumentEditor(props: Props) {
           from hiding mounted content, which would detach refs mid-commit. */}
       <React.Suspense fallback={<PlaceholderDocument />}>
         <EditorComponent
-          ref={mergeRefs([ref, editorRef, handleRefChanged])}
+          ref={mergedEditorRef}
           lang={getLangFor(document.language)}
-          placeholder={t("Type '/' to insert, or start writing…")}
+          placeholder={t(
+            "Write, or press / to insert a block and @ to mention."
+          )}
           scrollTo={decodeURIComponentSafe(location.hash)}
           readOnly={readOnly}
           userId={user?.id}
@@ -299,6 +327,14 @@ function DocumentEditor(props: Props) {
           canComment={commentingEnabled && can.comment}
         />
       </React.Suspense>
+      {onSelectTemplate && (
+        <EmptyStarters
+          document={document}
+          readOnly={readOnly}
+          template={rest.template}
+          onSelectTemplate={onSelectTemplate}
+        />
+      )}
       <div ref={childRef}>{children}</div>
     </Flex>
   );

@@ -499,6 +499,7 @@ function DocumentScene({
                       multiplayer={multiplayerEditor}
                       isDraft={document.isDraft}
                       document={document}
+                      onSelectTemplate={handleSelectTemplate}
                       value={readOnly ? document.data : undefined}
                       defaultValue={document.data}
                       embedsDisabled={embedsDisabled}

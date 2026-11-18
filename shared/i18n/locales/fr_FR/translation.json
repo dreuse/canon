@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "Durée de lecture de {{ number }} minutes",
   "Document title": "Titre du document",
   "Last updated": "Dernière mise à jour",
-  "Type '/' to insert, or start writing…": "Tapez '/' pour insérer, ou commencez à écrire…",
   "Hide contents": "Masquer le contenu",
   "Show contents": "Afficher le contenu",
   "available when headings are added": "disponible lorsque les en-têtes sont ajoutés",

@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "{{ number }} minut de lectura",
   "Document title": "Títol del document",
   "Last updated": "Darrera actualització",
-  "Type '/' to insert, or start writing…": "Escriu '/' per inserir, o comença a escriure…",
   "Hide contents": "Amaga els continguts",
   "Show contents": "Mostra els continguts",
   "available when headings are added": "disponible quan s'afegeixin encapçalaments",

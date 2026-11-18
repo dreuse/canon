@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "{{ number }} minutts lesning",
   "Document title": "Dokumenttittel",
   "Last updated": "Sist oppdatert",
-  "Type '/' to insert, or start writing…": "Skriv '/' for å sette inn, eller begynn å skrive…",
   "Hide contents": "Skjul innhold",
   "Show contents": "Vis innhold",
   "available when headings are added": "tilgjengelig når overskrifter legges til",

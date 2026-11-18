@@ -1011,7 +1011,6 @@
   "{{ number }} minute read": "{{ number }} 分で読めます",
   "Document title": "ドキュメントタイトル",
   "Last updated": "最終更新",
-  "Type '/' to insert, or start writing…": "「/」で挿入、または書き込みを開始…",
   "Hide contents": "コンテンツを非表示",
   "Show contents": "コンテンツを表示",
   "available when headings are added": "見出しが追加されると利用可能です",
