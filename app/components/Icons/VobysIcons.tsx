@@ -278,3 +278,135 @@ export const VoVerifiedIcon = (props: VobysIconProps) => (
     <path d="M5.4 8.2l1.8 1.8 3.4-3.8" />
   </VobysIcon>
 );
+
+const SETTINGS_VIEW_BOX = "0 0 24 24";
+const SETTINGS_STROKE_WIDTH = 1.75;
+
+const SettingsGlyph = (props: VobysIconProps) => (
+  <VobysIcon
+    viewBox={SETTINGS_VIEW_BOX}
+    strokeWidth={SETTINGS_STROKE_WIDTH}
+    {...props}
+  />
+);
+
+export const VoProfileIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </SettingsGlyph>
+);
+
+export const VoSlidersIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" />
+    <circle cx="15" cy="6" r="2" />
+    <circle cx="9" cy="12" r="2" />
+    <circle cx="17" cy="18" r="2" />
+  </SettingsGlyph>
+);
+
+export const VoNotificationsIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </SettingsGlyph>
+);
+
+export const VoKeyIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <circle cx="7.5" cy="15.5" r="4.5" />
+    <path d="m10.7 12.3 9.3-9.3M16 7l3 3M14 9l2 2" />
+  </SettingsGlyph>
+);
+
+export const VoBuildingIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <rect x="4" y="3" width="16" height="18" rx="1" />
+    <path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M10 21v-3h4v3" />
+  </SettingsGlyph>
+);
+
+export const VoPaletteIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.6 0-.9-.6-1.4-.6-2.2 0-.9.7-1.6 1.6-1.6H17a4 4 0 0 0 4-4c0-4.7-4-8.6-9-8.6z" />
+    <circle cx="7.5" cy="11" r="1" />
+    <circle cx="12" cy="7.5" r="1" />
+    <circle cx="16.5" cy="11" r="1" />
+  </SettingsGlyph>
+);
+
+export const VoMembersIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <circle cx="9" cy="8" r="4" />
+    <path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3" />
+  </SettingsGlyph>
+);
+
+export const VoGroupsIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </SettingsGlyph>
+);
+
+export const VoLayoutIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M3 9h18M9 21V9" />
+  </SettingsGlyph>
+);
+
+export const VoChainLinkIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+    <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+  </SettingsGlyph>
+);
+
+export const VoShieldIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M12 3 4 6v6c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V6z" />
+  </SettingsGlyph>
+);
+
+export const VoSignInIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
+  </SettingsGlyph>
+);
+
+export const VoSparkleIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+  </SettingsGlyph>
+);
+
+export const VoUploadIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M12 15V3M7 8l5-5 5 5" />
+    <path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+  </SettingsGlyph>
+);
+
+export const VoDownloadIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M12 3v12M7 10l5 5 5-5" />
+    <path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+  </SettingsGlyph>
+);
+
+export const VoPlugIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4" />
+  </SettingsGlyph>
+);
+
+export const VoSmileIcon = (props: VobysIconProps) => (
+  <SettingsGlyph {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+  </SettingsGlyph>
+);

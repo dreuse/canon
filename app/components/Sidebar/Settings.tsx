@@ -5,11 +5,11 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
-import { useLocationSelector } from "~/hooks/useLocationSelector";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import { VoHelpIcon } from "~/components/Icons/VobysIcons";
@@ -22,12 +22,13 @@ import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
-import Version from "./components/Version";
+import { SettingsFooter } from "./components/SettingsFooter";
+
+const NON_EXACT_PATHS = [settingsPath("templates"), settingsPath("groups")];
 
 function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
-  const pathname = useLocationSelector((location) => location.pathname);
   const configs = useSettingsConfig();
   const [query, setQuery] = useState("");
 
@@ -95,37 +96,42 @@ function SettingsSidebar() {
       <Flex auto column>
         <Scrollable shadow>
           {Object.keys(groupedConfig).map((header) => (
-            <Section key={header}>
+            <NavSection key={header}>
               <Header title={header}>
                 {groupedConfig[header].map((item) => (
                   <SidebarLink
                     key={item.path}
                     to={item.path}
                     onClickIntent={item.preload}
-                    active={
-                      item.path.startsWith(settingsPath("templates")) ||
-                      item.path.startsWith(settingsPath("groups"))
-                        ? pathname.startsWith(item.path)
-                        : undefined
+                    exact={
+                      !NON_EXACT_PATHS.some((path) =>
+                        item.path.startsWith(path)
+                      )
                     }
                     label={item.name}
+                    icon={<item.icon />}
                   />
                 ))}
               </Header>
-            </Section>
+            </NavSection>
           ))}
-          {!isCloudHosted && (
-            <Section>
-              <Header title={t("Installation")} />
-              <Version />
-            </Section>
-          )}
+          {!isCloudHosted && <SettingsFooter />}
         </Scrollable>
       </Flex>
       <HistoryNavigation />
     </Sidebar>
   );
 }
+
+const NavSection = styled(Section)`
+  svg {
+    color: ${s("textTertiary")};
+  }
+
+  a[aria-current="page"] svg {
+    color: ${s("link")};
+  }
+`;
 
 const Search = styled.div`
   padding: 0 8px 12px;

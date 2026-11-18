@@ -1,27 +1,25 @@
-import {
-  EmailIcon,
-  ProfileIcon,
-  PadlockIcon,
-  CodeIcon,
-  UserIcon,
-  GroupIcon,
-  GlobeIcon,
-  ShieldIcon,
-  TeamIcon,
-  SparklesIcon,
-  SettingsIcon,
-  ExportIcon,
-  ImportIcon,
-  ShapesIcon,
-  PlusIcon,
-  InternetIcon,
-  SmileyIcon,
-  BrowserIcon,
-  PaletteIcon,
-  InfoIcon,
-} from "outline-icons";
+import { BrowserIcon, CodeIcon, InfoIcon, InternetIcon } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  VoBuildingIcon,
+  VoChainLinkIcon,
+  VoDownloadIcon,
+  VoGroupsIcon,
+  VoKeyIcon,
+  VoLayoutIcon,
+  VoMembersIcon,
+  VoNotificationsIcon,
+  VoPaletteIcon,
+  VoPlugIcon,
+  VoProfileIcon,
+  VoShieldIcon,
+  VoSignInIcon,
+  VoSlidersIcon,
+  VoSmileIcon,
+  VoSparkleIcon,
+  VoUploadIcon,
+} from "~/components/Icons/VobysIcons";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
@@ -85,7 +83,6 @@ const useSettingsConfig = () => {
 
   const config = useComputed(() => {
     const items: ConfigItem[] = [
-      // Account
       {
         name: t("Profile"),
         path: settingsPath(),
@@ -94,7 +91,7 @@ const useSettingsConfig = () => {
         description: t("Your name, photo and language."),
         enabled: true,
         group: t("Account"),
-        icon: ProfileIcon,
+        icon: VoProfileIcon,
       },
       {
         name: t("Preferences"),
@@ -104,7 +101,7 @@ const useSettingsConfig = () => {
         description: t("How the editor and the interface behave for you."),
         enabled: true,
         group: t("Account"),
-        icon: SettingsIcon,
+        icon: VoSlidersIcon,
       },
       {
         name: t("Notifications"),
@@ -114,10 +111,10 @@ const useSettingsConfig = () => {
         description: t("Which emails you receive, and when."),
         enabled: true,
         group: t("Account"),
-        icon: EmailIcon,
+        icon: VoNotificationsIcon,
       },
       {
-        name: t("Access & keys"),
+        name: t("API keys"),
         path: settingsPath("api-and-access"),
         component: APIAndAccess.Component,
         preload: APIAndAccess.preload,
@@ -126,7 +123,7 @@ const useSettingsConfig = () => {
         ),
         enabled: true,
         group: t("Account"),
-        icon: PadlockIcon,
+        icon: VoKeyIcon,
       },
       {
         name: t("API keys"),
@@ -138,7 +135,6 @@ const useSettingsConfig = () => {
         icon: CodeIcon,
         nav: false,
       },
-      // Workspace
       {
         name: t("General"),
         path: settingsPath("details"),
@@ -147,7 +143,7 @@ const useSettingsConfig = () => {
         description: t("Name, logo and defaults for the workspace."),
         enabled: can.update,
         group: t("Workspace"),
-        icon: TeamIcon,
+        icon: VoBuildingIcon,
       },
       {
         name: t("Appearance"),
@@ -157,39 +153,7 @@ const useSettingsConfig = () => {
         description: t("Theme, accent color, fonts, text size and code."),
         enabled: can.update,
         group: t("Workspace"),
-        icon: PaletteIcon,
-      },
-      {
-        name: t("Security"),
-        path: settingsPath("security"),
-        component: Security.Component,
-        preload: Security.preload,
-        description: t(
-          "Sign-in methods, authentication, invites, sharing and AI."
-        ),
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: ShieldIcon,
-      },
-      {
-        name: t("Authentication"),
-        path: settingsPath("authentication"),
-        component: Authentication.Component,
-        preload: Authentication.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: PadlockIcon,
-        nav: false,
-      },
-      {
-        name: t("AI"),
-        path: settingsPath("ai"),
-        component: AI.Component,
-        preload: AI.preload,
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: SparklesIcon,
-        nav: false,
+        icon: VoPaletteIcon,
       },
       {
         name: t("Members"),
@@ -199,7 +163,7 @@ const useSettingsConfig = () => {
         description: t("People and groups in the workspace, and their roles."),
         enabled: can.listUsers,
         group: t("Workspace"),
-        icon: UserIcon,
+        icon: VoMembersIcon,
       },
       {
         name: t("Groups"),
@@ -208,8 +172,7 @@ const useSettingsConfig = () => {
         preload: Members.preload,
         enabled: can.listGroups,
         group: t("Workspace"),
-        icon: GroupIcon,
-        nav: false,
+        icon: VoGroupsIcon,
       },
       {
         name: t("Templates"),
@@ -219,17 +182,7 @@ const useSettingsConfig = () => {
         description: t("Starting points for new documents."),
         enabled: can.readTemplate,
         group: t("Workspace"),
-        icon: ShapesIcon,
-      },
-      {
-        name: t("Emojis"),
-        path: settingsPath("emojis"),
-        component: CustomEmojis.Component,
-        preload: CustomEmojis.preload,
-        description: t("Custom emoji for this workspace."),
-        enabled: can.update,
-        group: t("Workspace"),
-        icon: SmileyIcon,
+        icon: VoLayoutIcon,
       },
       {
         name: t("Shared links"),
@@ -239,66 +192,17 @@ const useSettingsConfig = () => {
         description: t("Documents published outside the workspace."),
         enabled: can.listShares,
         group: t("Workspace"),
-        icon: GlobeIcon,
+        icon: VoChainLinkIcon,
       },
       {
-        name: t("Export"),
-        path: settingsPath("export"),
-        component: Export.Component,
-        preload: Export.preload,
-        enabled: can.createExport,
+        name: t("Emojis"),
+        path: settingsPath("emojis"),
+        component: CustomEmojis.Component,
+        preload: CustomEmojis.preload,
+        description: t("Custom emoji for this workspace."),
+        enabled: can.update,
         group: t("Workspace"),
-        icon: ExportIcon,
-        nav: false,
-      },
-      // Connections
-      {
-        name: t("Integrations"),
-        path: settingsPath("integrations"),
-        component: Integrations.Component,
-        preload: Integrations.preload,
-        description: t(
-          "Embeds, webhooks, applications and third-party services."
-        ),
-        enabled: can.update,
-        group: t("Connections"),
-        icon: PlusIcon,
-      },
-      {
-        name: t("Import & export"),
-        path: settingsPath("import"),
-        component: Import.Component,
-        preload: Import.preload,
-        description: t(
-          "Move documents in from another tool, or take a copy out."
-        ),
-        enabled: can.createImport,
-        group: t("Connections"),
-        icon: ImportIcon,
-      },
-      {
-        name: t("Embeds"),
-        path: integrationSettingsPath("embeds"),
-        component: Embeds.Component,
-        preload: Embeds.preload,
-        description: t(
-          "Configure which embed providers are available in the editor."
-        ),
-        enabled: can.update,
-        group: t("Connections"),
-        icon: BrowserIcon,
-        nav: false,
-      },
-      {
-        name: t("Applications"),
-        path: settingsPath("applications"),
-        component: Applications.Component,
-        preload: Applications.preload,
-        description: t("OAuth applications built against this workspace."),
-        enabled: can.listOAuthClients,
-        group: t("Connections"),
-        icon: InternetIcon,
-        nav: false,
+        icon: VoSmileIcon,
       },
       {
         name: t("About"),
@@ -309,22 +213,111 @@ const useSettingsConfig = () => {
         enabled: true,
         group: t("Workspace"),
         icon: InfoIcon,
+        nav: false,
+      },
+      {
+        name: t("Security"),
+        path: settingsPath("security"),
+        component: Security.Component,
+        preload: Security.preload,
+        description: t(
+          "Sign-in methods, authentication, invites, sharing and AI."
+        ),
+        enabled: can.update,
+        group: t("Security and access"),
+        icon: VoShieldIcon,
+      },
+      {
+        name: t("Sign-in methods"),
+        path: settingsPath("authentication"),
+        component: Authentication.Component,
+        preload: Authentication.preload,
+        enabled: can.update,
+        group: t("Security and access"),
+        icon: VoSignInIcon,
+      },
+      {
+        name: t("AI"),
+        path: settingsPath("ai"),
+        component: AI.Component,
+        preload: AI.preload,
+        enabled: can.update,
+        group: t("Security and access"),
+        icon: VoSparkleIcon,
+      },
+      {
+        name: t("Import"),
+        path: settingsPath("import"),
+        component: Import.Component,
+        preload: Import.preload,
+        description: t(
+          "Move documents in from another tool, or take a copy out."
+        ),
+        enabled: can.createImport,
+        group: t("Data"),
+        icon: VoUploadIcon,
+      },
+      {
+        name: t("Export"),
+        path: settingsPath("export"),
+        component: Export.Component,
+        preload: Export.preload,
+        enabled: can.createExport,
+        group: t("Data"),
+        icon: VoDownloadIcon,
+      },
+      {
+        name: t("Integrations"),
+        path: settingsPath("integrations"),
+        component: Integrations.Component,
+        preload: Integrations.preload,
+        description: t(
+          "Embeds, webhooks, applications and third-party services."
+        ),
+        enabled: can.update,
+        group: t("Data"),
+        icon: VoPlugIcon,
+      },
+      {
+        name: t("Embeds"),
+        path: integrationSettingsPath("embeds"),
+        component: Embeds.Component,
+        preload: Embeds.preload,
+        description: t(
+          "Configure which embed providers are available in the editor."
+        ),
+        enabled: can.update,
+        group: t("Data"),
+        icon: BrowserIcon,
+        nav: false,
+      },
+      {
+        name: t("Applications"),
+        path: settingsPath("applications"),
+        component: Applications.Component,
+        preload: Applications.preload,
+        description: t("OAuth applications built against this workspace."),
+        enabled: can.listOAuthClients,
+        group: t("Data"),
+        icon: InternetIcon,
+        nav: false,
       },
     ];
 
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
-      const declared = plugin.value.group ?? "Connections";
-      const group = declared === "Integrations" ? "Connections" : declared;
+      const declared = plugin.value.group ?? "Integrations";
+      const isIntegration =
+        declared === "Integrations" || declared === "Connections";
+      const group = isIntegration ? "Data" : declared;
       const insertIndex = plugin.value.after
         ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
         : items.findIndex((i) => i.group === t(group));
       items.splice(insertIndex, 0, {
         name: t(plugin.name),
-        path:
-          group === "Connections"
-            ? integrationSettingsPath(plugin.id)
-            : settingsPath(plugin.id),
+        path: isIntegration
+          ? integrationSettingsPath(plugin.id)
+          : settingsPath(plugin.id),
         group: t(group),
         nav: false,
         pluginId: plugin.id,

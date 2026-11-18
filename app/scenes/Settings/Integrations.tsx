@@ -26,7 +26,7 @@ function Integrations() {
   const groupedItems = groupBy(
     items.filter(
       (item) =>
-        item.group === t("Connections") &&
+        item.group === t("Data") &&
         item.nav === false &&
         item.enabled &&
         item.name.toLowerCase().includes(query.toLowerCase())
