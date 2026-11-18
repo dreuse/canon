@@ -6,7 +6,11 @@ import type { WhereOptions } from "sequelize";
 import type { ZipFile } from "yazl";
 import { toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
-import { FileOperationState, NotificationEventType } from "@shared/types";
+import {
+  FileOperationState,
+  NotificationEventType,
+  UserPreference,
+} from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
@@ -87,7 +91,10 @@ export default abstract class ExportTask extends BaseTask<Props> {
         url,
       });
 
-      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
+      if (
+        user.getPreference(UserPreference.EmailNotifications) &&
+        user.subscribedToEventType(NotificationEventType.ExportCompleted)
+      ) {
         await new ExportSuccessEmail({
           to: user.email,
           language: user.language,
@@ -102,7 +109,10 @@ export default abstract class ExportTask extends BaseTask<Props> {
         state: FileOperationState.Error,
         error: toError(error),
       });
-      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
+      if (
+        user.getPreference(UserPreference.EmailNotifications) &&
+        user.subscribedToEventType(NotificationEventType.ExportCompleted)
+      ) {
         await new ExportFailureEmail({
           to: user.email,
           language: user.language,

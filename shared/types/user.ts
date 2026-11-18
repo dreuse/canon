@@ -34,6 +34,8 @@ export enum UserPreference {
   NotificationBadge = "notificationBadge",
   /** The display order of the reorderable sections in the sidebar. */
   SidebarSectionOrder = "sidebarSectionOrder",
+  /** Whether notification emails are sent at all. */
+  EmailNotifications = "emailNotifications",
 }
 
 /** Styles of prefix that can be shown before headings. */
@@ -82,4 +84,5 @@ export type UserPreferences = {
   [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
   [UserPreference.SidebarSectionOrder]?: SidebarSection[];
+  [UserPreference.EmailNotifications]?: boolean;
 };

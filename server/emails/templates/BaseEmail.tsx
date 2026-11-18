@@ -7,7 +7,7 @@ import { subMinutes } from "date-fns";
 import type { Node } from "prosemirror-model";
 import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, UserPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import { Day } from "@shared/utils/time";
@@ -139,6 +139,18 @@ export default abstract class BaseEmail<
         )
       : undefined;
     const data = { ...this.props, notification, ...(bsResponse ?? ({} as S)) };
+
+    if (
+      notification &&
+      !notification.user.getPreference(UserPreference.EmailNotifications)
+    ) {
+      Logger.info(
+        "email",
+        `Email ${templateName} not sent as the user turned off email notifications`,
+        this.props
+      );
+      return;
+    }
 
     const teamId = this.props.teamId ?? notification?.teamId;
     if (!teamId) {

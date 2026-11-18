@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { addMinutes } from "date-fns";
 import mailer from "@server/emails/mailer";
+import { UserPreference } from "@shared/types";
 import env from "@server/env";
 import { buildNotification, buildUser } from "@server/test/factories";
 import type { EmailProps } from "./BaseEmail";
@@ -92,5 +93,24 @@ describe("BaseEmail", () => {
     expect(renderToStaticMarkup(options.component)).toContain(
       "This notification was delayed"
     );
+  });
+
+  it("should not send a notification email when the user turned email notifications off", async () => {
+    const spy = vi.spyOn(mailer, "sendMail").mockResolvedValue();
+    const user = await buildUser();
+    user.setPreference(UserPreference.EmailNotifications, false);
+    await user.save();
+    const notification = await buildNotification({
+      actorId: user.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await new TestEmail(
+      { to: "user@example.com" },
+      { notificationId: notification.id }
+    ).send();
+
+    expect(spy).not.toHaveBeenCalled();
   });
 });

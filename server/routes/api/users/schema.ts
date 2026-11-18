@@ -129,6 +129,7 @@ export const UsersUpdateSchema = BaseSchema.extend({
         [UserPreference.ShowDocumentStats]: z.boolean(),
         [UserPreference.NotificationBadge]: z.enum(NotificationBadgeType),
         [UserPreference.SidebarSectionOrder]: z.array(z.enum(SidebarSection)),
+        [UserPreference.EmailNotifications]: z.boolean(),
       })
       .partial()
       .optional(),

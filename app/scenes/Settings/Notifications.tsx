@@ -1,176 +1,152 @@
 import { debounce } from "es-toolkit/compat";
-import { runInAction } from "mobx";
 import { observer } from "mobx-react";
-import {
-  AcademicCapIcon,
-  CheckboxIcon,
-  CollectionIcon,
-  CommentIcon,
-  DocumentIcon,
-  DoneIcon,
-  EditIcon,
-  EmailIcon,
-  PublishIcon,
-  SmileyIcon,
-  StarredIcon,
-  UserIcon,
-  GroupIcon,
-} from "outline-icons";
+import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
 import { toast } from "sonner";
-import { NotificationEventType } from "@shared/types";
+import { s } from "@shared/styles";
+import { NotificationEventType, UserPreference } from "@shared/types";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
-
 import { SettingsTitle } from "./components/SettingsTitle";
+
+const DIMMED_OPACITY = 0.5;
+
+interface Group {
+  title: string;
+  options: Option[];
+}
+
+interface Option {
+  events: NotificationEventType[];
+  title: string;
+  description: string;
+  visible?: boolean;
+}
 
 function Notifications() {
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const emailEnabled = user.getPreference(UserPreference.EmailNotifications);
 
-  const options = [
+  const groups: Group[] = [
     {
-      events: [NotificationEventType.PublishDocument],
-      icon: <PublishIcon />,
-      title: t("Document published"),
-      description: t(
-        "Receive a notification whenever a new document is published"
-      ),
-    },
-    {
-      events: [NotificationEventType.UpdateDocument],
-      icon: <EditIcon />,
-      title: t("Document updated"),
-      description: t(
-        "Receive a notification when a document you are subscribed to is edited"
-      ),
-    },
-    {
-      events: [NotificationEventType.CreateComment],
-      icon: <CommentIcon />,
-      title: t("Comment posted"),
-      description: t(
-        "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment"
-      ),
-    },
-    {
-      events: [
-        NotificationEventType.MentionedInComment,
-        NotificationEventType.MentionedInDocument,
+      title: t("Documents"),
+      options: [
+        {
+          events: [NotificationEventType.PublishDocument],
+          title: t("Document published"),
+          description: t("When someone publishes in a collection you follow."),
+        },
+        {
+          events: [NotificationEventType.UpdateDocument],
+          title: t("Document updated"),
+          description: t("When someone edits a document you follow."),
+        },
       ],
-      icon: <EmailIcon />,
-      title: t("Mentioned"),
-      description: t(
-        "Receive a notification when someone mentions you in a document or comment"
-      ),
     },
     {
-      events: [
-        NotificationEventType.GroupMentionedInDocument,
-        NotificationEventType.GroupMentionedInComment,
+      title: t("Comments and mentions"),
+      options: [
+        {
+          events: [NotificationEventType.CreateComment],
+          title: t("New comment"),
+          description: t("When someone comments on a document you follow."),
+        },
+        {
+          events: [
+            NotificationEventType.MentionedInComment,
+            NotificationEventType.MentionedInDocument,
+          ],
+          title: t("Mention of you"),
+          description: t("When someone mentions you in a document or comment."),
+        },
+        {
+          events: [
+            NotificationEventType.GroupMentionedInDocument,
+            NotificationEventType.GroupMentionedInComment,
+          ],
+          title: t("Mention of your group"),
+          description: t("When someone mentions a group you belong to."),
+        },
+        {
+          events: [NotificationEventType.ResolveComment],
+          title: t("Conversation resolved"),
+          description: t("When someone resolves a thread you took part in."),
+        },
+        {
+          events: [NotificationEventType.ReactionsCreate],
+          title: t("Reaction"),
+          description: t("When someone reacts to your comment."),
+        },
       ],
-      icon: <GroupIcon />,
-      title: t("Group mentions"),
-      description: t(
-        "Receive a notification when someone mentions a group you are a member of in a document or comment"
-      ),
     },
     {
-      events: [NotificationEventType.ResolveComment],
-      icon: <DoneIcon />,
-      title: t("Resolved"),
-      description: t(
-        "Receive a notification when a comment thread you were involved in is resolved"
-      ),
+      title: t("Access and invites"),
+      options: [
+        {
+          events: [NotificationEventType.AddUserToCollection],
+          title: t("Collection invite"),
+          description: t("When someone gives you access to a collection."),
+        },
+        {
+          events: [NotificationEventType.AddUserToDocument],
+          title: t("Document invite"),
+          description: t("When someone shares a document with you."),
+        },
+        {
+          events: [NotificationEventType.RequestDocumentAccess],
+          title: t("Access request"),
+          description: t(
+            "When someone requests access to a document of yours."
+          ),
+        },
+        {
+          events: [NotificationEventType.InviteAccepted],
+          title: t("Invite accepted"),
+          description: t("When someone you invited joins the workspace."),
+        },
+        {
+          events: [NotificationEventType.AddUserToGroup],
+          title: t("Added to group"),
+          description: t("When someone adds you to a group."),
+        },
+        {
+          events: [NotificationEventType.CreateCollection],
+          title: t("New collection"),
+          description: t("When someone creates a collection in the workspace."),
+        },
+      ],
     },
     {
-      events: [NotificationEventType.ReactionsCreate],
-      icon: <SmileyIcon />,
-      title: t("Reaction added"),
-      description: t(
-        "Receive a notification when someone reacts to your comment"
-      ),
-    },
-    {
-      events: [NotificationEventType.CreateCollection],
-      icon: <CollectionIcon />,
-      title: t("Collection created"),
-      description: t(
-        "Receive a notification whenever a new collection is created"
-      ),
-    },
-    {
-      events: [NotificationEventType.InviteAccepted],
-      icon: <UserIcon />,
-      title: t("Invite accepted"),
-      description: t(
-        "Receive a notification when someone you invited creates an account"
-      ),
-    },
-    {
-      events: [NotificationEventType.AddUserToDocument],
-      icon: <DocumentIcon />,
-      title: t("Invited to document"),
-      description: t(
-        "Receive a notification when a document is shared with you"
-      ),
-    },
-    {
-      events: [NotificationEventType.AddUserToCollection],
-      icon: <CollectionIcon />,
-      title: t("Invited to collection"),
-      description: t(
-        "Receive a notification when you are given access to a collection"
-      ),
-    },
-    {
-      events: [NotificationEventType.AddUserToGroup],
-      icon: <GroupIcon />,
-      title: t("Group membership"),
-      description: t(
-        "Receive a notification when you are added to or removed from a group"
-      ),
-    },
-    {
-      events: [NotificationEventType.ExportCompleted],
-      icon: <CheckboxIcon checked />,
-      title: t("Export completed"),
-      description: t(
-        "Receive a notification when an export you requested has been completed"
-      ),
-    },
-    {
-      events: [NotificationEventType.RequestDocumentAccess],
-      icon: <CheckboxIcon checked />,
-      title: t("Document access requested"),
-      description: t(
-        "Receive a notification when a user requests access to a document you manage"
-      ),
-    },
-    {
-      visible: isCloudHosted,
-      icon: <AcademicCapIcon />,
-      events: [NotificationEventType.Onboarding],
-      title: t("Getting started"),
-      description: t("Tips on getting started with features and functionality"),
-    },
-    {
-      visible: isCloudHosted,
-      icon: <StarredIcon />,
-      events: [NotificationEventType.Features],
-      title: t("New features"),
-      description: t("Receive an email when new features of note are added"),
+      title: t("Account and news"),
+      options: [
+        {
+          events: [NotificationEventType.ExportCompleted],
+          title: t("Export completed"),
+          description: t("When an export you requested is ready."),
+        },
+        {
+          visible: isCloudHosted,
+          events: [NotificationEventType.Onboarding],
+          title: t("Getting started"),
+          description: t("Tips for getting started with the features."),
+        },
+        {
+          visible: isCloudHosted,
+          events: [NotificationEventType.Features],
+          title: t("News"),
+          description: t("When a relevant change reaches the product."),
+        },
+      ],
     },
   ];
-
-  const visibleOptions = options.filter((o) => o.visible !== false);
 
   const showSuccessMessage = debounce(() => {
     toast.success(t("Notifications saved"));
@@ -187,29 +163,12 @@ function Notifications() {
     [user, showSuccessMessage]
   );
 
-  const handleToggleAll = React.useCallback(
+  const handleToggleEmail = React.useCallback(
     async (checked: boolean) => {
-      runInAction(() => {
-        const updated = { ...user.notificationSettings };
-        for (const option of visibleOptions) {
-          for (const eventType of option.events) {
-            updated[eventType] = checked;
-          }
-        }
-        user.notificationSettings = updated;
-      });
-      await client.post(
-        checked
-          ? `/users.notificationsSubscribe`
-          : `/users.notificationsUnsubscribe`
-      );
+      await user.savePreference(UserPreference.EmailNotifications, checked);
       showSuccessMessage();
     },
-    [user, visibleOptions, showSuccessMessage]
-  );
-
-  const allEnabled = visibleOptions.every((o) =>
-    o.events.every((eventType) => user.subscribedToEventType(eventType))
+    [user, showSuccessMessage]
   );
 
   const showSuccessNotice = window.location.search === "?success";
@@ -226,53 +185,93 @@ function Notifications() {
         </Notice>
       )}
       <Text as="p" type="secondary">
-        <Trans>Manage when and where you receive email notifications.</Trans>
+        <Trans>
+          Choose which emails you receive. In-app notifications stay the same.
+          Each change applies at once.
+        </Trans>
       </Text>
 
-      <SettingRow
-        name="allNotifications"
-        label={t("All notifications")}
-        compact
-        border={false}
-      >
-        <Switch
-          id="allNotifications"
-          checked={allEnabled}
-          onChange={handleToggleAll}
-        />
-      </SettingRow>
+      <Card>
+        <SettingRow
+          name={UserPreference.EmailNotifications}
+          label={t("Email notifications")}
+          description={
+            <Text size="small" type="secondary">
+              {t("Turn off to pause all emails below. Your choices are kept.")}
+            </Text>
+          }
+          compact
+        >
+          <Switch
+            id={UserPreference.EmailNotifications}
+            name={UserPreference.EmailNotifications}
+            checked={emailEnabled}
+            onChange={handleToggleEmail}
+          />
+        </SettingRow>
+      </Card>
 
-      {options.map((option) => {
-        const [name] = option.events;
-        const checked = option.events.every((eventType) =>
-          user.subscribedToEventType(eventType)
-        );
+      <>
+        {groups.map((group) => {
+          const options = group.options.filter((o) => o.visible !== false);
+          if (!options.length) {
+            return null;
+          }
 
-        return (
-          <SettingRow
-            key={name}
-            visible={option.visible}
-            label={option.title}
-            name={name}
-            description={
-              <Text size="small" type="secondary">
-                {option.description}
-              </Text>
-            }
-            compact
-          >
-            <Switch
-              key={name}
-              id={name}
-              name={name}
-              checked={checked}
-              onChange={handleChange(option.events)}
-            />
-          </SettingRow>
-        );
-      })}
+          return (
+            <section key={group.title}>
+              <GroupTitle>{group.title}</GroupTitle>
+              <Card $dimmed={!emailEnabled}>
+                {options.map((option) => {
+                  const [name] = option.events;
+                  const checked = option.events.every((eventType) =>
+                    user.subscribedToEventType(eventType)
+                  );
+
+                  return (
+                    <SettingRow
+                      key={name}
+                      label={option.title}
+                      name={name}
+                      description={
+                        <Text size="small" type="secondary">
+                          {option.description}
+                        </Text>
+                      }
+                      compact
+                    >
+                      <Switch
+                        id={name}
+                        name={name}
+                        checked={checked}
+                        disabled={!emailEnabled}
+                        onChange={handleChange(option.events)}
+                      />
+                    </SettingRow>
+                  );
+                })}
+              </Card>
+            </section>
+          );
+        })}
+      </>
     </Scene>
   );
 }
+
+const Card = styled.div<{ $dimmed?: boolean }>`
+  opacity: ${(props) => (props.$dimmed ? DIMMED_OPACITY : 1)};
+  padding: 0 16px;
+  border: 1px solid ${s("divider")};
+  border-radius: 8px;
+`;
+
+const GroupTitle = styled.h2`
+  margin: 32px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  color: ${s("text")};
+`;
 
 export default observer(Notifications);

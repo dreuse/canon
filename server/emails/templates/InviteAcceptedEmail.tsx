@@ -1,6 +1,7 @@
 import * as React from "react";
-import { NotificationEventType } from "@shared/types";
+import { NotificationEventType, UserPreference } from "@shared/types";
 import env from "@server/env";
+import User from "@server/models/User";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
@@ -36,6 +37,11 @@ export default class InviteAcceptedEmail extends BaseEmail<
   }
 
   protected async beforeSend(props: InputProps) {
+    const inviter = await User.findByPk(props.inviterId);
+    if (!inviter?.getPreference(UserPreference.EmailNotifications)) {
+      return false as const;
+    }
+
     return {
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
