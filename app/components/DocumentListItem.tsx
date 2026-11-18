@@ -37,6 +37,7 @@ import { ContextMenu } from "./Menu/ContextMenu";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
 import { useRovingTabIndex } from "~/hooks/useRovingTabIndex";
 import { DocumentIcon } from "~/components/Icons/DocumentIcon";
+import { SearchResultContent } from "~/scenes/Search/components/SearchResultContent";
 
 type Props = {
   document: Document;
@@ -47,12 +48,21 @@ type Props = {
   showPublished?: boolean;
   showDraft?: boolean;
   showPath?: boolean;
+  searchResult?: boolean;
   ref?: React.RefObject<HTMLAnchorElement | null>;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 const SUMMARY_BLOCKS = 3;
+
+const SEARCH_RESULT_INSET = 12;
+
+const SEARCH_RESULT_PADDING = `14px ${SEARCH_RESULT_INSET}px`;
+
+const SEARCH_RESULT_SELECT_OFFSET = 30;
+
+const SEARCH_RESULT_RADIUS = 10;
 
 function replaceResultMarks(tag: string) {
   // don't use SEARCH_RESULT_REGEX directly here as it causes an infinite loop
@@ -87,6 +97,7 @@ function DocumentListItem(props: Props) {
     showPublished,
     showDraft = true,
     showPath,
+    searchResult,
     highlight,
     context,
     ref: _ref,
@@ -103,7 +114,7 @@ function DocumentListItem(props: Props) {
 
   // Multi-select is only offered for documents the user can update.
   const can = usePolicy(document.id);
-  const selectable = !!selection && !!can.update;
+  const selectable = !!selection && !!can.update && !(searchResult && isMobile);
   const isSelected = selection?.isSelected(document.id) ?? false;
   const isSelecting =
     selectable && ((selection?.isActive ?? false) || isSelected);
@@ -176,6 +187,34 @@ function DocumentListItem(props: Props) {
     }
   };
 
+  const titleBadges = (
+    <>
+      {document.isBadgedNew && document.createdBy?.id !== user.id && (
+        <Badge yellow>{t("New")}</Badge>
+      )}
+      {document.isDraft &&
+        showDraft &&
+        (isInteractive ? (
+          <Tooltip content={t("Only visible to you")}>
+            <Badge>{t("Draft")}</Badge>
+          </Tooltip>
+        ) : (
+          <Badge>{t("Draft")}</Badge>
+        ))}
+    </>
+  );
+
+  const searchSnippet =
+    !matchedInTitle && trimmedContext ? (
+      <Highlight
+        text={trimmedContext}
+        highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+        processResult={replaceResultMarks}
+      />
+    ) : (
+      excerpt
+    );
+
   const link = (
     <DocumentLink
       ref={mergedRef}
@@ -185,6 +224,7 @@ function DocumentListItem(props: Props) {
       $menuOpen={menuOpen}
       $selectable={selectable}
       $compact={showPath}
+      $searchResult={searchResult}
       to={{
         pathname: documentPath(document),
         search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
@@ -201,7 +241,7 @@ function DocumentListItem(props: Props) {
       onFocusCapture={handleFocusCapture}
     >
       <Flex gap={4} auto>
-        <IconWrapper ref={iconRef}>
+        <IconWrapper ref={iconRef} $searchResult={searchResult}>
           {selectable && (
             <SelectButton
               role="checkbox"
@@ -214,93 +254,97 @@ function DocumentListItem(props: Props) {
               {isSelected && <CheckmarkIcon size={16} />}
             </SelectButton>
           )}
-          <DocumentIconWrapper $dimmed={isSelecting}>
-            {document.icon ? (
-              <Icon
-                value={document.icon}
-                color={document.color ?? undefined}
-                initial={document.initial}
-              />
-            ) : (
-              <DocumentIcon
-                empty={document.isEmpty}
-                color={theme.textSecondary}
-              />
-            )}
-          </DocumentIconWrapper>
+          {!searchResult && (
+            <DocumentIconWrapper $dimmed={isSelecting}>
+              {document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                  initial={document.initial}
+                />
+              ) : (
+                <DocumentIcon
+                  empty={document.isEmpty}
+                  color={theme.textSecondary}
+                />
+              )}
+            </DocumentIconWrapper>
+          )}
         </IconWrapper>
         <Content>
-          <Heading dir={document.dir}>
-            <Title
-              text={document.displayTitle}
+          {searchResult ? (
+            <SearchResultContent
+              document={document}
               highlight={highlight}
-              dir={document.dir}
+              snippet={searchSnippet}
+              titleBadges={titleBadges}
             />
-            {document.isBadgedNew && document.createdBy?.id !== user.id && (
-              <Badge yellow>{t("New")}</Badge>
-            )}
-            {document.isDraft &&
-              showDraft &&
-              (isInteractive ? (
-                <Tooltip content={t("Only visible to you")}>
-                  <Badge>{t("Draft")}</Badge>
-                </Tooltip>
-              ) : (
-                <Badge>{t("Draft")}</Badge>
-              ))}
-            {showPath && (
-              <ItemTime>
-                <Time
-                  dateTime={
-                    document.deletedAt ??
-                    document.archivedAt ??
-                    document.updatedAt
-                  }
-                  shorten
+          ) : (
+            <>
+              <Heading dir={document.dir}>
+                <Title
+                  text={document.displayTitle}
+                  highlight={highlight}
+                  dir={document.dir}
                 />
-              </ItemTime>
-            )}
-          </Heading>
+                {titleBadges}
+                {showPath && (
+                  <ItemTime>
+                    <Time
+                      dateTime={
+                        document.deletedAt ??
+                        document.archivedAt ??
+                        document.updatedAt
+                      }
+                      shorten
+                    />
+                  </ItemTime>
+                )}
+              </Heading>
 
-          {!matchedInTitle && !!trimmedContext && (
-            <ResultContext
-              text={trimmedContext}
-              highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-              processResult={replaceResultMarks}
-            />
+              {!matchedInTitle && !!trimmedContext && (
+                <ResultContext
+                  text={trimmedContext}
+                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                  processResult={replaceResultMarks}
+                />
+              )}
+              {excerpt && <Excerpt>{excerpt}</Excerpt>}
+              <DocumentMeta
+                document={document}
+                showCollection={showCollection}
+                showPublished={showPublished}
+                showParentDocuments={showParentDocuments}
+                showPath={showPath}
+                showLastViewed={!showPath}
+              />
+            </>
           )}
-          {excerpt && <Excerpt>{excerpt}</Excerpt>}
-          <DocumentMeta
-            document={document}
-            showCollection={showCollection}
-            showPublished={showPublished}
-            showParentDocuments={showParentDocuments}
-            showPath={showPath}
-            showLastViewed={!showPath}
-          />
         </Content>
       </Flex>
-      <Actions>
-        {canStar && !isMobile && (
-          <StarButton document={document} tooltipDisabled={!isInteractive} />
-        )}
-        {isInteractive && can.update && (
-          <NudeButton
-            aria-label={t("Edit")}
-            tooltip={{ content: t("Edit"), delayDuration: 500 }}
-            onClick={handleEditClick}
-          >
-            <EditIcon size={18} />
-          </NudeButton>
-        )}
-        {isInteractive && (
-          <DocumentMenu
-            document={document}
-            onOpen={handleMenuOpen}
-            onClose={handleMenuClose}
-          />
-        )}
-      </Actions>
+      {!(searchResult && isMobile) && (
+        <Actions>
+          {canStar && !isMobile && (
+            <StarButton document={document} tooltipDisabled={!isInteractive} />
+          )}
+          {isInteractive && can.update && (
+            <NudeButton
+              aria-label={t("Edit")}
+              tooltip={{ content: t("Edit"), delayDuration: 500 }}
+              onClick={handleEditClick}
+            >
+              <EditIcon size={18} />
+            </NudeButton>
+          )}
+          {isInteractive && (
+            <DocumentMenu
+              document={document}
+              onOpen={handleMenuOpen}
+              onClose={handleMenuClose}
+            />
+          )}
+        </Actions>
+      )}
     </DocumentLink>
   );
 
@@ -322,7 +366,7 @@ function DocumentListItem(props: Props) {
   );
 }
 
-const IconWrapper = styled.div`
+const IconWrapper = styled.div<{ $searchResult?: boolean }>`
   position: relative;
   flex-shrink: 0;
   display: flex;
@@ -333,6 +377,19 @@ const IconWrapper = styled.div`
   clicks landing on the icon itself begin a selection – the remainder of the
   item navigates. */
   align-self: flex-start;
+
+  ${(props) =>
+    props.$searchResult &&
+    css`
+      position: absolute;
+      top: 14px;
+      inset-inline-start: ${SEARCH_RESULT_INSET}px;
+      width: auto;
+
+      ${breakpoint("tablet")`
+        inset-inline-start: -${SEARCH_RESULT_SELECT_OFFSET}px;
+      `}
+    `}
 `;
 
 const DocumentIconWrapper = styled.span<{ $dimmed: boolean }>`
@@ -429,6 +486,7 @@ const DocumentLink = styled(Link)<{
   $menuOpen?: boolean;
   $selectable?: boolean;
   $compact?: boolean;
+  $searchResult?: boolean;
 }>`
   display: flex;
   align-items: flex-start;
@@ -459,6 +517,25 @@ const DocumentLink = styled(Link)<{
     css`
       ${Actions} {
         margin: 2px 8px;
+      }
+    `}
+
+  ${(props) =>
+    props.$searchResult &&
+    css`
+      position: relative;
+      width: auto;
+      max-height: none;
+      margin-inline: -${SEARCH_RESULT_INSET}px;
+      padding: ${SEARCH_RESULT_PADDING};
+      border-bottom: 0;
+      border-radius: ${SEARCH_RESULT_RADIUS}px;
+
+      ${Actions} {
+        position: absolute;
+        top: 8px;
+        inset-inline-end: 8px;
+        margin: 0;
       }
     `}
 

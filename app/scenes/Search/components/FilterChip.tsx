@@ -1,10 +1,29 @@
 import { CloseIcon, DisclosureIcon } from "outline-icons";
-import styled from "styled-components";
+import { transparentize } from "polished";
+import styled, { css } from "styled-components";
 import { hover, s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
+
+const TOUCH_TARGET_SIZE = 44;
+
+const CHIP_INNER_RADIUS = 7;
+
+/** Extends the clickable area of a control to the touch target size below the desktop breakpoint. */
+export const touchHitArea = css`
+  position: relative;
+
+  ${breakpoint("mobile", "desktop")`
+    &::before {
+      content: "";
+      position: absolute;
+      inset-inline: calc((100% - ${TOUCH_TARGET_SIZE}px) / 2);
+      inset-block: calc((100% - ${TOUCH_TARGET_SIZE}px) / 2);
+    }
+  `}
+`;
 
 interface ChipContentProps {
   /** Icon shown before the label. */
@@ -32,13 +51,15 @@ export function ChipContent({
   return (
     <>
       {icon && <ChipIcon aria-hidden>{icon}</ChipIcon>}
-      <ChipLabel type={value ? "secondary" : undefined}>{label}</ChipLabel>
+      <ChipLabel type={value ? "secondary" : undefined}>
+        {value ? `${label}:` : label}
+      </ChipLabel>
       {value && (
         <ChipValue weight="bold" ellipsis>
           {value}
         </ChipValue>
       )}
-      {disclosure && <Disclosure size={20} aria-hidden />}
+      {disclosure && <Disclosure size={20} aria-hidden data-disclosure />}
     </>
   );
 }
@@ -67,21 +88,37 @@ export function ChipRemoveButton({ label, onClick }: ChipRemoveButtonProps) {
 }
 
 /** Outlined container for a filter chip. */
-export const Chip = styled.div`
+export const Chip = styled.div<{ $set?: boolean }>`
   display: inline-flex;
   align-items: stretch;
   max-width: 100%;
   height: 28px;
   border: 1px solid ${s("buttonNeutralBorder")};
   border-radius: 8px;
-  overflow: hidden;
   user-select: none;
   font-size: 13px;
   font-weight: 450;
-  color: ${s("text")};
+  color: ${(props) => (props.$set ? props.theme.text : props.theme.textSecondary)};
+
+  ${(props) =>
+    props.$set &&
+    css`
+      background: ${transparentize(0.86, props.theme.accent)};
+      border-color: ${transparentize(0.55, props.theme.accent)};
+    `}
 
   &:has(:focus-visible) {
     border-color: ${s("inputBorderFocused")};
+  }
+
+  > :first-child {
+    border-start-start-radius: ${CHIP_INNER_RADIUS}px;
+    border-end-start-radius: ${CHIP_INNER_RADIUS}px;
+  }
+
+  > :last-child {
+    border-start-end-radius: ${CHIP_INNER_RADIUS}px;
+    border-end-end-radius: ${CHIP_INNER_RADIUS}px;
   }
 
   ${breakpoint("mobile", "tablet")`
@@ -105,6 +142,7 @@ export const ChipButton = styled.button`
   font: inherit;
   cursor: var(--pointer);
   transition: background 100ms ease-out;
+  ${touchHitArea}
 
   &:${hover},
   &[aria-expanded="true"] {
@@ -165,6 +203,7 @@ const RemoveButton = styled(NudeButton)`
     background 100ms ease-out,
     border-color 100ms ease-out,
     color 100ms ease-out;
+  ${touchHitArea}
 
   &:${hover},
   &:focus-visible {

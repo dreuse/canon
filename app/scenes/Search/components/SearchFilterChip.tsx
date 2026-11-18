@@ -47,7 +47,7 @@ export function SearchFilterChip(props: Props) {
   }
 
   return (
-    <Chip>
+    <Chip data-testid={`filter-chip-${filter.id}`} data-set $set>
       <ChipStatic>
         <ChipContent icon={filter.icon} label={filter.label} />
       </ChipStatic>
@@ -119,7 +119,11 @@ const SelectFilterChip = observer(function SelectFilterChip_({
     shown.length === 1 && shown[0].icon ? shown[0].icon : filter.icon;
 
   return (
-    <Chip>
+    <Chip
+      data-testid={`filter-chip-${filter.id}`}
+      data-set={isSet}
+      $set={isSet}
+    >
       <FilterOptions
         options={options}
         selectedKeys={rangeLabel ? [CUSTOM_RANGE] : values}

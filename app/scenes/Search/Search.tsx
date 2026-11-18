@@ -26,6 +26,7 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { Waypoint } from "~/components/Waypoint";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
+import useMobile from "~/hooks/useMobile";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
@@ -53,10 +54,15 @@ import {
   useSearchFilters,
 } from "./searchFilters";
 
+const RESULTS_MAX_WIDTH = 880;
+const INPUT_ROW_MIN_HEIGHT = 48;
+const TOUCH_TARGET = 44;
+
 function Search() {
   const { t } = useTranslation();
   const { documents, searches, policies, dialogs } = useStores();
   const userLocale = useUserLocale();
+  const isMobile = useMobile();
 
   // routing
   const params = useQuery();
@@ -416,8 +422,7 @@ function Search() {
       document={result.document}
       highlight={query}
       context={result.context}
-      showCollection
-      showPath
+      searchResult
     />
   );
 
@@ -448,22 +453,29 @@ function Search() {
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
         <form method="GET" action={searchPath()} onSubmit={preventDefault}>
-          <SearchInput
-            name="query"
-            key={query ? "search" : "recent"}
-            ref={searchInputRef}
-            placeholder={`${
-              documentId
-                ? t("Search in document")
-                : isCollectionScoped
-                  ? t("Search in collection")
-                  : t("Search")
-            }…`}
-            onKeyDown={handleKeyDown}
-            onClear={() => updateLocation("")}
-            defaultValue={query ?? ""}
-          />
-          <FilterChips align="center" gap={6} wrap>
+          <InputRow align="center" gap={8}>
+            <SearchInput
+              name="query"
+              key={query ? "search" : "recent"}
+              ref={searchInputRef}
+              placeholder={`${
+                documentId
+                  ? t("Search in document")
+                  : isCollectionScoped
+                    ? t("Search in collection")
+                    : t("Search")
+              }…`}
+              onKeyDown={handleKeyDown}
+              onClear={() => updateLocation("")}
+              defaultValue={query ?? ""}
+            />
+            {isMobile && (
+              <CancelButton type="button" onClick={handleGoBack}>
+                {t("Cancel")}
+              </CancelButton>
+            )}
+          </InputRow>
+          <FilterChips align="center" gap={8} wrap>
             {document && (
               <DocumentFilter
                 document={document}
@@ -489,13 +501,11 @@ function Search() {
               type="secondary"
               size="small"
               aria-busy={isResultCountStale}
+              data-testid="search-results-header"
               $disabled={isResultCountStale && total !== undefined}
             >
               {total !== undefined && (
-                <>
-                  <span>{t("{{ count }} result", { count: total })}</span>
-                  <span aria-hidden>·</span>
-                </>
+                <span>{t("{{ count }} result", { count: total })}</span>
               )}
               {sortInput}
             </ResultsMeta>
@@ -595,6 +605,10 @@ const Centered = styled(Flex)`
 `;
 
 const ResultsWrapper = styled(Flex)`
+  width: 100%;
+  max-width: ${RESULTS_MAX_WIDTH}px;
+  margin-inline: auto;
+
   ${breakpoint("tablet")`
     margin-top: 40px;
   `};
@@ -610,17 +624,33 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
+const InputRow = styled(Flex)`
+  min-height: ${INPUT_ROW_MIN_HEIGHT}px;
+`;
+
+const CancelButton = styled.button`
+  flex-shrink: 0;
+  min-height: ${TOUCH_TARGET}px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: ${s("accent")};
+  font: inherit;
+  font-weight: 500;
+  cursor: var(--pointer);
+`;
+
 const FilterChips = styled(Flex)`
   row-gap: 8px;
-  margin-bottom: 12px;
-  padding-top: 4px;
+  margin-top: 14px;
 
   ${breakpoint("mobile", "tablet")`
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
     margin-inline: -16px;
-    padding: 4px 16px 0;
+    padding: 12px 16px;
+    border-bottom: 1px solid ${s("divider")};
 
     & > * {
       flex-shrink: 0;
@@ -664,8 +694,14 @@ const ResultsMeta = styled(Text)<{ $disabled: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin: 28px 0 6px;
+  font-size: 13px;
+  color: ${s("textTertiary")};
   transition: opacity 100ms ease-out;
+
+  ${breakpoint("mobile", "tablet")`
+    margin: 12px 0 4px;
+  `}
 
   ${(props) =>
     props.$disabled &&

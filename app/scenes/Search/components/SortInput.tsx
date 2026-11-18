@@ -8,7 +8,9 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { hover, s } from "@shared/styles";
+import { breakpoint } from "@shared/styles/breakpoint";
 import FilterOptions from "~/components/FilterOptions";
+import { touchHitArea } from "./FilterChip";
 
 type Props = {
   /** The selected sort field */
@@ -76,7 +78,6 @@ export const SortInput = ({ sort, direction, onSelect }: Props) => {
 
   return (
     <Wrapper>
-      {t("Sorted by")}
       <FilterOptions
         showFilter={false}
         showIcons={false}
@@ -98,26 +99,33 @@ export const SortInput = ({ sort, direction, onSelect }: Props) => {
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
+  margin-inline-start: auto;
 `;
 
 const Trigger = styled.button`
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  min-height: 28px;
   margin: 0;
-  padding: 0 0 0 2px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 10px;
   background: none;
   font: inherit;
   font-weight: 500;
-  color: ${s("text")};
+  color: ${s("textSecondary")};
   cursor: var(--pointer);
+  ${touchHitArea}
 
   &:${hover},
   &[aria-expanded="true"] {
-    text-decoration: underline;
+    background: ${s("listItemHoverBackground")};
   }
+
+  ${breakpoint("mobile", "tablet")`
+    min-height: 36px;
+  `}
 `;
 
 const Disclosure = styled(DisclosureIcon)`

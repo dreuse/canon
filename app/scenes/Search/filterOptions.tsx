@@ -7,7 +7,7 @@ import { durationForDateFilter } from "@shared/helpers/FilterHelper";
 import { StatusFilter } from "@shared/types";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import type { TFilterOption } from "~/components/FilterOptions";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { CollectionDot } from "~/components/Sidebar/components/CollectionRow";
 import type { PaginatedItem } from "~/components/PaginatedList";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -42,7 +42,7 @@ export function useCollectionOptions(): FilterOptionSource {
       options: collections.orderedData.map((collection) => ({
         key: collection.id,
         label: collection.displayName,
-        icon: <CollectionIcon collection={collection} size={24} />,
+        icon: <CollectionDot color={collection.color} />,
       })),
       showFilter: true,
     }),

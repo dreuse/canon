@@ -1,8 +1,10 @@
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { transparentize } from "polished";
 import styled, { useTheme } from "styled-components";
 import { s, hover } from "@shared/styles";
+import { breakpoint } from "@shared/styles/breakpoint";
 import Flex from "~/components/Flex";
 import { VoSearchIcon } from "~/components/Icons/VobysIcons";
 import NudeButton from "~/components/NudeButton";
@@ -56,26 +58,38 @@ function SearchInput({ defaultValue, onClear, ref, ...rest }: Props) {
 
 const Wrapper = styled(Flex)`
   position: relative;
-  margin-bottom: 12px;
+  flex: 1;
+  min-width: 0;
 `;
 
 const StyledInput = styled.input`
   width: 100%;
-  height: 44px;
+  height: 48px;
   padding-block: 0;
   padding-inline: 42px 40px;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   outline: none;
   border: 1px solid ${s("inputBorder")};
   background: ${s("background")};
   border-radius: 10px;
   color: ${s("text")};
-  transition: border-color 100ms ease;
+  transition:
+    border-color 100ms ease,
+    box-shadow 100ms ease;
 
   &:focus {
-    border-color: ${s("inputBorderFocused")};
+    border-color: ${s("accent")};
+    box-shadow: 0 0 0 3px ${(props) => transparentize(0.8, props.theme.accent)};
   }
+
+  ${breakpoint("mobile", "tablet")`
+    height: 44px;
+
+    &:focus {
+      box-shadow: none;
+    }
+  `}
 
   &::-webkit-search-cancel-button {
     -webkit-appearance: none;
