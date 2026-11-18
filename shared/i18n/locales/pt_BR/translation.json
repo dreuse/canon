@@ -1009,8 +1009,6 @@
   "Offline": "Desconectado",
   "Document restored": "Documento restaurado",
   "Images are still uploading.\nAre you sure you want to discard them?": "As imagens ainda estão sendo enviadas.\nTem certeza que deseja descartá-las?",
-  "{{ count }} comment": "{{ count }} comentário",
-  "{{ count }} comment_plural": "{{ count }} comentários",
   "Viewed by": "Visualizado por",
   "person": "pessoa",
   "people": "pessoas",
@@ -2160,5 +2158,7 @@
   "Theme, accent color, fonts, text size and code.": "Tema, cor de destaque, fontes, tamanho do texto e código.",
   "Theme, accent color, fonts and text size. Everyone on the team sees these.": "Tema, cor de destaque, fontes e tamanho do texto. Toda a equipe vê essas configurações.",
   "Open menu": "Abrir menu",
-  "Close menu": "Fechar menu"
+  "Close menu": "Fechar menu",
+  "{{ count }} conversation": "{{ count }} conversa",
+  "{{ count }} conversation_plural": "{{ count }} conversas"
 }

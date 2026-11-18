@@ -82,6 +82,12 @@ function Comments() {
   const resolvedThreads = document
     ? comments.resolvedThreadsInDocument(document.id, sortOption)
     : [];
+  const openCount = document
+    ? comments.unresolvedThreadsInDocumentCount(document.id)
+    : 0;
+  const resolvedCount = document
+    ? comments.resolvedThreadsInDocumentCount(document.id)
+    : 0;
   const threads = viewingResolved ? resolvedThreads : openThreads;
   const hasComments = threads.length > 0;
 
@@ -235,14 +241,14 @@ function Comments() {
             onClick={() => setViewingResolved(false)}
             aria-pressed={!viewingResolved}
           >
-            {t("Open")} <Count>{openThreads.length}</Count>
+            {t("Open")} <Count>{openCount}</Count>
           </Segment>
           <Segment
             $active={viewingResolved}
             onClick={() => setViewingResolved(true)}
             aria-pressed={viewingResolved}
           >
-            {t("Resolved")} <Count>{resolvedThreads.length}</Count>
+            {t("Resolved")} <Count>{resolvedCount}</Count>
           </Segment>
         </Segmented>
         <CommentSortMenu />

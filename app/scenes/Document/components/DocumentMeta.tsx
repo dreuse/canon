@@ -52,7 +52,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
-  const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
+  const commentsCount = comments.unresolvedThreadsInDocumentCount(document.id);
   const commentingEnabled = team.commentingEnabled;
   const commentsOpen = ui.getRightSidebar(pane) === "comments";
 
@@ -105,7 +105,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
           >
             <CommentIcon size={18} />
             {commentsCount
-              ? t("{{ count }} comment", { count: commentsCount })
+              ? t("{{ count }} conversation", { count: commentsCount })
               : t("Comment")}
           </MetaButton>
         </>

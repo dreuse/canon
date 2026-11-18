@@ -91,16 +91,32 @@ export default class CommentsStore extends Store<Comment> {
   }
 
   /**
-   * Returns the total number of unresolved comments in the given document.
+   * Returns the number of open threads in the given document. Replies are not
+   * counted.
    *
-   * @param documentId ID of the document to get comments for
-   * @returns A number of comments
+   * @param documentId ID of the document to get threads for
+   * @returns A number of threads
    */
-  unresolvedCommentsInDocumentCount = computedFn(
+  unresolvedThreadsInDocumentCount = computedFn(
     (documentId: string): number =>
-      this.threadsInDocumentUnsorted(documentId)
-        .filter((comment: Comment) => comment.isResolved !== true)
-        .reduce((memo, thread) => memo + this.inThread(thread.id).length, 0),
+      this.threadsInDocumentUnsorted(documentId).filter(
+        (comment: Comment) => comment.isResolved !== true
+      ).length,
+    computedFnOptions
+  );
+
+  /**
+   * Returns the number of resolved threads in the given document. Replies are
+   * not counted.
+   *
+   * @param documentId ID of the document to get threads for
+   * @returns A number of threads
+   */
+  resolvedThreadsInDocumentCount = computedFn(
+    (documentId: string): number =>
+      this.threadsInDocumentUnsorted(documentId).filter(
+        (comment: Comment) => comment.isResolved === true
+      ).length,
     computedFnOptions
   );
 
