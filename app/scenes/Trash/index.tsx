@@ -5,12 +5,14 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { DELETED_DOCUMENT_RETENTION_DAYS } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import DateFilter from "~/scenes/Search/components/DateFilter";
 import UserFilter from "~/scenes/Search/components/UserFilter";
 import Empty from "~/components/Empty";
+import { EmptyState, EmptyStateCard } from "~/components/EmptyState";
 import Flex from "~/components/Flex";
 import { PageHeader } from "~/components/PageHeader";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
@@ -62,24 +64,39 @@ function Trash() {
     return filters.length ? { filters } : {};
   }, [userId, dateFilter]);
 
-  const getEmptyMessage = () => {
+  const getEmpty = () => {
     if (dateFilter) {
-      return t("No documents found for your filters.");
+      return <Empty>{t("No documents found for your filters.")}</Empty>;
     }
-    if (userId === user.id) {
-      return t("You haven’t deleted any documents.");
+    if (userId && userId !== user.id) {
+      return <Empty>{t("This user has not deleted any documents.")}</Empty>;
     }
-    if (userId) {
-      return t("This user has not deleted any documents.");
-    }
-    return t("Trash is empty at the moment.");
+    return (
+      <EmptyStateCard>
+        <EmptyState
+          icon={<TrashIcon />}
+          title={
+            userId
+              ? t("You haven’t deleted any documents")
+              : t("Trash is empty")
+          }
+          description={t(
+            "When you delete a document, it stays here for {{ days }} days. In that time, you can restore it in one click.",
+            { days: DELETED_DOCUMENT_RETENTION_DAYS }
+          )}
+        />
+      </EmptyStateCard>
+    );
   };
 
   return (
     <Scene measure="index" icon={<TrashIcon />} title={t("Trash")}>
       <PageHeader
         title={t("Trash")}
-        caption={t("Recently deleted documents, which can be restored")}
+        caption={t(
+          "Deleted items stay here for {{ days }} days. After that, they are permanently deleted.",
+          { days: DELETED_DOCUMENT_RETENTION_DAYS }
+        )}
         actions={<TrashMenu />}
       />
       <Filters>
@@ -97,7 +114,7 @@ function Trash() {
         documents={documents.deleted({ userId, dateFilter })}
         fetch={documents.fetchDeleted}
         options={options}
-        empty={<Empty>{getEmptyMessage()}</Empty>}
+        empty={getEmpty()}
         showCollection
         showPath
         showTemplate

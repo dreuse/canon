@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { MarkAsReadIcon } from "outline-icons";
+import { DoneIcon, MarkAsReadIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -9,7 +9,7 @@ import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
-import Empty from "../Empty";
+import { EmptyState } from "../EmptyState";
 import ErrorBoundary from "../ErrorBoundary";
 import Flex from "../Flex";
 import { InputSelect, type Option } from "../InputSelect";
@@ -152,7 +152,14 @@ function Notifications({ onRequestClose, ref }: Props) {
               items={filteredNotifications}
               empty={
                 <EmptyNotifications>
-                  {t("You’re all caught up")}.
+                  <EmptyState
+                    compact
+                    icon={<DoneIcon />}
+                    title={t("You’re all caught up")}
+                    description={t(
+                      "Mentions, replies and access requests appear here."
+                    )}
+                  />
                 </EmptyNotifications>
               }
               renderItem={(item) => (
@@ -187,7 +194,7 @@ const StyledScrollable = styled(Scrollable)`
   min-height: 0;
 `;
 
-const EmptyNotifications = styled(Empty)`
+const EmptyNotifications = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;

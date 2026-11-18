@@ -1,10 +1,11 @@
-import { subYears } from "date-fns";
+import { differenceInCalendarDays, subYears } from "date-fns";
 import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
+import { DELETION_WARNING_DAYS } from "@shared/constants";
 import { s, ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -81,6 +82,7 @@ const DocumentMeta: React.FC<Props> = ({
     isDraft,
     lastViewedAt,
     isTasks,
+    permanentlyDeletedAt,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -182,6 +184,14 @@ const DocumentMeta: React.FC<Props> = ({
     : 0;
   const canShowProgressBar = isTasks && !showPath;
 
+  const daysLeft =
+    showPath && deletedAt && !revision && permanentlyDeletedAt
+      ? Math.max(
+          0,
+          differenceInCalendarDays(new Date(permanentlyDeletedAt), new Date())
+        )
+      : undefined;
+
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
       return null;
@@ -278,6 +288,17 @@ const DocumentMeta: React.FC<Props> = ({
         </span>
       )}
       {timeSinceNow()}
+      {daysLeft !== undefined && (
+        <>
+          <Separator />
+          <Countdown data-urgent={daysLeft <= DELETION_WARNING_DAYS}>
+            {t("Permanently deleted in {{ count }} day", {
+              count: daysLeft,
+              defaultValue_plural: "Permanently deleted in {{ count }} days",
+            })}
+          </Countdown>
+        </>
+      )}
       {canShowProgressBar && (
         <>
           <Separator />
@@ -336,6 +357,12 @@ const Chip = styled.span<{ $unfiled?: boolean }>`
 
 const Container = styled(Flex)<{ $rtl?: boolean }>`
   ${metaStyles}
+`;
+
+const Countdown = styled.span`
+  &[data-urgent="true"] {
+    color: ${s("warning")};
+  }
 `;
 
 const Viewed = styled.span`

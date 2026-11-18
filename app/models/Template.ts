@@ -1,6 +1,7 @@
 import { addDays, differenceInSeconds } from "date-fns";
 import i18n from "i18next";
 import { computed, observable, override } from "mobx";
+import { DELETED_DOCUMENT_RETENTION_DAYS } from "@shared/constants";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { isRTL } from "@shared/utils/rtl";
@@ -174,7 +175,10 @@ export default class Template extends ParanoidModel implements Searchable {
       return undefined;
     }
 
-    return addDays(new Date(this.deletedAt), 30).toString();
+    return addDays(
+      new Date(this.deletedAt),
+      DELETED_DOCUMENT_RETENTION_DAYS
+    ).toString();
   }
 
   get displayTitle(): string {

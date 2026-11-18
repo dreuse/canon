@@ -24,6 +24,7 @@ type Response<T> = {
   data: T[] | undefined;
   error: unknown;
   loading: boolean;
+  loaded: boolean;
   next: (() => void) | undefined;
 };
 
@@ -44,7 +45,7 @@ export function useTableRequest<T extends { id: string }>({
     [reqFn, reqParams, offset]
   );
 
-  const { request, loading, error } = useRequest(fetchPage);
+  const { request, loading, loaded, error } = useRequest(fetchPage);
 
   const nextPage = useCallback(
     () =>
@@ -101,6 +102,7 @@ export function useTableRequest<T extends { id: string }>({
     data: sortedData,
     error,
     loading,
+    loaded,
     next,
   };
 }

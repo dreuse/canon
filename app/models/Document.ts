@@ -23,7 +23,10 @@ import {
   NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
-import { DocumentPreferenceDefaults } from "@shared/constants";
+import {
+  DELETED_DOCUMENT_RETENTION_DAYS,
+  DocumentPreferenceDefaults,
+} from "@shared/constants";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
@@ -455,7 +458,10 @@ export default class Document extends ArchivableModel implements Searchable {
       return undefined;
     }
 
-    return addDays(new Date(this.deletedAt), 30).toString();
+    return addDays(
+      new Date(this.deletedAt),
+      DELETED_DOCUMENT_RETENTION_DAYS
+    ).toString();
   }
 
   @computed

@@ -1,11 +1,12 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { GlobeIcon, WarningIcon } from "outline-icons";
+import { GlobeIcon, LinkIcon, WarningIcon } from "outline-icons";
 import type * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import { EmptyState, EmptyStateCard } from "~/components/EmptyState";
 import { ConditionalFade } from "~/components/Fade";
 import InputSearch from "~/components/InputSearch";
 import Notice from "~/components/Notice";
@@ -51,7 +52,7 @@ function Shares() {
     [reqParams.sort, reqParams.direction]
   );
 
-  const { data, error, loading, next } = useTableRequest({
+  const { data, error, loading, loaded, next } = useTableRequest({
     data: shares.findListedByQuery(reqParams.query ?? "", user),
     sort,
     reqFn: shares.fetchPage,
@@ -93,6 +94,9 @@ function Shares() {
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
 
+  const isListEmpty =
+    loaded && !loading && !error && !data?.length && !reqParams.query;
+
   return (
     <Scene title={t("Shared links")} icon={<GlobeIcon />}>
       <SettingsTitle title={t("Shared links")} />
@@ -114,32 +118,44 @@ function Shares() {
 
       <SettingsIntro as="p" type="secondary">
         <Trans>
-          Documents that have been shared are listed below. Anyone with the
-          public link can access a read-only version of the document until the
-          link has been revoked.
+          Documents published on the web. Anyone with the link can read them.
         </Trans>
       </SettingsIntro>
 
-      <StickyFilters>
-        <InputSearch
-          short
-          value={query}
-          placeholder={`${t("Filter")}…`}
-          onChange={handleSearch}
-        />
-      </StickyFilters>
-      <ConditionalFade animate={!data}>
-        <SharesTable
-          data={data ?? []}
-          sort={sort}
-          canManage={can.update}
-          loading={loading}
-          page={{
-            hasNext: !!next,
-            fetchNext: next,
-          }}
-        />
-      </ConditionalFade>
+      {isListEmpty ? (
+        <EmptyStateCard>
+          <EmptyState
+            icon={<LinkIcon />}
+            title={t("No public links")}
+            description={t(
+              "When someone publishes a document to the web, the link appears here. You can revoke access at any time."
+            )}
+          />
+        </EmptyStateCard>
+      ) : (
+        <>
+          <StickyFilters>
+            <InputSearch
+              short
+              value={query}
+              placeholder={`${t("Filter")}…`}
+              onChange={handleSearch}
+            />
+          </StickyFilters>
+          <ConditionalFade animate={!data}>
+            <SharesTable
+              data={data ?? []}
+              sort={sort}
+              canManage={can.update}
+              loading={loading}
+              page={{
+                hasNext: !!next,
+                fetchNext: next,
+              }}
+            />
+          </ConditionalFade>
+        </>
+      )}
     </Scene>
   );
 }

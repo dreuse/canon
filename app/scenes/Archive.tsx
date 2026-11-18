@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import DocumentListItem from "~/components/DocumentListItem";
-import Empty from "~/components/Empty";
+import { EmptyState, EmptyStateCard } from "~/components/EmptyState";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { PageHeader } from "~/components/PageHeader";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
@@ -43,7 +43,9 @@ function Archive() {
     <Scene measure="index" icon={<ArchiveIcon />} title={t("Archive")}>
       <PageHeader
         title={t("Archive")}
-        caption={t("Archived documents, which can be restored at any time")}
+        caption={t(
+          "Collections and documents out of use. They leave the sidebar but stay available for reference."
+        )}
       />
       {groups.map(({ collection, children }) => (
         <Group key={collection.id}>
@@ -64,7 +66,15 @@ function Archive() {
         fetch={documents.fetchArchived}
         empty={
           groups.length ? undefined : (
-            <Empty>{t("The document archive is empty at the moment.")}</Empty>
+            <EmptyStateCard>
+              <EmptyState
+                icon={<ArchiveIcon />}
+                title={t("Nothing archived")}
+                description={t(
+                  "Archive what you no longer use to clear the sidebar. You can restore it at any time."
+                )}
+              />
+            </EmptyStateCard>
           )
         }
         showCollection

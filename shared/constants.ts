@@ -21,6 +21,12 @@ import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_FAMILY_MONO } from "./styles/theme";
 
 export const MAX_AVATAR_DISPLAY = 6;
 
+/** Days a deleted document stays in the trash before it is destroyed. */
+export const DELETED_DOCUMENT_RETENTION_DAYS = 30;
+
+/** Days left before permanent deletion at or below which the countdown is flagged. */
+export const DELETION_WARNING_DAYS = 7;
+
 /** Height of the app's fixed header in pixels. */
 export const HEADER_HEIGHT = 56;
 
