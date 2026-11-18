@@ -242,7 +242,7 @@ const Child = styled.div`
 const ChildLink = styled(Link)`
   font-size: 13px;
   font-weight: 500;
-  color: ${s("accent")};
+  color: ${s("link")};
   text-decoration: none;
 
   &:hover {

@@ -241,7 +241,7 @@ const Actions = styled(Flex)`
 
     && [data-variant="primary"] {
       color: ${(props) =>
-        props.theme.isDark ? props.theme.text : props.theme.accent};
+        props.theme.isDark ? props.theme.text : props.theme.link};
     }
 
     && [data-variant="primary"]:disabled {

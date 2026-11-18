@@ -99,7 +99,7 @@ const Format = styled.label`
   }
 
   &:has(input:checked) {
-    box-shadow: inset 0 0 0 2px ${s("accent")};
+    box-shadow: inset 0 0 0 2px ${s("link")};
 
     ${FormatIcon} {
       color: ${s("text")};

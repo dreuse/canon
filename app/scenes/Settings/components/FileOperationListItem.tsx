@@ -49,7 +49,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationState.Creating]: <Spinner />,
     [FileOperationState.Uploading]: <Spinner />,
     [FileOperationState.Expired]: <ArchiveIcon color={theme.textTertiary} />,
-    [FileOperationState.Complete]: <DoneIcon color={theme.accent} />,
+    [FileOperationState.Complete]: <DoneIcon color={theme.link} />,
     [FileOperationState.Error]: <WarningIcon color={theme.danger} />,
   };
 

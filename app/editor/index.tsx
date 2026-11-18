@@ -542,7 +542,7 @@ export class Editor extends React.PureComponent<
       ...this.keymaps,
       anchorPlugin(),
       dropCursor({
-        color: this.props.theme.accent,
+        color: this.props.theme.selected,
         width: 2,
         class: EditorStyleHelper.dropCursor,
       }),

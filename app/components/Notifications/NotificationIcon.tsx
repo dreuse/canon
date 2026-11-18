@@ -22,7 +22,7 @@ const Badge = styled.div`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${s("accent")};
+  background: ${s("link")};
   top: 0;
   right: 0;
 `;

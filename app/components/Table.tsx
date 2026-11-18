@@ -834,7 +834,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   }
 
   &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accent};
+    outline: 2px solid ${(props) => props.theme.selected};
     outline-offset: 2px;
   }
 `;

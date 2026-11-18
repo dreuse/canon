@@ -700,7 +700,7 @@ const ModuleLabel = styled.h3`
 const Pill = styled.span`
   font-size: 10.5px;
   font-weight: 600;
-  color: ${s("accent")};
+  color: ${s("link")};
   background: ${s("listItemHoverBackground")};
   border-radius: 9px;
   padding: 3px 7px;
@@ -782,7 +782,7 @@ const AttentionRow = styled.div`
 `;
 
 const DOT_TONES = {
-  mention: (theme: DefaultTheme) => theme.accent,
+  mention: (theme: DefaultTheme) => theme.link,
   stale: (theme: DefaultTheme) => theme.staleText,
   draft: (theme: DefaultTheme) => theme.textTertiary,
 };
@@ -1003,7 +1003,7 @@ const Marker = styled.span<{ $completed: boolean; $next: boolean }>`
     props.$completed
       ? "none"
       : `inset 0 0 0 ${props.$next ? 2 : 1}px ${
-          props.$next ? props.theme.accent : props.theme.divider
+          props.$next ? props.theme.link : props.theme.divider
         }`};
 `;
 
@@ -1017,7 +1017,7 @@ const ProgressTrack = styled.div`
 const ProgressFill = styled.div`
   height: 100%;
   border-radius: 2px;
-  background: ${s("accent")};
+  background: ${s("link")};
 `;
 
 const ProgressLine = styled.p`
@@ -1088,7 +1088,7 @@ const RailFooterLink = styled(Link)`
   display: inline-block;
   margin-top: 6px;
   font-size: 13px;
-  color: ${s("accent")};
+  color: ${s("link")};
 `;
 
 const RailDraft = styled(Link)`

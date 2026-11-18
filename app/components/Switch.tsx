@@ -178,7 +178,7 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   `}
 
   &:focus {
-    box-shadow: 0 0 1px ${s("accent")};
+    box-shadow: 0 0 1px ${s("selected")};
     outline: none;
   }
 

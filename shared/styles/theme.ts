@@ -102,7 +102,17 @@ const spacing = {
 };
 
 export type ThemeOverride = Partial<Colors> &
-  Partial<Pick<DefaultTheme, "fontFamily" | "fontFamilyMono">>;
+  Partial<
+    Pick<
+      DefaultTheme,
+      | "fontFamily"
+      | "fontFamilyMono"
+      | "accentText"
+      | "accentHover"
+      | "link"
+      | "selected"
+    >
+  >;
 
 export const DEFAULT_FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Oxygen, sans-serif";
@@ -121,8 +131,9 @@ const buildBaseTheme = (input: ThemeOverride) => {
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightBold: 600,
-    accentText: colors.white,
-    selected: colors.accent,
+    accentText: input.accentText ?? colors.white,
+    accentHover: input.accentHover ?? darken(0.05, colors.accent),
+    selected: input.selected ?? colors.accent,
     textHighlight: "#FDEA9B",
     textHighlightForeground: colors.almostBlack,
     commentMarkBackground: transparentize(0.5, colors.brand.marine),
@@ -190,7 +201,7 @@ export const buildLightTheme = (input: ThemeOverride): DefaultTheme => {
     backgroundQuaternary: sidebarActiveBackground,
     commentsBackground: sidebarBackground,
     commentCardBackground: colors.white,
-    link: colors.accent,
+    link: input.link ?? colors.accent,
     cursor: colors.almostBlack,
     text: colors.almostBlack,
     textSecondary: colors.slateDark,
@@ -266,7 +277,7 @@ export const buildDarkTheme = (input: ThemeOverride): DefaultTheme => {
     backgroundQuaternary: lighten(0.06, darkOverlay),
     commentsBackground: sidebarBackground,
     commentCardBackground: darkRaised,
-    link: "#5AA8FF",
+    link: input.link ?? "#5AA8FF",
     text: "#F2F3F5",
     cursor: colors.almostWhite,
     textSecondary: "#C2C9D4",

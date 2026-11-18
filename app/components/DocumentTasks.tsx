@@ -45,7 +45,7 @@ function DocumentTasks({ document }: Props) {
     <Flex align="center" style={{ padding: "0 1px" }} gap={2} shrink={false}>
       {completed === total ? (
         <Done
-          color={theme.accent}
+          color={theme.link}
           size={20}
           $animated={done && previousDone === false}
         />

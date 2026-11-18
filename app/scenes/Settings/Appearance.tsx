@@ -100,6 +100,9 @@ function Appearance() {
     setAccentTextDark(next.accentTextDark);
   }, []);
 
+  const isPaletteSelected = (palette: Palette) =>
+    accent?.toLowerCase() === palette.light.fill.toLowerCase();
+
   const [bodyFontFamily, setBodyFontFamily] = useState(
     team.getPreference(TeamPreference.BodyFontFamily) || BodyFontFamily.Default
   );
@@ -359,10 +362,11 @@ function Appearance() {
   const themeOverride = React.useMemo(
     () => ({
       ...customTheme,
+      ...resolveAccent(customTheme, ui.resolvedTheme === "dark"),
       fontFamily: BodyFontFamilyStacks[bodyFontFamily],
       fontFamilyMono: MonospaceFontFamilyStacks[monospaceFontFamily],
     }),
-    [customTheme, bodyFontFamily, monospaceFontFamily]
+    [customTheme, ui.resolvedTheme, bodyFontFamily, monospaceFontFamily]
   );
 
   const newTheme = React.useMemo(
@@ -388,9 +392,9 @@ function Appearance() {
   const contrast = React.useMemo(() => {
     const safe = (value: string | null | undefined, fallback: string) =>
       value && isHexColor(value) ? value : fallback;
-    const lightRatio = accentContrast(safe(accent, lightPreview.accent), false);
+    const lightRatio = accentContrast(safe(accent, lightPreview.link), false);
     const darkRatio = accentContrast(
-      safe(accentDark ?? accent, darkPreview.accent),
+      safe(accentDark ?? accent, darkPreview.link),
       true
     );
     const worst = Math.min(lightRatio, darkRatio);
@@ -404,7 +408,7 @@ function Appearance() {
             ? "warn"
             : "fail",
     };
-  }, [accent, accentDark, lightPreview.accent, darkPreview.accent]);
+  }, [accent, accentDark, lightPreview.link, darkPreview.link]);
 
   const handleResetTheme = React.useCallback(() => {
     setAccent(null);
@@ -420,7 +424,7 @@ function Appearance() {
     <PreviewCard $bg={sample.background} $text={sample.text} $divided={dark}>
       <PreviewTitle>{team.name}</PreviewTitle>
       <PreviewMeta $color={sample.textSecondary}>
-        <PreviewLink $color={sample.accent}>{t("All collections")}</PreviewLink>
+        <PreviewLink $color={sample.link}>{t("All collections")}</PreviewLink>
         {` · ${t("updated today")}`}
       </PreviewMeta>
       <PreviewButtons>
@@ -454,9 +458,9 @@ function Appearance() {
                     key={palette.name}
                     type="button"
                     aria-label={palette.name}
-                    aria-pressed={accent === palette.accent}
-                    $color={palette.accent}
-                    $selected={accent === palette.accent}
+                    aria-pressed={isPaletteSelected(palette)}
+                    $color={palette.light.fill}
+                    $selected={isPaletteSelected(palette)}
                     onClick={() => handlePaletteSelect(palette)}
                   />
                 ))}
@@ -474,14 +478,14 @@ function Appearance() {
               <AccentFields>
                 <InputColor
                   id="accent"
-                  value={accent ?? lightPreview.accent}
+                  value={accent ?? lightPreview.link}
                   label={t("Accent · light")}
                   onChange={handleAccentChange}
                   flex
                 />
                 <InputColor
                   id="accentDark"
-                  value={accentDark ?? darkPreview.accent}
+                  value={accentDark ?? darkPreview.link}
                   label={t("Accent · dark")}
                   onChange={handleAccentDarkChange}
                   flex
@@ -633,7 +637,7 @@ const Swatch = styled.button<{ $color: string; $selected: boolean }>`
   box-shadow: inset 0 0 0 1px ${s("inputBorder")};
 
   &:focus-visible {
-    outline: 2px solid ${s("accent")};
+    outline: 2px solid ${s("selected")};
     outline-offset: 2px;
   }
 `;

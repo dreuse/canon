@@ -244,7 +244,7 @@ const Pill = styled.span`
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   text-align: center;
-  color: ${s("accent")};
+  color: ${s("link")};
   background: ${s("sidebarActiveBackground")};
 `;
 
@@ -295,7 +295,7 @@ const Dot = styled.span`
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: ${s("accent")};
+  background: ${s("link")};
   box-shadow: 0 0 0 2px ${s("sidebarBackground")};
 `;
 

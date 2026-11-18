@@ -138,5 +138,5 @@ const Status = styled.span`
 `;
 
 const ValidIcon = styled(CheckmarkIcon)`
-  color: ${s("accent")};
+  color: ${s("link")};
 `;

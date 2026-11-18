@@ -53,7 +53,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       [ImportState.Created]: <Spinner />,
       [ImportState.InProgress]: <Spinner />,
       [ImportState.Processed]: <Spinner />,
-      [ImportState.Completed]: <DoneIcon color={theme.accent} />,
+      [ImportState.Completed]: <DoneIcon color={theme.link} />,
       [ImportState.Errored]: <WarningIcon color={theme.danger} />,
       [ImportState.Canceled]: <CrossIcon color={theme.textTertiary} />,
     }),

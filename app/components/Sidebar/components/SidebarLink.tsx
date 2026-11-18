@@ -467,7 +467,7 @@ const Link = styled.a<{
         inset-inline-start: ${HIGHLIGHT_INSET}px;
         width: 2px;
         border-radius: 2px;
-        background: ${props.theme.accent};
+        background: ${props.theme.link};
         pointer-events: none;
       }
     `}

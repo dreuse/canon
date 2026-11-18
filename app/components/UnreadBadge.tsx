@@ -4,7 +4,7 @@ import { s } from "@shared/styles";
 export const UnreadBadge = styled.div`
   width: 8px;
   height: 8px;
-  background: ${s("accent")};
+  background: ${s("link")};
   border-radius: 8px;
   align-self: center;
   position: absolute;

@@ -56,7 +56,7 @@ const RealButton = styled(ActionButton)<RealProps>`
 
   &:hover:not(:disabled),
   &[aria-expanded="true"] {
-    background: ${(props) => darken(0.05, props.theme.accent)};
+    background: ${(props) => props.theme.accentHover};
     transition: background 0s;
   }
 

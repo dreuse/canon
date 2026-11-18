@@ -90,7 +90,7 @@ const Wrapper = styled.div`
     }
 
     &:focus-visible {
-      outline: 2px solid ${s("accent")};
+      outline: 2px solid ${s("selected")};
       outline-offset: -2px;
     }
 
@@ -152,7 +152,7 @@ const Wrapper = styled.div`
     }
 
     &:focus-visible:not([disabled]) {
-      outline: 2px solid ${s("accent")};
+      outline: 2px solid ${s("selected")};
       outline-offset: -2px;
     }
   }
@@ -160,7 +160,7 @@ const Wrapper = styled.div`
   /* Today, when not selected, is emphasised with the accent colour. */
   .rdp-today:not(.rdp-selected) .rdp-day_button {
     font-weight: 700;
-    color: ${s("accent")};
+    color: ${s("link")};
   }
 
   /* Days belonging to the previous/next month are clearly de-emphasised. */

@@ -1779,16 +1779,16 @@ p {
 
 .heading-content a,
 p a {
-  color: ${props.theme.text};
+  color: ${props.theme.link};
   text-decoration: underline;
-  text-decoration-color: ${lighten(0.5, props.theme.text)};
+  text-decoration-color: ${transparentize(0.55, props.theme.link)};
   text-decoration-thickness: 1px;
-  text-underline-offset: .15em;
+  text-underline-offset: 3px;
   font-weight: 500;
 
   &:hover {
     text-decoration: underline;
-    text-decoration-color: ${props.theme.text};
+    text-decoration-color: ${props.theme.link};
     text-decoration-thickness: 1px;
   }
 }
@@ -2805,7 +2805,7 @@ table {
       background: ${props.theme.tableSelected};
     }
     &.dragging::after {
-      background: ${props.theme.accent};
+      background: ${props.theme.link};
       opacity: 0.5;
     }
   }
@@ -2823,7 +2823,7 @@ table {
 
 .${EditorStyleHelper.tableDragDropIndicator} {
   position: absolute;
-  background: ${props.theme.accent};
+  background: ${props.theme.link};
   pointer-events: none;
   z-index: 100;
   opacity: 0;
@@ -2848,7 +2848,7 @@ table {
 .${EditorStyleHelper.tableGripColumn} {
   &.dragging::after {
     cursor: grabbing;
-    background: ${props.theme.accent};
+    background: ${props.theme.link};
     opacity: 0.5;
   }
 }
@@ -2859,7 +2859,7 @@ table {
   top: 0;
   width: 2px;
   height: calc(var(--table-height) - ${EditorStyleHelper.padding}px - 10px);
-  background: ${props.theme.accent};
+  background: ${props.theme.link};
   z-index: 100;
   pointer-events: none;
 }
@@ -2878,7 +2878,7 @@ table {
   left: 0;
   height: 2px;
   width: calc(var(--table-width) - ${EditorStyleHelper.padding * 2}px - 2px);
-  background: ${props.theme.accent};
+  background: ${props.theme.link};
   z-index: 100;
   pointer-events: none;
 }
@@ -3105,7 +3105,7 @@ table .${EditorStyleHelper.table} > .${EditorStyleHelper.tableScrollable} > tabl
   top: -2px;
   width: 20px;
   height: 2px;
-  background: ${props.theme.accent};
+  background: ${props.theme.link};
   border-radius: 1px;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }

@@ -209,7 +209,7 @@ const Title = styled.div`
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
-  color: ${s("accent")};
+  color: ${s("link")};
   font-family: ${s("fontFamily")};
 
   ${DocumentLink}:${hover} & {

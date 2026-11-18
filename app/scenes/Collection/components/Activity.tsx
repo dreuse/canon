@@ -139,7 +139,7 @@ const Sentence = styled.span`
 `;
 
 const DocumentLink = styled(Link)`
-  color: ${s("accent")};
+  color: ${s("link")};
   text-decoration: none;
 
   &:hover {

@@ -12,7 +12,7 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
         : "transparent"};
   color: ${({ primary, yellow, theme }) =>
     primary
-      ? theme.accent
+      ? theme.link
       : yellow
         ? darken(0.1, theme.yellow)
         : theme.textTertiaryOnTint};

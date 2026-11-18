@@ -129,6 +129,7 @@ declare module "styled-components" {
     backgroundQuaternary: string;
     accent: string;
     accentText: string;
+    accentHover: string;
     link: string;
     text: string;
     cursor: string;

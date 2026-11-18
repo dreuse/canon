@@ -154,7 +154,7 @@ export default createGlobalStyle<Props>`
   }
 
   :focus-visible {
-    outline: 2px solid ${s("accent")};
+    outline: 2px solid ${s("selected")};
     outline-offset: 2px;
   }
 

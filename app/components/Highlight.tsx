@@ -47,7 +47,7 @@ function Highlight({
 export const Mark = styled.mark`
   color: ${s("text")};
   background: ${(props) =>
-    transparentize(props.theme.isDark ? 0.72 : 0.8, props.theme.accent)};
+    transparentize(props.theme.isDark ? 0.72 : 0.8, props.theme.link)};
   border-radius: 2px;
   padding: 0 1px;
   font-weight: inherit;

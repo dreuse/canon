@@ -255,7 +255,7 @@ export const Suggestions = observer(function Suggestions({
 });
 
 const InvitedIcon = styled(CheckmarkIcon)`
-  color: ${s("accent")};
+  color: ${s("link")};
 `;
 
 const RemoveIcon = styled(CloseIcon)`

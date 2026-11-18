@@ -24,7 +24,7 @@ const Anchor = styled.a`
     left: 12px;
     background: ${s("background")};
     color: ${s("text")};
-    outline-color: ${s("accent")};
+    outline-color: ${s("selected")};
     z-index: ${depths.popover};
     width: auto;
     height: auto;

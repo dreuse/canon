@@ -496,7 +496,7 @@ export default function FindAndReplace({
                     aria-label={t("Match case")}
                   >
                     <CaseSensitiveIcon
-                      color={caseSensitive ? theme.accent : theme.textSecondary}
+                      color={caseSensitive ? theme.link : theme.textSecondary}
                     />
                   </ButtonSmall>
                 </Tooltip>
@@ -510,7 +510,7 @@ export default function FindAndReplace({
                     aria-label={t("Enable regex")}
                   >
                     <RegexIcon
-                      color={regexEnabled ? theme.accent : theme.textSecondary}
+                      color={regexEnabled ? theme.link : theme.textSecondary}
                     />
                   </ButtonSmall>
                 </Tooltip>
