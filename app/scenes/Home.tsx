@@ -1,20 +1,29 @@
+import { isToday, isYesterday, startOfDay } from "date-fns";
 import { observer } from "mobx-react";
-import { DocumentIcon, HomeIcon, PlusIcon } from "outline-icons";
+import {
+  ClockIcon,
+  CommentIcon,
+  EditIcon,
+  HomeIcon,
+  ImportIcon,
+  NextIcon,
+  PlusIcon,
+  ShapesIcon,
+  UserAddIcon,
+} from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { transparentize } from "polished";
-import styled, { css, useTheme, type DefaultTheme } from "styled-components";
-import { SurfaceProvider } from "@shared/components/SurfaceContext";
-import { cardBorder, s } from "@shared/styles";
+import styled, { css, type DefaultTheme } from "styled-components";
+import { PersonalCollectionId } from "@shared/constants";
+import { s } from "@shared/styles";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { actionToMenuItem } from "~/actions";
-import { createCollection } from "~/actions/definitions/collections";
+import { importDocument } from "~/actions/definitions/documents";
+import { inviteUser } from "~/actions/definitions/users";
 import { Avatar, AvatarSize } from "~/components/Avatar";
-import Button from "~/components/Button";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import { PageHeader } from "~/components/PageHeader";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -23,12 +32,16 @@ import Scene from "~/components/Scene";
 import Time from "~/components/Time";
 import useActionContext from "~/hooks/useActionContext";
 import useBelowDesktop from "~/hooks/useBelowDesktop";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import useStores from "~/hooks/useStores";
+import useUserLocale from "~/hooks/useUserLocale";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import type Document from "~/models/Document";
 import type Event from "~/models/Event";
+import { ActivityFilter, matchesActivityFilter } from "./homeActivityFilter";
 import {
   documentPath,
   newDocumentPath,
@@ -37,17 +50,13 @@ import {
 
 const CONTINUE_LIMIT = 3;
 
-const ACTIVITY_LIMIT = 5;
+const ACTIVITY_LIMIT = 20;
 
 const EVENT_FETCH_LIMIT = 100;
 
-const FAVOURITE_LIMIT = 5;
+const ONBOARDING_FETCH_LIMIT = 100;
 
-const TEMPLATE_LIMIT = 3;
-
-const DRAFT_LIMIT = 3;
-
-const COLLECTION_DOCUMENT_LIMIT = 3;
+const PERCENT = 100;
 
 const SUMMARY_BLOCKS = 2;
 
@@ -55,9 +64,11 @@ const STALE_DRAFT_DAYS = 7;
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-const SATURDAY = 6;
+const AFTERNOON_START_HOUR = 12;
 
-const SUNDAY = 0;
+const EVENING_START_HOUR = 18;
+
+const NEW_DOCUMENT_SHORTCUT = "N";
 
 const MENTION_EVENTS = [
   NotificationEventType.MentionedInDocument,
@@ -134,6 +145,14 @@ function ActivityVerb({
           components={components}
         />
       );
+    case "comments.create":
+      return (
+        <Trans
+          defaults="<actor>{{userName}}</actor> commented on"
+          values={values}
+          components={components}
+        />
+      );
     default:
       return (
         <Trans
@@ -157,7 +176,8 @@ export const ActivityEventRow = observer(function ActivityEventRow({
   event: Event<Document>;
 }) {
   const { t } = useTranslation();
-  const { documents, collections } = useStores();
+  const { documents, collections, auth } = useStores();
+  const userLocale = useUserLocale();
   const document = event.documentId
     ? documents.get(event.documentId)
     : undefined;
@@ -168,20 +188,27 @@ export const ActivityEventRow = observer(function ActivityEventRow({
   const path = document?.isDeleted
     ? event.documentUrl
     : (document?.path ?? event.documentUrl);
+  const clock = new Intl.DateTimeFormat(
+    userLocale ? unicodeCLDRtoBCP47(userLocale) : undefined,
+    { hour: "2-digit", minute: "2-digit" }
+  ).format(new Date(event.createdAt));
 
   return (
     <ActivityRow>
-      {event.actor && <Avatar model={event.actor} size={AvatarSize.Medium} />}
-      <RowBody>
-        <ActivityTitle>
-          <ActivityVerb name={event.name} userName={event.actor?.name} />{" "}
-          {path ? (
-            <ActivityDocument to={path}>{title}</ActivityDocument>
-          ) : (
-            <ActivityName>{title}</ActivityName>
-          )}
-        </ActivityTitle>
-      </RowBody>
+      {event.actor && <Avatar model={event.actor} size={AvatarSize.Small} />}
+      <ActivityTitle>
+        <ActivityVerb
+          name={event.name}
+          userName={
+            event.actorId === auth.user?.id ? t("You") : event.actor?.name
+          }
+        />{" "}
+        {path ? (
+          <ActivityDocument to={path}>{title}</ActivityDocument>
+        ) : (
+          <ActivityName>{title}</ActivityName>
+        )}
+      </ActivityTitle>
       {collection && (
         <ActivityCollection>
           <CollectionDot $color={collection.color} />
@@ -189,38 +216,69 @@ export const ActivityEventRow = observer(function ActivityEventRow({
         </ActivityCollection>
       )}
       <RowTime>
-        <Time dateTime={event.createdAt} addSuffix shorten />
+        <Time dateTime={event.createdAt}>{clock}</Time>
       </RowTime>
     </ActivityRow>
   );
 });
 
-function previousWorkingDay() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  do {
-    date.setDate(date.getDate() - 1);
-  } while (date.getDay() === SATURDAY || date.getDay() === SUNDAY);
-  return date;
+interface DayGroup {
+  day: Date;
+  events: Event<Document>[];
+}
+
+function groupByDay(events: Event<Document>[]) {
+  const groups: DayGroup[] = [];
+  for (const event of events) {
+    const day = startOfDay(new Date(event.createdAt));
+    const last = groups[groups.length - 1];
+    if (last && last.day.getTime() === day.getTime()) {
+      last.events.push(event);
+    } else {
+      groups.push({ day, events: [event] });
+    }
+  }
+  return groups;
+}
+
+function NeedsRow({
+  to,
+  icon,
+  tone,
+  title,
+  subtitle,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  tone: keyof typeof NEEDS_TONES;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
+}) {
+  return (
+    <NeedsItem to={to}>
+      <NeedsIcon $tone={tone}>{icon}</NeedsIcon>
+      <NeedsBody>
+        <NeedsTitle>{title}</NeedsTitle>
+        <NeedsSubtitle>{subtitle}</NeedsSubtitle>
+      </NeedsBody>
+      <NextIcon size={16} />
+    </NeedsItem>
+  );
 }
 
 function Home() {
-  const {
-    documents,
-    events,
-    notifications,
-    collections,
-    stars,
-    templates,
-    auth,
-    ui,
-  } = useStores();
-  const theme = useTheme();
+  const { documents, events, notifications, collections, auth, ui } =
+    useStores();
   const user = useCurrentUser();
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
+  const personalCollection = collections.personal;
+  const canPersonal = usePolicy(personalCollection);
   const { t } = useTranslation();
   const belowDesktop = useBelowDesktop();
   const { pins, count } = usePinnedDocuments("home");
   const context = useActionContext({ isMenu: false, isCommandBar: false });
+  const [filter, setFilter] = React.useState(ActivityFilter.All);
 
   const onboardingPreference = auth.team?.getPreference(
     TeamPreference.OnboardingCollectionId
@@ -235,9 +293,7 @@ function Home() {
     void documents.fetchDrafts({ limit: 100 });
     void events.fetchPage({ limit: EVENT_FETCH_LIMIT });
     void notifications.fetchPage({ limit: 25 });
-    void stars.fetchPage({ limit: 100 });
-    void templates.fetchPage({ limit: 100 });
-  }, [documents, events, notifications, stars, templates]);
+  }, [documents, events, notifications]);
 
   React.useEffect(() => {
     if (!onboardingCollection) {
@@ -246,12 +302,11 @@ function Home() {
     void onboardingCollection.fetchDocuments();
     void documents.fetchPage({
       collectionId: onboardingCollection.id,
-      limit: 100,
+      limit: ONBOARDING_FETCH_LIMIT,
     });
   }, [documents, onboardingCollection]);
 
   const locale = user.language ? unicodeCLDRtoBCP47(user.language) : undefined;
-  const since = React.useMemo(previousWorkingDay, []);
 
   const continueReading = documents.recentlyViewed.slice(0, CONTINUE_LIMIT);
 
@@ -260,13 +315,13 @@ function Home() {
       MENTION_EVENTS.includes(notification.event) && !notification.viewedAt
   );
 
-  const drafts = documents.drafts({});
-
-  const staleDrafts = drafts.filter(
-    (draft) =>
-      Date.now() - new Date(draft.updatedAt).getTime() >
-      STALE_DRAFT_DAYS * MILLISECONDS_PER_DAY
-  );
+  const staleDrafts = documents
+    .drafts({})
+    .filter(
+      (draft) =>
+        Date.now() - new Date(draft.updatedAt).getTime() >
+        STALE_DRAFT_DAYS * MILLISECONDS_PER_DAY
+    );
 
   const needsVerification = documents.all.filter(
     (document) =>
@@ -278,18 +333,6 @@ function Home() {
 
   const attentionCount =
     mentions.length + needsVerification.length + staleDrafts.length;
-
-  const workspaceEvents = events.orderedData.filter(
-    (event) => !!event.documentId
-  );
-  const activity = workspaceEvents.slice(0, ACTIVITY_LIMIT);
-  const changedCount = workspaceEvents.filter(
-    (event) => new Date(event.createdAt) >= since
-  ).length;
-
-  const favourites = stars.orderedData
-    .flatMap((star) => (star.document ? [star.document] : []))
-    .slice(0, FAVOURITE_LIMIT);
 
   const startHereItems = (onboardingCollection?.sortedDocuments ?? []).map(
     (node) => ({
@@ -307,32 +350,60 @@ function Home() {
     !!onboardingCollection &&
     startHereItems.length > 0 &&
     !(isStartHereDone && ui.startHereDismissed);
-
-  const isQuiet = attentionCount === 0 && activity.length === 0;
-
-  const today = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date());
-
-  const sinceDay = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-  }).format(since);
-
-  const newCollection = actionToMenuItem(createCollection, context);
-  const canCreateCollection =
-    newCollection.type === "button" && newCollection.visible;
-
   const startHereDescription = onboardingCollection?.data
     ? ProsemirrorDataHelper.toPlainText(onboardingCollection.data).trim()
     : "";
+  const hasAside = attentionCount > 0 || hasStartHere;
 
-  const hasRail =
-    hasStartHere ||
-    favourites.length > 0 ||
-    templates.all.length > 0 ||
-    drafts.length > 0;
+  const activityGroups = groupByDay(
+    events.orderedData
+      .filter(
+        (event) =>
+          !!event.documentId && matchesActivityFilter(event.name, filter)
+      )
+      .slice(0, ACTIVITY_LIMIT)
+  );
+
+  const now = new Date();
+  const greetingName = user.name.split(" ")[0];
+  const greeting =
+    now.getHours() < AFTERNOON_START_HOUR
+      ? t("Good morning, {{ name }}", { name: greetingName })
+      : now.getHours() < EVENING_START_HOUR
+        ? t("Good afternoon, {{ name }}", { name: greetingName })
+        : t("Good evening, {{ name }}", { name: greetingName });
+
+  const dayFormat = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const groupFormat = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+  });
+
+  const dayLabel = (day: Date) =>
+    isToday(day)
+      ? t("Today")
+      : isYesterday(day)
+        ? t("Yesterday")
+        : groupFormat.format(day);
+
+  const importItem = actionToMenuItem(importDocument, {
+    ...context,
+    activeCollectionId: personalCollection?.id ?? PersonalCollectionId,
+  });
+  const inviteItem = actionToMenuItem(inviteUser, context);
+  const canImport = personalCollection
+    ? !!canPersonal.createDocument
+    : !!can.createPersonalCollection;
+
+  const filters = [
+    { value: ActivityFilter.All, label: t("All") },
+    { value: ActivityFilter.Edits, label: t("Edits") },
+    { value: ActivityFilter.Comments, label: t("Comments") },
+  ];
 
   return (
     <Scene
@@ -347,27 +418,16 @@ function Home() {
 
       <Page>
         <PageHeader
-          title={t("Home")}
+          title={greeting}
           caption={
             <>
-              {today}
-              {" · "}
-              {changedCount
-                ? t("{{ count }} thing changed since {{ day }}", {
-                    count: changedCount,
-                    day: sinceDay,
-                  })
-                : t("nothing changed since {{ day }}", { day: sinceDay })}
-            </>
-          }
-          actions={
-            <>
-              {templates.all.length > 0 && (
-                <Button neutral as={Link} to={settingsPath("templates")}>
-                  {t("Templates")}
-                </Button>
+              <Capitalized>{dayFormat.format(now)}</Capitalized>
+              {attentionCount > 0 && (
+                <>
+                  {" · "}
+                  {t("{{ count }} item needs you", { count: attentionCount })}
+                </>
               )}
-              {!belowDesktop && <NewDocumentMenu />}
             </>
           }
         />
@@ -378,219 +438,208 @@ function Home() {
           collapseKey="home"
         />
 
-        <Grid $withRail={hasRail}>
-          <Main>
-            <Module>
-              <ModuleLabel>{t("Continue")}</ModuleLabel>
-              {continueReading.length ? (
-                <Cards>
-                  {continueReading.map((document) => (
-                    <Card key={document.id} to={documentPath(document)}>
-                      <CardTitle>{document.displayTitle}</CardTitle>
-                      <CardExcerpt>
-                        {ProsemirrorDataHelper.toPlainText(
-                          document.getSummary(SUMMARY_BLOCKS)
-                        )}
-                      </CardExcerpt>
-                      <CardMeta>
-                        {document.collection?.displayName}
-                        {document.collection && " · "}
-                        {document.isDraft ? (
-                          t("draft open")
-                        ) : (
-                          <Time
-                            dateTime={document.updatedAt}
-                            addSuffix
-                            shorten
-                          />
-                        )}
-                      </CardMeta>
-                    </Card>
-                  ))}
-                </Cards>
-              ) : (
-                <EmptyLine>{t("Nothing opened yet")}</EmptyLine>
-              )}
-            </Module>
+        <QuickActions role="group" aria-label={t("Quick actions")}>
+          {can.createDocument && (
+            <QuickAction
+              as={Link}
+              to={newDocumentPath()}
+              data-quick-action="new"
+            >
+              <QuickIcon $primary>
+                <PlusIcon size={18} />
+              </QuickIcon>
+              <QuickTitle>{t("New document")}</QuickTitle>
+              <QuickSubtitle>
+                {t("Blank or with a structure")}
+                <ShortcutHint>{NEW_DOCUMENT_SHORTCUT}</ShortcutHint>
+              </QuickSubtitle>
+            </QuickAction>
+          )}
+          {can.readTemplate && (
+            <QuickAction
+              as={Link}
+              to={settingsPath("templates")}
+              data-quick-action="template"
+            >
+              <QuickIcon>
+                <ShapesIcon size={18} />
+              </QuickIcon>
+              <QuickTitle>{t("Use a template")}</QuickTitle>
+              <QuickSubtitle>
+                {t("Runbook, RFC, minutes and more")}
+              </QuickSubtitle>
+            </QuickAction>
+          )}
+          {canImport && importItem.type === "button" && (
+            <QuickAction
+              as="button"
+              type="button"
+              onClick={importItem.onClick}
+              data-quick-action="import"
+            >
+              <QuickIcon>
+                <ImportIcon size={18} />
+              </QuickIcon>
+              <QuickTitle>{t("Import")}</QuickTitle>
+              <QuickSubtitle>{t("Markdown, Word or Notion")}</QuickSubtitle>
+            </QuickAction>
+          )}
+          {can.inviteUser && inviteItem.type === "button" && (
+            <QuickAction
+              as="button"
+              type="button"
+              onClick={inviteItem.onClick}
+              data-quick-action="invite"
+            >
+              <QuickIcon>
+                <UserAddIcon size={18} />
+              </QuickIcon>
+              <QuickTitle>{t("Invite people")}</QuickTitle>
+              <QuickSubtitle>{t("By email or link")}</QuickSubtitle>
+            </QuickAction>
+          )}
+        </QuickActions>
 
-            {isQuiet ? (
-              <QuietLine>
-                {t("Nothing needs you and nobody has edited anything")}
-              </QuietLine>
+        <Section aria-labelledby="home-continue">
+          <SectionHeading>
+            <h2 id="home-continue">{t("Continue where you left off")}</h2>
+          </SectionHeading>
+          {continueReading.length ? (
+            <Cards>
+              {continueReading.map((document) => (
+                <Card key={document.id} to={documentPath(document)}>
+                  {document.collection && (
+                    <ActivityCollection>
+                      <CollectionDot $color={document.collection.color} />
+                      {document.collection.displayName}
+                    </ActivityCollection>
+                  )}
+                  <CardTitle>{document.displayTitle}</CardTitle>
+                  <CardExcerpt>
+                    {ProsemirrorDataHelper.toPlainText(
+                      document.getSummary(SUMMARY_BLOCKS)
+                    )}
+                  </CardExcerpt>
+                  <CardMeta>
+                    {document.isDraft ? (
+                      t("draft open")
+                    ) : (
+                      <>
+                        {document.updatedBy?.id === user.id
+                          ? t("You edited")
+                          : t("You read")}{" "}
+                        <Time
+                          dateTime={
+                            document.updatedBy?.id === user.id
+                              ? document.updatedAt
+                              : (document.lastViewedAt ?? document.updatedAt)
+                          }
+                          addSuffix
+                          shorten
+                        />
+                      </>
+                    )}
+                  </CardMeta>
+                </Card>
+              ))}
+            </Cards>
+          ) : (
+            <EmptyLine>{t("Nothing opened yet")}</EmptyLine>
+          )}
+        </Section>
+
+        <Grid $withRail={hasAside}>
+          <section aria-labelledby="home-activity">
+            <SectionHeading>
+              <h2 id="home-activity">{t("Recent activity")}</h2>
+              <Segmented role="group" aria-label={t("Filter activity")}>
+                {filters.map((item) => (
+                  <SegmentButton
+                    key={item.value}
+                    type="button"
+                    aria-pressed={filter === item.value}
+                    $active={filter === item.value}
+                    onClick={() => setFilter(item.value)}
+                  >
+                    {item.label}
+                  </SegmentButton>
+                ))}
+              </Segmented>
+            </SectionHeading>
+            {activityGroups.length ? (
+              activityGroups.map((group) => (
+                <div key={group.day.getTime()}>
+                  <DayHeading>{dayLabel(group.day)}</DayHeading>
+                  {group.events.map((event) => (
+                    <ActivityEventRow key={event.id} event={event} />
+                  ))}
+                </div>
+              ))
             ) : (
-              <>
-                {attentionCount > 0 && (
-                  <Module>
-                    <ModuleLabel>
+              <EmptyLine>{t("No activity yet")}</EmptyLine>
+            )}
+          </section>
+
+          {hasAside && (
+            <aside>
+              {attentionCount > 0 && (
+                <section aria-labelledby="home-needs-you">
+                  <SectionHeading>
+                    <h2 id="home-needs-you">
                       {t("Needs you")}
                       <Pill>{attentionCount}</Pill>
-                    </ModuleLabel>
-                    <div>
-                      {mentions.map((notification) => (
-                        <AttentionRow key={notification.id}>
-                          {notification.actor ? (
-                            <Avatar model={notification.actor} size={24} />
-                          ) : (
-                            <Dot $tone="mention" />
-                          )}
-                          <RowBody>
-                            <RowTitle>
-                              <RowName>{notification.subject(t)}</RowName>
-                            </RowTitle>
-                            <RowWhy>
-                              <Time
-                                dateTime={notification.createdAt}
-                                addSuffix
-                                shorten
-                              />
-                            </RowWhy>
-                          </RowBody>
-                          <RowAction to={notification.path ?? "/home"}>
-                            {t("Reply")}
-                          </RowAction>
-                        </AttentionRow>
-                      ))}
-                      {needsVerification.map((document) => (
-                        <AttentionRow key={document.id}>
-                          <Dot $tone="stale" />
-                          <RowBody>
-                            <RowTitle>
-                              <RowName>{document.displayTitle}</RowName>
-                            </RowTitle>
-                            <RowWhy>
-                              {t(
-                                "You own this and it is past its review interval"
-                              )}
-                            </RowWhy>
-                          </RowBody>
-                          <RowAction to={documentPath(document)}>
-                            {t("Verify")}
-                          </RowAction>
-                        </AttentionRow>
-                      ))}
-                      {staleDrafts.map((draft) => (
-                        <AttentionRow key={draft.id}>
-                          <RowIcon>
-                            <DocumentIcon size={16} outline />
-                          </RowIcon>
-                          <RowBody>
-                            <RowTitle>
-                              <RowName>{draft.displayTitle}</RowName>
-                            </RowTitle>
-                            <RowWhy>
-                              {t("Draft not updated in over a week")}
-                            </RowWhy>
-                          </RowBody>
-                          <RowAction to={documentPath(draft)}>
-                            {t("Publish")}
-                          </RowAction>
-                        </AttentionRow>
-                      ))}
-                    </div>
-                  </Module>
-                )}
-
-                {activity.length > 0 && (
-                  <Module>
-                    <ModuleLabel>{t("Changed in workspace")}</ModuleLabel>
-                    <div>
-                      {activity.map((event) => (
-                        <ActivityEventRow key={event.id} event={event} />
-                      ))}
-                    </div>
-                  </Module>
-                )}
-              </>
-            )}
-
-            <Module>
-              <ModuleLabel>{t("Your collections")}</ModuleLabel>
-              <CollectionGrid>
-                {collections.orderedData.map((collection) => (
-                  <CollectionCard key={collection.id} to={collection.path}>
-                    <CollectionHead>
-                      <SurfaceProvider value={theme.backgroundSecondary}>
-                        <CollectionIcon collection={collection} size={18} />
-                      </SurfaceProvider>
-                      <CollectionName>{collection.displayName}</CollectionName>
-                      {collection.documentCount !== undefined && (
-                        <CollectionCount>
-                          {collection.documentCount}
-                        </CollectionCount>
-                      )}
-                    </CollectionHead>
-                    {collection.sortedDocuments
-                      ?.slice(0, COLLECTION_DOCUMENT_LIMIT)
-                      .map((node) => (
-                        <CollectionDocument key={node.id}>
-                          {node.title || t("Untitled")}
-                        </CollectionDocument>
-                      ))}
-                    <CollectionMeta>
-                      {t("updated")}{" "}
-                      <Time dateTime={collection.updatedAt} addSuffix shorten />
-                    </CollectionMeta>
-                  </CollectionCard>
-                ))}
-                {canCreateCollection && newCollection.type === "button" && (
-                  <NewCollectionCard onClick={newCollection.onClick}>
-                    <PlusIcon size={18} />
-                    {t("New collection")}
-                  </NewCollectionCard>
-                )}
-              </CollectionGrid>
-            </Module>
-          </Main>
-
-          {hasRail && (
-            <Rail>
-              {favourites.length > 0 && (
-                <RailCard>
-                  <ModuleLabel>{t("Favorites")}</ModuleLabel>
-                  {favourites.map((document) => (
-                    <RailRow key={document.id} to={documentPath(document)}>
-                      {document.displayTitle}
-                    </RailRow>
-                  ))}
-                </RailCard>
+                    </h2>
+                  </SectionHeading>
+                  <NeedsList>
+                    {mentions.map((notification) => (
+                      <NeedsRow
+                        key={notification.id}
+                        to={notification.path ?? "/home"}
+                        icon={<CommentIcon size={18} />}
+                        tone="mention"
+                        title={
+                          notification.actor
+                            ? t("Reply to {{ name }}", {
+                                name: notification.actor.name,
+                              })
+                            : notification.subject(t)
+                        }
+                        subtitle={notification.subject(t)}
+                      />
+                    ))}
+                    {needsVerification.map((document) => (
+                      <NeedsRow
+                        key={document.id}
+                        to={documentPath(document)}
+                        icon={<ClockIcon size={18} />}
+                        tone="stale"
+                        title={t("Review overdue")}
+                        subtitle={document.displayTitle}
+                      />
+                    ))}
+                    {staleDrafts.map((draft) => (
+                      <NeedsRow
+                        key={draft.id}
+                        to={documentPath(draft)}
+                        icon={<EditIcon size={18} />}
+                        tone="draft"
+                        title={t("Unpublished draft")}
+                        subtitle={
+                          <>
+                            {draft.displayTitle}
+                            {" · "}
+                            <Time
+                              dateTime={draft.updatedAt}
+                              addSuffix
+                              shorten
+                            />
+                          </>
+                        }
+                      />
+                    ))}
+                  </NeedsList>
+                </section>
               )}
-
-              {templates.all.length > 0 && (
-                <RailCard>
-                  <ModuleLabel>{t("Start from")}</ModuleLabel>
-                  {templates.all.slice(0, TEMPLATE_LIMIT).map((template) => (
-                    <RailRow
-                      key={template.id}
-                      to={newDocumentPath(template.collectionId, {
-                        templateId: template.id,
-                      })}
-                    >
-                      {template.displayTitle}
-                    </RailRow>
-                  ))}
-                  <RailFooterLink to={settingsPath("templates")}>
-                    {t("See all templates")}
-                  </RailFooterLink>
-                </RailCard>
-              )}
-
-              {drafts.length > 0 && (
-                <RailCard>
-                  <ModuleLabel>
-                    {t("{{ count }} draft", { count: drafts.length })}
-                  </ModuleLabel>
-                  {drafts.slice(0, DRAFT_LIMIT).map((draft) => (
-                    <RailDraft key={draft.id} to={documentPath(draft)}>
-                      <RailDraftTitle>{draft.displayTitle}</RailDraftTitle>
-                      <RailNote>
-                        {t("edited")}{" "}
-                        <Time dateTime={draft.updatedAt} addSuffix shorten />
-                      </RailNote>
-                    </RailDraft>
-                  ))}
-                </RailCard>
-              )}
-
               {hasStartHere &&
                 (isStartHereDone ? (
                   <DoneLine>
@@ -610,8 +659,10 @@ function Home() {
                     </DismissButton>
                   </DoneLine>
                 ) : (
-                  <RailCard>
-                    <ModuleLabel>{t("Start here")}</ModuleLabel>
+                  <StartHereCard>
+                    <SectionHeading>
+                      <h2>{t("Start here")}</h2>
+                    </SectionHeading>
                     {startHereDescription && (
                       <StartHereDescription>
                         {startHereDescription}
@@ -641,7 +692,7 @@ function Home() {
                       <ProgressFill
                         style={{
                           width: `${
-                            (completedCount / startHereItems.length) * 100
+                            (completedCount / startHereItems.length) * PERCENT
                           }%`,
                         }}
                       />
@@ -652,9 +703,9 @@ function Home() {
                         total: startHereItems.length,
                       })}
                     </ProgressLine>
-                  </RailCard>
+                  </StartHereCard>
                 ))}
-            </Rail>
+            </aside>
           )}
         </Grid>
       </Page>
@@ -663,67 +714,129 @@ function Home() {
 }
 
 const Page = styled.div`
-  max-width: 1000px;
+  max-width: 1080px;
   margin: 0 auto;
 `;
 
-const cardSurface = css`
-  background: ${s("backgroundSecondary")};
-  border: 1px solid ${cardBorder};
-  border-radius: 10px;
-  box-shadow: ${(props) =>
-    props.theme.isDark ? "none" : "0 1px 2px rgba(16, 24, 40, 0.04)"};
-`;
+const Capitalized = styled.span`
+  display: inline-block;
 
-const rowDivider = css`
-  border-bottom: 1px solid
-    ${(props) => transparentize(0.6, props.theme.divider)};
-
-  &:last-child {
-    border-bottom: 0;
+  &::first-letter {
+    text-transform: uppercase;
   }
 `;
 
-const Grid = styled.div<{ $withRail: boolean }>`
+const cardSurface = css`
+  background: ${s("background")};
+  border: 1px solid ${s("divider")};
+  border-radius: 10px;
+`;
+
+const cardHover = css`
+  &:hover {
+    background: ${s("listItemHoverBackground")};
+  }
+`;
+
+const QuickActions = styled.div`
   display: grid;
-  grid-template-columns: ${(props) =>
-    props.$withRail ? "minmax(0, 1fr) 260px" : "minmax(0, 1fr)"};
-  gap: 32px;
-  align-items: start;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 36px;
 
   @media (max-width: 900px) {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 `;
 
-const Main = styled.div`
-  min-width: 0;
+const QuickAction = styled.div`
+  ${cardSurface}
+  ${cardHover}
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: var(--pointer);
 `;
 
-const Module = styled.section`
-  margin-bottom: 32px;
+const QuickIcon = styled.span<{ $primary?: boolean }>`
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: ${(props) =>
+    props.$primary ? props.theme.accent : props.theme.listItemHoverBackground};
+  color: ${(props) =>
+    props.$primary ? props.theme.accentText : props.theme.textSecondary};
+  fill: currentColor;
 `;
 
-const ModuleLabel = styled.h3`
+const QuickTitle = styled.span`
+  font-weight: 500;
+  color: ${s("text")};
+`;
+
+const QuickSubtitle = styled.span`
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 11px;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  gap: 6px;
+  margin-top: -6px;
+  font-size: 13px;
+  line-height: 18px;
   color: ${s("textTertiary")};
 `;
 
+const ShortcutHint = styled.kbd`
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 5px;
+  border: 1px solid ${s("divider")};
+  border-radius: 4px;
+  font: 500 11px/1 ${s("fontFamily")};
+  color: ${s("textTertiary")};
+`;
+
+const Section = styled.section`
+  margin-bottom: 36px;
+`;
+
+const SectionHeading = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+  margin-bottom: 12px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 20px;
+    color: ${s("text")};
+  }
+`;
+
 const Pill = styled.span`
-  font-size: 10.5px;
-  font-weight: 600;
-  color: ${s("link")};
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
   background: ${s("listItemHoverBackground")};
-  border-radius: 9px;
-  padding: 3px 7px;
-  letter-spacing: 0;
+  color: ${s("link")};
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
 `;
 
 const EmptyLine = styled.p`
@@ -732,151 +845,117 @@ const EmptyLine = styled.p`
   font-size: 14px;
 `;
 
-const QuietLine = styled.p`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 32px;
-  padding: 13px 15px;
-  border-radius: 9px;
-  background: ${s("backgroundSecondary")};
-  color: ${s("textSecondary")};
-  font-size: 14px;
-
-  &::before {
-    content: "";
-    flex: 0 0 7px;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: ${s("textTertiary")};
-  }
-`;
-
 const Cards = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 `;
 
 const Card = styled(Link)`
   ${cardSurface}
-  display: block;
-  padding: 13px 15px;
+  ${cardHover}
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
   color: inherit;
-
-  &:hover {
-    background: ${s("listItemHoverBackground")};
-  }
 `;
 
 const CardTitle = styled.div`
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 22px;
   color: ${s("text")};
 `;
 
 const CardExcerpt = styled.p`
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin: 6px 0 10px;
+  margin: 0;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 19px;
   color: ${s("textSecondary")};
 `;
 
 const CardMeta = styled.div`
-  font-size: 12.5px;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 12px;
   color: ${s("textTertiary")};
 `;
 
-const AttentionRow = styled.div`
-  ${rowDivider}
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
+const Grid = styled.div<{ $withRail: boolean }>`
+  display: grid;
+  grid-template-columns: ${(props) =>
+    props.$withRail ? "minmax(0, 1fr) 300px" : "minmax(0, 1fr)"};
+  gap: 40px;
+  align-items: start;
+
+  @media (max-width: 1180px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 `;
 
-const DOT_TONES = {
-  mention: (theme: DefaultTheme) => theme.link,
-  stale: (theme: DefaultTheme) => theme.staleText,
-  draft: (theme: DefaultTheme) => theme.textTertiary,
-};
-
-const Dot = styled.span<{ $tone: keyof typeof DOT_TONES }>`
-  flex: 0 0 7px;
-  width: 7px;
-  height: 7px;
-  margin: 0 8px;
-  border-radius: 50%;
-  background: ${(props) => DOT_TONES[props.$tone](props.theme)};
-`;
-
-const RowIcon = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: ${s("backgroundSecondary")};
-  color: ${s("textTertiary")};
-`;
-
-const RowBody = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const RowTitle = styled.div`
-  font-size: 14px;
-  font-weight: 400;
-  color: ${s("text")};
-`;
-
-const RowName = styled.span`
-  font-weight: 600;
-`;
-
-const RowWhy = styled.div`
-  margin-top: 2px;
-  font-size: 12.5px;
-  color: ${s("textTertiary")};
-`;
-
-const RowAction = styled(Link)`
-  flex: 0 0 auto;
+const Segmented = styled.div`
+  display: inline-flex;
+  padding: 2px;
   border: 1px solid ${s("divider")};
   border-radius: 6px;
-  padding: 6px 11px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: ${s("textSecondary")};
+  background: ${s("sidebarBackground")};
+`;
+
+const SegmentButton = styled.button<{ $active: boolean }>`
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  background: ${(props) =>
+    props.$active ? props.theme.background : "transparent"};
+  box-shadow: ${(props) =>
+    props.$active ? `0 0 0 1px ${props.theme.divider}` : "none"};
+  color: ${(props) =>
+    props.$active ? props.theme.text : props.theme.textTertiary};
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: var(--pointer);
+`;
+
+const DayHeading = styled.h3`
+  margin: 18px 0 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: ${s("textTertiary")};
+`;
+
+const ActivityRow = styled.div`
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 12px;
+  margin: 0 -10px;
+  padding: 9px 10px;
+  border-radius: 6px;
 
   &:hover {
     background: ${s("listItemHoverBackground")};
   }
 `;
 
-const RowTime = styled.div`
-  flex: 0 0 auto;
-  font-size: 12.5px;
-  color: ${s("textTertiary")};
-`;
-
-const ActivityRow = styled.div`
-  ${rowDivider}
-  display: flex;
-  gap: 11px;
-  align-items: center;
-  padding: 11px 0;
-`;
-
-const ActivityTitle = styled(RowTitle)`
+const ActivityTitle = styled.div`
+  grid-column: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
   color: ${s("textSecondary")};
 `;
 
@@ -900,115 +979,101 @@ const ActivityName = styled.span`
 `;
 
 const ActivityCollection = styled.span`
-  flex: 0 0 auto;
-  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
+  font-weight: 500;
   color: ${s("textTertiary")};
+  white-space: nowrap;
 `;
 
 const CollectionDot = styled.span<{ $color?: string | null }>`
   width: 10px;
   height: 10px;
+  margin: 0 3px;
   border-radius: 3px;
   background: ${(props) => props.$color ?? props.theme.textTertiary};
 `;
 
-const CollectionGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 12px;
+const RowTime = styled.div`
+  min-width: 36px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  color: ${s("textTertiary")};
 `;
 
-const CollectionCard = styled(Link)`
+const NEEDS_TONES = {
+  mention: (theme: DefaultTheme) => theme.link,
+  stale: (theme: DefaultTheme) => theme.warning,
+  draft: (theme: DefaultTheme) => theme.textSecondary,
+};
+
+const NeedsList = styled.div`
   ${cardSurface}
-  display: block;
-  padding: 13px 15px;
-  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+`;
+
+const NeedsItem = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  color: ${s("textTertiary")};
 
   &:hover {
     background: ${s("listItemHoverBackground")};
   }
 `;
 
-const CollectionHead = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+const NeedsIcon = styled.span<{ $tone: keyof typeof NEEDS_TONES }>`
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: ${s("listItemHoverBackground")};
+  color: ${(props) => NEEDS_TONES[props.$tone](props.theme)};
+  fill: currentColor;
 `;
 
-const CollectionName = styled.span`
+const NeedsBody = styled.span`
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 600;
+`;
+
+const NeedsTitle = styled.span`
+  font-weight: 500;
   color: ${s("text")};
 `;
 
-const CollectionCount = styled.span`
-  flex-shrink: 0;
-  font-size: 12.5px;
-  color: ${s("textTertiary")};
-`;
-
-const CollectionDocument = styled.div`
+const NeedsSubtitle = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 2px 0;
-  font-size: 13.5px;
-  color: ${s("textSecondary")};
-`;
-
-const CollectionMeta = styled.div`
-  margin-top: 10px;
-  font-size: 12.5px;
+  font-size: 13px;
+  line-height: 18px;
   color: ${s("textTertiary")};
 `;
 
-const NewCollectionCard = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 120px;
-  padding: 13px 15px;
-  border: 1px dashed ${(props) => transparentize(0.35, props.theme.divider)};
-  border-radius: 10px;
-  background: none;
-  color: ${s("textTertiary")};
-  font-size: 13.5px;
-  font-family: inherit;
-  cursor: var(--pointer);
-
-  &:hover {
-    border-color: ${s("inputBorderFocused")};
-    color: ${s("textSecondary")};
-  }
-`;
-
-const Rail = styled.aside`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-`;
-
-const RailCard = styled.div`
+const StartHereCard = styled.section`
   ${cardSurface}
-  padding: 15px;
+  margin-top: 20px;
+  padding: 12px 16px 16px;
 `;
 
 const StartHereDescription = styled.p`
   margin: -4px 0 12px;
-  font-size: 12.5px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 19px;
   color: ${s("textTertiary")};
 `;
 
@@ -1023,16 +1088,15 @@ const StartHereItem = styled(Link)<{ $completed: boolean }>`
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 0;
   min-height: 30px;
-  font-size: 13.5px;
+  padding: 5px 0;
+  font-size: 14px;
+  color: ${(props) =>
+    props.$completed ? props.theme.textTertiary : props.theme.textSecondary};
 
   @media (max-width: 768px), (hover: none) {
     min-height: 44px;
   }
-
-  color: ${(props) =>
-    props.$completed ? props.theme.textTertiary : props.theme.textSecondary};
 
   &:hover {
     color: ${s("text")};
@@ -1076,14 +1140,15 @@ const ProgressFill = styled.div`
 
 const ProgressLine = styled.p`
   margin: 8px 0 0;
-  font-size: 12.5px;
+  font-size: 13px;
   color: ${s("textTertiary")};
 `;
 
 const DoneLine = styled.div`
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
+  margin-top: 20px;
   padding: 10px 12px;
   border-radius: 10px;
   background: ${s("backgroundSecondary")};
@@ -1107,62 +1172,19 @@ const DoneDot = styled.span`
 `;
 
 const DismissButton = styled.button`
-  margin-inline-start: auto;
   flex-shrink: 0;
+  margin-inline-start: auto;
+  padding: 0;
   border: 0;
   background: none;
-  padding: 0;
   color: ${s("textTertiary")};
+  font: inherit;
   font-size: 12px;
-  font-family: inherit;
   cursor: var(--pointer);
 
   &:hover {
     color: ${s("text")};
   }
-`;
-
-const RailRow = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 5px 0;
-  font-size: 13.5px;
-  color: ${s("textSecondary")};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &:hover {
-    color: ${s("text")};
-  }
-`;
-
-const RailFooterLink = styled(Link)`
-  display: inline-block;
-  margin-top: 6px;
-  font-size: 13px;
-  color: ${s("link")};
-`;
-
-const RailDraft = styled(Link)`
-  display: block;
-  padding: 5px 0;
-  color: inherit;
-`;
-
-const RailDraftTitle = styled.div`
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13.5px;
-  color: ${s("text")};
-`;
-
-const RailNote = styled.div`
-  margin-top: 2px;
-  font-size: 12.5px;
-  color: ${s("textTertiary")};
 `;
 
 export default observer(Home);
