@@ -40,6 +40,7 @@ export const useLocaleTime = ({
     en_US: "MMMM do, yyyy h:mm a",
     fr_FR: "'Le 'd MMMM yyyy 'à' H:mm",
     de_DE: "d. MMMM yyyy 'um' H:mm",
+    pt_BR: "d 'de' MMMM 'de' yyyy, H:mm",
   };
   const formatLocaleLong =
     (userLocale ? dateFormatLong[userLocale] : undefined) ??

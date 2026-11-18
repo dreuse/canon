@@ -246,7 +246,7 @@ function Comments() {
             onClick={() => setViewingResolved(false)}
             {...segmentSemantics(isOverlay, !viewingResolved)}
           >
-            {isOverlay ? t("Open threads") : t("Open")}{" "}
+            {isOverlay ? t("Open threads") : t("Open comments")}{" "}
             <Count>{openCount}</Count>
           </Segment>
           <Segment
