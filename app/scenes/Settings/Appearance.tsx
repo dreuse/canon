@@ -2,7 +2,7 @@ import { isHexColor } from "class-validator";
 import { pickBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { PaletteIcon } from "outline-icons";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
@@ -14,15 +14,13 @@ import {
   BodyFontFamilyStacks,
   MonospaceFontFamilyStacks,
 } from "@shared/constants";
-import type { Palette } from "@shared/styles/palettes";
+import { ON_ACCENT, checkAccent } from "@shared/styles/customAccent";
+import type { Palette, PaletteName } from "@shared/styles/palettes";
 import {
   palettes,
   paletteToCustomTheme,
-  accentContrast,
-  accentTextFor,
-  isAccentLegible,
+  findSavedPalette,
   resolveAccent,
-  MIN_ACCENT_CONTRAST,
 } from "@shared/styles/palettes";
 import type { CustomTheme } from "@shared/types";
 import {
@@ -35,64 +33,75 @@ import {
 } from "@shared/types";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
-import InputColor from "~/components/InputColor";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
-import { ActionRow } from "./components/ActionRow";
+import {
+  AccentSaveBar,
+  CustomAccentEditor,
+  getAccentBlockReason,
+  getAccentFills,
+} from "./components/CustomAccentEditor";
 import { SettingGroup } from "./components/SettingGroup";
 import SettingRow from "./components/SettingRow";
 
 import { SettingsTitle } from "./components/SettingsTitle";
 const DEFAULT_CODE_THEME = "default";
 
-const WARN_ACCENT_CONTRAST = 3;
+function readSavedDraft(team: ReturnType<typeof useCurrentTeam>) {
+  const customTheme = team.preferences?.customTheme;
+  const codeTheme = team.getPreference(TeamPreference.CodeTheme);
+  return {
+    accent: customTheme?.accent ?? null,
+    accentText: customTheme?.accentText ?? null,
+    accentDark: customTheme?.accentDark ?? null,
+    accentTextDark: customTheme?.accentTextDark ?? null,
+    bodyFontFamily:
+      team.getPreference(TeamPreference.BodyFontFamily) ||
+      BodyFontFamily.Default,
+    monospaceFontFamily:
+      team.getPreference(TeamPreference.MonospaceFontFamily) ||
+      MonospaceFontFamily.FiraCode,
+    fontSize: team.getPreference(TeamPreference.FontSize) || FontSize.Default,
+    codeFontSize:
+      team.getPreference(TeamPreference.CodeFontSize) || CodeFontSize.Default,
+    tocPosition: team.getPreference(TeamPreference.TocPosition) as TOCPosition,
+    codeTheme: typeof codeTheme === "string" ? codeTheme : DEFAULT_CODE_THEME,
+  };
+}
 
 function Appearance() {
   const { ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
 
-  const form = useRef<HTMLFormElement>(null);
-  const [accent, setAccent] = useState<null | undefined | string>(
-    team.preferences?.customTheme?.accent
-  );
+  const saved = readSavedDraft(team);
+  const [accent, setAccent] = useState<null | undefined | string>(saved.accent);
   const [accentText, setAccentText] = useState<null | undefined | string>(
-    team.preferences?.customTheme?.accentText
+    saved.accentText
   );
   const [accentDark, setAccentDark] = useState<null | undefined | string>(
-    team.preferences?.customTheme?.accentDark
+    saved.accentDark
   );
   const [accentTextDark, setAccentTextDark] = useState<
     null | undefined | string
-  >(team.preferences?.customTheme?.accentTextDark);
+  >(saved.accentTextDark);
+  const [isEditorOpen, setEditorOpen] = useState(
+    () =>
+      !!saved.accent &&
+      !findSavedPalette({
+        accent: saved.accent ?? undefined,
+        accentDark: saved.accentDark ?? undefined,
+      })
+  );
 
-  const illegibleAccents = React.useMemo(() => {
-    const failing: string[] = [];
-    if (accent && !isAccentLegible(accent, false)) {
-      failing.push(t("light mode"));
-    }
-    const darkAccent = accentDark ?? accent;
-    if (darkAccent && !isAccentLegible(darkAccent, true)) {
-      failing.push(t("dark mode"));
-    }
-    return failing;
-  }, [accent, accentDark, t]);
-
-  const handleAccentChange = React.useCallback((value: string) => {
-    setAccent(value);
-    setAccentText(accentTextFor(value));
-  }, []);
-
-  const handleAccentDarkChange = React.useCallback((value: string) => {
-    setAccentDark(value);
-    setAccentTextDark(accentTextFor(value));
-  }, []);
+  const [isCustomEdit, setCustomEdit] = useState(false);
 
   const handlePaletteSelect = React.useCallback((palette: Palette) => {
+    setCustomEdit(false);
     const next = paletteToCustomTheme(palette);
     setAccent(next.accent);
     setAccentText(next.accentText);
@@ -103,19 +112,15 @@ function Appearance() {
   const isPaletteSelected = (palette: Palette) =>
     accent?.toLowerCase() === palette.light.fill.toLowerCase();
 
-  const [bodyFontFamily, setBodyFontFamily] = useState(
-    team.getPreference(TeamPreference.BodyFontFamily) || BodyFontFamily.Default
-  );
+  const [bodyFontFamily, setBodyFontFamily] = useState(saved.bodyFontFamily);
   const [monospaceFontFamily, setMonospaceFontFamily] = useState(
-    team.getPreference(TeamPreference.MonospaceFontFamily) ||
-      MonospaceFontFamily.FiraCode
+    saved.monospaceFontFamily
   );
-  const [fontSize, setFontSize] = useState(
-    team.getPreference(TeamPreference.FontSize) || FontSize.Default
-  );
-  const [codeFontSize, setCodeFontSize] = useState(
-    team.getPreference(TeamPreference.CodeFontSize) || CodeFontSize.Default
-  );
+  const [fontSize, setFontSize] = useState(saved.fontSize);
+  const [codeFontSize, setCodeFontSize] = useState(saved.codeFontSize);
+  const [tocPosition, setTocPosition] = useState(saved.tocPosition);
+
+  const [codeTheme, setCodeTheme] = useState(saved.codeTheme);
 
   const customTheme: Partial<CustomTheme> = pickBy(
     {
@@ -127,14 +132,87 @@ function Appearance() {
     isHexColor
   );
 
-  const [tocPosition, setTocPosition] = useState(
-    team.getPreference(TeamPreference.TocPosition) as TOCPosition
+  const { light: lightFill, dark: darkFill } = getAccentFills(
+    { accent, accentDark },
+    customTheme,
+    isCustomEdit
   );
+  const lightCheck = checkAccent(lightFill, false);
+  const darkCheck = checkAccent(darkFill, true);
 
-  const [codeTheme, setCodeTheme] = useState(() => {
-    const stored = team.getPreference(TeamPreference.CodeTheme);
-    return typeof stored === "string" ? stored : DEFAULT_CODE_THEME;
-  });
+  const handleLightChange = (value: string) => {
+    setCustomEdit(true);
+    setAccent(value);
+    setAccentText(ON_ACCENT);
+    setAccentDark(darkFill);
+    setAccentTextDark(ON_ACCENT);
+  };
+
+  const handleDarkChange = (value: string) => {
+    setCustomEdit(true);
+    setAccent(lightFill);
+    setAccentText(ON_ACCENT);
+    setAccentDark(value);
+    setAccentTextDark(ON_ACCENT);
+  };
+
+  const isAccentDirty =
+    JSON.stringify([accent, accentText, accentDark, accentTextDark]) !==
+    JSON.stringify([
+      saved.accent,
+      saved.accentText,
+      saved.accentDark,
+      saved.accentTextDark,
+    ]);
+  const isDirty =
+    isAccentDirty ||
+    JSON.stringify([
+      bodyFontFamily,
+      monospaceFontFamily,
+      fontSize,
+      codeFontSize,
+      tocPosition,
+      codeTheme,
+    ]) !==
+      JSON.stringify([
+        saved.bodyFontFamily,
+        saved.monospaceFontFamily,
+        saved.fontSize,
+        saved.codeFontSize,
+        saved.tocPosition,
+        saved.codeTheme,
+      ]);
+
+  const paletteNames: Record<PaletteName, string> = {
+    violet: t("Violet"),
+    blue: t("Blue"),
+    graphite: t("Graphite"),
+    teal: t("Teal"),
+    clay: t("Clay"),
+    crimson: t("Crimson"),
+  };
+  const selectedPalette = findSavedPalette(customTheme);
+  const accentLabel = !isAccentDirty
+    ? undefined
+    : selectedPalette
+      ? paletteNames[selectedPalette.name]
+      : accent
+        ? t("Custom accent")
+        : paletteNames.violet;
+
+  const handleDiscard = () => {
+    setCustomEdit(false);
+    setAccent(saved.accent);
+    setAccentText(saved.accentText);
+    setAccentDark(saved.accentDark);
+    setAccentTextDark(saved.accentTextDark);
+    setBodyFontFamily(saved.bodyFontFamily);
+    setMonospaceFontFamily(saved.monospaceFontFamily);
+    setFontSize(saved.fontSize);
+    setCodeFontSize(saved.codeFontSize);
+    setTocPosition(saved.tocPosition);
+    setCodeTheme(saved.codeTheme);
+  };
 
   const tocPositionOptions: Option[] = React.useMemo(
     () =>
@@ -312,16 +390,7 @@ function Appearance() {
         event.preventDefault();
       }
 
-      if (illegibleAccents.length > 0) {
-        toast.error(
-          t(
-            "This accent falls below {{ ratio }}:1 against the page in {{ themes }} — pick a stronger color.",
-            {
-              ratio: MIN_ACCENT_CONTRAST,
-              themes: illegibleAccents.join(", "),
-            }
-          )
-        );
+      if (getAccentBlockReason(lightCheck, darkCheck, t)) {
         return;
       }
 
@@ -352,12 +421,11 @@ function Appearance() {
       fontSize,
       codeFontSize,
       codeTheme,
-      illegibleAccents,
+      lightCheck,
+      darkCheck,
       t,
     ]
   );
-
-  const isValid = form.current?.checkValidity();
 
   const themeOverride = React.useMemo(
     () => ({
@@ -377,8 +445,6 @@ function Appearance() {
     [themeOverride, ui.resolvedTheme]
   );
 
-  const isDarkUi = ui.resolvedTheme === "dark";
-
   const lightPreview = React.useMemo(
     () => buildLightTheme(resolveAccent(customTheme, false)),
     [customTheme]
@@ -389,28 +455,8 @@ function Appearance() {
     [customTheme]
   );
 
-  const contrast = React.useMemo(() => {
-    const safe = (value: string | null | undefined, fallback: string) =>
-      value && isHexColor(value) ? value : fallback;
-    const lightRatio = accentContrast(safe(accent, lightPreview.link), false);
-    const darkRatio = accentContrast(
-      safe(accentDark ?? accent, darkPreview.link),
-      true
-    );
-    const worst = Math.min(lightRatio, darkRatio);
-    return {
-      light: lightRatio.toFixed(1),
-      dark: darkRatio.toFixed(1),
-      state:
-        worst >= MIN_ACCENT_CONTRAST
-          ? "pass"
-          : worst >= WARN_ACCENT_CONTRAST
-            ? "warn"
-            : "fail",
-    };
-  }, [accent, accentDark, lightPreview.link, darkPreview.link]);
-
   const handleResetTheme = React.useCallback(() => {
+    setCustomEdit(false);
     setAccent(null);
     setAccentText(null);
     setAccentDark(null);
@@ -448,7 +494,7 @@ function Appearance() {
           </Trans>
         </SettingsTitle>
 
-        <form onSubmit={handleSubmit} ref={form}>
+        <form onSubmit={handleSubmit}>
           <SettingGroup>{t("Palette")}</SettingGroup>
           <PaletteBlock>
             <PaletteFields>
@@ -475,33 +521,6 @@ function Appearance() {
                   </ButtonLink>
                 )}
               </Text>
-              <AccentFields>
-                <InputColor
-                  id="accent"
-                  value={accent ?? lightPreview.link}
-                  label={t("Accent · light")}
-                  onChange={handleAccentChange}
-                  flex
-                />
-                <InputColor
-                  id="accentDark"
-                  value={accentDark ?? darkPreview.link}
-                  label={t("Accent · dark")}
-                  onChange={handleAccentDarkChange}
-                  flex
-                />
-              </AccentFields>
-              <Contrast
-                role="status"
-                data-state={contrast.state}
-                $state={contrast.state}
-                $dark={isDarkUi}
-              >
-                {t(
-                  "{{ light }}:1 on the light page · {{ dark }}:1 on the dark page",
-                  { light: contrast.light, dark: contrast.dark }
-                )}
-              </Contrast>
             </PaletteFields>
 
             <PreviewColumn>
@@ -517,6 +536,35 @@ function Appearance() {
               </Text>
             </PreviewColumn>
           </PaletteBlock>
+
+          <SettingRow
+            border={false}
+            label={t("Custom colors")}
+            name="customColors"
+            description={t(
+              "Set your own tone for each theme. Contrast is checked before you save."
+            )}
+          >
+            <Button
+              id="customColors"
+              type="button"
+              neutral
+              aria-expanded={isEditorOpen}
+              onClick={() => setEditorOpen((open) => !open)}
+            >
+              {t("Customize")}
+            </Button>
+          </SettingRow>
+          {isEditorOpen && (
+            <CustomAccentEditor
+              light={lightFill}
+              dark={darkFill}
+              lightCheck={lightCheck}
+              darkCheck={darkCheck}
+              onLightChange={handleLightChange}
+              onDarkChange={handleDarkChange}
+            />
+          )}
 
           <SettingGroup>{t("Reading")}</SettingGroup>
           <SettingRow
@@ -605,11 +653,14 @@ function Appearance() {
             />
           </SettingRow>
 
-          <ActionRow>
-            <Button type="submit" disabled={team.isSaving || !isValid}>
-              {team.isSaving ? `${t("Saving")}…` : t("Save")}
-            </Button>
-          </ActionRow>
+          <AccentSaveBar
+            isDirty={isDirty}
+            isSaving={team.isSaving}
+            accentLabel={accentLabel}
+            lightCheck={lightCheck}
+            darkCheck={darkCheck}
+            onDiscard={handleDiscard}
+          />
         </form>
       </Scene>
     </ThemeProvider>
@@ -657,48 +708,6 @@ const PaletteBlock = styled.div`
 const PaletteFields = styled.div`
   flex: 1;
   min-width: 0;
-`;
-
-const AccentFields = styled.div`
-  display: flex;
-  gap: 16px;
-  margin-top: 12px;
-
-  > * {
-    flex: 1;
-    min-width: 0;
-  }
-`;
-
-const CONTRAST_COLORS = {
-  pass: ["#EAF6EE", "#BFE3CC", "#1c6b3a", "#12291c", "#2b5138", "#7fd3a0"],
-  warn: ["#FDF6E7", "#EBD9A8", "#7a5a12", "#2a2413", "#4f4526", "#e2c877"],
-  fail: ["#FBEDEE", "#EFC7CC", "#a02231", "#2b1518", "#5a2b31", "#f09aa5"],
-};
-
-const Contrast = styled.p<{ $state: string; $dark: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 8px 11px;
-  border-radius: 7px;
-  font-size: 12.5px;
-  font-weight: 500;
-
-  background: ${(props) =>
-    CONTRAST_COLORS[props.$state as keyof typeof CONTRAST_COLORS][
-      props.$dark ? 3 : 0
-    ]};
-  border: 1px solid
-    ${(props) =>
-      CONTRAST_COLORS[props.$state as keyof typeof CONTRAST_COLORS][
-        props.$dark ? 4 : 1
-      ]};
-  color: ${(props) =>
-    CONTRAST_COLORS[props.$state as keyof typeof CONTRAST_COLORS][
-      props.$dark ? 5 : 2
-    ]};
 `;
 
 const PreviewColumn = styled.div`

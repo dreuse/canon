@@ -1,5 +1,15 @@
 import { getLuminance } from "polished";
 import type { CustomTheme } from "../types";
+import {
+  DARK_BACKGROUND,
+  LIGHT_BACKGROUND,
+  MIN_ACCENT_CONTRAST,
+  ON_ACCENT,
+  contrastRatio,
+  darkLinkTone,
+} from "./customAccent";
+
+export { MIN_ACCENT_CONTRAST };
 
 export type PaletteName =
   | "blue"
@@ -35,8 +45,6 @@ const LUMINANCE_MIDPOINT = 0.179;
 const DARK_ACCENT_TEXT = "#08090C";
 
 const LIGHT_ACCENT_TEXT = "#FFFFFF";
-
-const ON_ACCENT = "#FFFFFF";
 
 export const accentTextFor = (accent: string): string =>
   getLuminance(accent) > LUMINANCE_MIDPOINT
@@ -191,6 +199,21 @@ const isPresetDarkAccent = (
 };
 
 /**
+ * Finds the palette a saved custom theme represents.
+ *
+ * @param custom the saved custom theme, if any.
+ * @returns the palette, or undefined when the theme is custom or empty.
+ */
+export const findSavedPalette = (
+  custom: Partial<CustomTheme> | undefined
+): Palette | undefined => {
+  const palette = findPaletteByLightFill(custom?.accent);
+  return palette && isPresetDarkAccent(palette, custom?.accentDark)
+    ? palette
+    : undefined;
+};
+
+/**
  * Resolves the accent tokens for a theme from the saved custom theme. A saved
  * palette resolves to its tuned pair, a custom accent renders as saved, and
  * a mode with no saved accent resolves to the default palette.
@@ -223,26 +246,13 @@ export const resolveAccent = (
       custom.accentText)
     : custom.accentText;
   const hasModeAccent = !isDark || Boolean(custom.accentDark);
+  const linkTone = isDark ? darkLinkTone(accent) : accent;
 
   return {
     accent,
     ...(accentText ? { accentText } : {}),
-    ...(hasModeAccent ? { link: accent, selected: accent } : {}),
+    ...(hasModeAccent ? { link: linkTone, selected: linkTone } : {}),
   };
-};
-
-export const MIN_ACCENT_CONTRAST = 4.5;
-
-const LIGHT_BACKGROUND = "#FFFFFF";
-
-const DARK_BACKGROUND = "#23252C";
-
-const contrastRatio = (a: string, b: string): number => {
-  const la = getLuminance(a);
-  const lb = getLuminance(b);
-  const lighter = Math.max(la, lb);
-  const darker = Math.min(la, lb);
-  return (lighter + 0.05) / (darker + 0.05);
 };
 
 export const accentContrast = (accent: string, isDark: boolean): number =>
