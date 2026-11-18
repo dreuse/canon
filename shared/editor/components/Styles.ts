@@ -1407,23 +1407,6 @@ p:empty:has(+ .image-left-50, + .image-right-50),
   }
 }
 
-.${EditorStyleHelper.headingChip} {
-  display: inline-block;
-  margin-inline-end: 0.45em;
-  font-family: ${props.theme.fontFamilyMono};
-  font-size: 0.62em;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: ${props.theme.textTertiary};
-  user-select: none;
-  vertical-align: 0.18em;
-}
-
-[data-heading-prefix] .${EditorStyleHelper.headingChip} {
-  display: none;
-}
-
 .${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;

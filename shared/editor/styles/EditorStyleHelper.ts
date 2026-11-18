@@ -53,8 +53,6 @@ export class EditorStyleHelper {
 
   static readonly headingPositionAnchor = "heading-position-anchor";
 
-  /** Sequential number rendered before each second-level heading */
-  static readonly headingChip = "heading-chip";
   /** Section number prepended to headings in serialized clipboard HTML */
   static readonly headingPrefix = "heading-prefix";
 
