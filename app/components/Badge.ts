@@ -2,30 +2,27 @@ import { darken, transparentize } from "polished";
 import styled from "styled-components";
 
 const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
-  padding: 1.5px 5.5px;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
   margin: 0 2px;
   background: ${({ yellow, primary, theme }) =>
     yellow
       ? transparentize(0.85, theme.yellow)
       : primary
         ? transparentize(0.85, theme.accent)
-        : "transparent"};
+        : theme.listItemHoverBackground};
   color: ${({ primary, yellow, theme }) =>
     primary
       ? theme.link
       : yellow
         ? darken(0.1, theme.yellow)
-        : theme.textTertiaryOnTint};
-  border: 1px solid
-    ${({ yellow, primary, theme }) =>
-      yellow
-        ? transparentize(0.25, theme.yellow)
-        : primary
-          ? transparentize(0.25, theme.accent)
-          : theme.textTertiary};
-  border-radius: 8px;
+        : theme.textSecondary};
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
+  line-height: 1;
   user-select: none;
   white-space: nowrap;
 `;

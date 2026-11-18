@@ -44,7 +44,7 @@ function Export() {
           }}
         />
       </SettingsTitle>
-      <Button type="submit" onClick={handleOpenDialog}>
+      <Button type="submit" onClick={handleOpenDialog} neutral>
         {t("Export data")}…
       </Button>
       <br />

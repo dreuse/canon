@@ -9,13 +9,13 @@ import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import type FileOperation from "~/models/FileOperation";
 import ImportModel from "~/models/Import";
+import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import CanonIcon from "~/components/Icons/CanonIcon";
 import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { Hook, PluginManager } from "~/utils/PluginManager";
@@ -121,11 +121,7 @@ function useImportsConfig() {
       title: "Confluence",
       subtitle: t("Import pages from a Confluence instance"),
       icon: <img src={cdnPath("/images/confluence.png")} alt="" width={28} />,
-      action: (
-        <Button type="submit" disabled neutral>
-          {t("Enterprise")}
-        </Button>
-      ),
+      action: <Badge>{t("Enterprise")}</Badge>,
     });
 
     return items;
@@ -192,9 +188,9 @@ function Import() {
           app.
         </Trans>
       </SettingsTitle>
-      <Text as="p" type="secondary">
-        <Link to={settingsPath("export")}>{t("Export the workspace")}</Link>
-      </Text>
+      <Button as={Link} to={settingsPath("export")} neutral>
+        {t("Export the workspace")}
+      </Button>
 
       <div>
         {configs.map((config) => (
