@@ -1,8 +1,15 @@
 import { clamp } from "es-toolkit";
 import { t } from "i18next";
-import { action, computed, makeObservable, observable } from "mobx";
+import {
+  action,
+  computed,
+  makeObservable,
+  observable,
+  runInAction,
+} from "mobx";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
+import { breakpoints } from "@shared/styles/breakpoint";
 import { light as defaultTheme } from "@shared/styles/theme";
 import type { ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
@@ -110,6 +117,12 @@ class UiStore {
   @observable
   rightSidebar: RightSidebarPanel | null = null;
 
+  @observable
+  viewportBelowRailPanelMin = false;
+
+  @observable
+  panelShownDuringConversas = false;
+
   // The right sidebar panel displayed in the secondary split view pane. Not
   // persisted as the pane itself only exists for the current session.
   @observable
@@ -200,6 +213,25 @@ class UiStore {
         colorSchemeQueryList.addEventListener("change", setSystemTheme);
       } else if (typeof colorSchemeQueryList.addListener === "function") {
         colorSchemeQueryList.addListener(setSystemTheme);
+      }
+    }
+
+    if (window.matchMedia) {
+      const narrowQueryList = window.matchMedia(
+        `(max-width: ${breakpoints.railPanelMin - 1}px)`
+      );
+      const setNarrow = (event: { matches: boolean }) => {
+        runInAction(() => {
+          this.viewportBelowRailPanelMin = event.matches;
+        });
+      };
+
+      setNarrow(narrowQueryList);
+
+      if (typeof narrowQueryList.addEventListener === "function") {
+        narrowQueryList.addEventListener("change", setNarrow);
+      } else if (typeof narrowQueryList.addListener === "function") {
+        narrowQueryList.addListener(setNarrow);
       }
     }
 
@@ -423,6 +455,9 @@ class UiStore {
       this.secondaryRightSidebar = panel;
     } else {
       this.rightSidebar = panel;
+      if (panel !== "comments") {
+        this.panelShownDuringConversas = false;
+      }
       this.persist();
     }
   };
@@ -464,7 +499,7 @@ class UiStore {
   @action
   expandSidebar = () => {
     this.sidebarHidden = false;
-    this.set({ sidebarCollapsed: false });
+    this.showPanel(true);
   };
 
   @action
@@ -477,9 +512,19 @@ class UiStore {
   };
 
   @action
+  private showPanel = (show: boolean) => {
+    if (this.panelYieldsToConversas) {
+      this.panelShownDuringConversas = show;
+      this.set({ sidebarCollapsed: false });
+      return;
+    }
+    this.set({ sidebarCollapsed: !show });
+  };
+
+  @action
   toggleCollapsedSidebar = () => {
     this.sidebarHidden = false;
-    this.set({ sidebarCollapsed: !this.sidebarCollapsed });
+    this.showPanel(this.sidebarIsClosed);
   };
 
   @action
@@ -561,7 +606,20 @@ class UiStore {
    */
   @computed
   get sidebarIsClosed() {
-    return this.sidebarCollapsed || this.sidebarHidden;
+    return (
+      this.sidebarCollapsed ||
+      this.sidebarHidden ||
+      (this.panelYieldsToConversas && !this.panelShownDuringConversas)
+    );
+  }
+
+  @computed
+  get panelYieldsToConversas() {
+    return (
+      this.rightSidebar === "comments" &&
+      !!this.activeDocumentId &&
+      this.viewportBelowRailPanelMin
+    );
   }
 
   @computed
