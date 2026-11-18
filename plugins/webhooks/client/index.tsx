@@ -1,3 +1,5 @@
+import { t } from "i18next";
+import env from "~/env";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
@@ -11,8 +13,11 @@ PluginManager.add([
       group: "Developer",
       after: "Applications",
       icon: Icon,
-      description:
-        "Automate downstream workflows with real-time JSON POSTs. Subscribe to events in Outline so external systems can react instantly.",
+      description: () =>
+        t(
+          "Automate downstream workflows with real-time JSON POSTs. Subscribe to events in {{ appName }} so external systems can react instantly.",
+          { appName: env.APP_NAME }
+        ),
       component: createLazyComponent(() => import("./Settings")),
     },
   },

@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { IntegrationService } from "@shared/types";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
@@ -12,8 +13,10 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
-      description:
-        "Connect your GitHub account to enable rich, real-time issue and pull request previews inside documents.",
+      description: () =>
+        t(
+          "Connect your GitHub account to enable rich, real-time issue and pull request previews inside documents."
+        ),
       component: createLazyComponent(() => import("./Settings")),
     },
   },

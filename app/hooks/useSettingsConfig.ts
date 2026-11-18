@@ -328,7 +328,7 @@ const useSettingsConfig = () => {
         group: t(group),
         nav: false,
         pluginId: plugin.id,
-        description: plugin.value.description,
+        description: plugin.value.description?.(),
         component: plugin.value.component.Component,
         preload: plugin.value.component.preload,
         enabled: plugin.value.enabled

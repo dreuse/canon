@@ -1,6 +1,7 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
@@ -101,8 +102,11 @@ export function InputSelect(props: Props) {
     React.useRef<React.ComponentRef<typeof InputSelectContent>>(null);
 
   const isMobile = useMobile();
+  const { t } = useTranslation();
 
-  const placeholder = `Select a ${label.toLowerCase()}`;
+  const placeholder = t("Select {{ label }}", {
+    label: label.toLowerCase(),
+  });
   const optionsHaveIcon = options.some(
     (opt) => opt.type === "item" && !!opt.icon
   );

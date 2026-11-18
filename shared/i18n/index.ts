@@ -89,7 +89,7 @@ export const languageOptions: LanguageOption[] = [
     value: "pl_PL",
   },
   {
-    label: "Português (Portuguese, Brazil)",
+    label: "Português (Brasil)",
     value: "pt_BR",
   },
   {

@@ -1,3 +1,5 @@
+import { t } from "i18next";
+import env from "~/env";
 import { UserRole } from "@shared/types";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
@@ -11,8 +13,11 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
-      description:
-        "Track your docs with a self-hosted, open-source analytics platform. Link Outline to Matomo for 100% data ownership, GDPR compliance, and deep usage insights on your own servers.",
+      description: () =>
+        t(
+          "Track your docs with a self-hosted, open-source analytics platform. Link {{ appName }} to Matomo for 100% data ownership, GDPR compliance, and deep usage insights on your own servers.",
+          { appName: env.APP_NAME }
+        ),
       component: createLazyComponent(() => import("./Settings")),
       enabled: (_, user) => user.role === UserRole.Admin,
     },

@@ -49,9 +49,7 @@ function useImportsConfig() {
     const items: Config[] = [
       {
         title: t("Markdown"),
-        subtitle: t(
-          "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)"
-        ),
+        subtitle: t("Import a zip file of Markdown documents"),
         icon: <MarkdownIcon size={28} />,
         action: (
           <Button

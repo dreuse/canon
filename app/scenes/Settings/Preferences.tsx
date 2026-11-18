@@ -352,7 +352,7 @@ function Preferences() {
           >
             <span>
               <Button onClick={showDeleteAccount} neutral>
-                {t("Delete account")}…
+                {t("Delete account…")}
               </Button>
             </span>
           </SettingRow>

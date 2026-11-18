@@ -1,3 +1,5 @@
+import { t } from "i18next";
+import env from "~/env";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
@@ -10,8 +12,11 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
-      description:
-        "Connect your Outline workspace to Zapier to automate workflows and integrate with thousands of other tools.",
+      description: () =>
+        t(
+          "Connect your {{ appName }} workspace to Zapier to automate workflows and integrate with thousands of other tools.",
+          { appName: env.APP_NAME }
+        ),
       component: createLazyComponent(() => import("./Settings")),
     },
   },

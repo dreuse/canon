@@ -39,8 +39,8 @@ type PluginValueMap = {
     icon: React.ElementType;
     /** The lazy loaded settings screen component. */
     component: LazyComponent<React.ComponentType>;
-    /** The description that will show on the plugins card. */
-    description?: string;
+    /** Resolves the translated description that will show on the plugins card. */
+    description?: () => string;
     /** Whether the plugin is enabled in the current context. */
     enabled?: (team: Team, user: User) => boolean;
   };

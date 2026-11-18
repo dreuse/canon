@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { PluginManager, Hook } from "~/utils/PluginManager";
 import { KeyIcon } from "outline-icons";
@@ -16,8 +17,10 @@ PluginManager.add([
       group: "Account",
       after: "Notifications",
       icon: KeyIcon,
-      description:
-        "Manage your passkeys for passwordless authentication using biometrics or security keys.",
+      description: () =>
+        t(
+          "Manage your passkeys for passwordless authentication using biometrics or security keys."
+        ),
       component: createLazyComponent(() => import("./Settings")),
       enabled: () => true,
     },

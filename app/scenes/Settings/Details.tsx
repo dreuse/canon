@@ -364,7 +364,7 @@ function Details() {
             name="appearance"
             label={t("Theme, fonts and text size")}
             description={t(
-              "Moved to their own page — six controls that need a preview next to them."
+              "Choose the theme, fonts and text size on the Appearance page."
             )}
           >
             <Button type="button" neutral onClick={openAppearance}>

@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { IntegrationSettings, IntegrationType } from "@shared/types";
 import { IntegrationService } from "@shared/types";
 import { createLazyComponent } from "~/components/LazyLoad";
@@ -13,8 +14,10 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
-      description:
-        "Connect your Linear account to enable rich, real-time issue previews inside documents.",
+      description: () =>
+        t(
+          "Connect your Linear account to enable rich, real-time issue previews inside documents."
+        ),
       component: createLazyComponent(() => import("./Settings")),
     },
   },
