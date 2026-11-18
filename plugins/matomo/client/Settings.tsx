@@ -10,14 +10,13 @@ import type Integration from "~/models/Integration";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
 import { disconnectAnalyticsIntegrationActionFactory } from "~/actions/definitions/integrations";
 import Flex from "~/components/Flex";
 import styled from "styled-components";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 
 type FormData = {
   instanceUrl: string;
@@ -80,14 +79,12 @@ function Matomo() {
 
   return (
     <IntegrationScene title="Matomo" icon={<Icon />}>
-      <Heading>Matomo</Heading>
-
-      <Text as="p" type="secondary">
+      <SettingsTitle title="Matomo">
         <Trans>
           Configure a Matomo installation to send views and analytics from the
           workspace to your own Matomo instance.
         </Trans>
-      </Text>
+      </SettingsTitle>
       <form onSubmit={formHandleSubmit(handleSubmit)}>
         <SettingRow
           label={t("Instance URL")}

@@ -1,6 +1,7 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import Text from "~/components/Text";
 import { SettingGroup } from "./SettingGroup";
 
@@ -33,7 +34,7 @@ export function SettingsSection({
     <section aria-labelledby={titleId}>
       <SettingGroup id={titleId}>{title}</SettingGroup>
       {description && (
-        <Description as="p" type="secondary">
+        <Description as="p">
           {description}
         </Description>
       )}
@@ -42,8 +43,11 @@ export function SettingsSection({
   );
 }
 
-const Description = styled(Text)`
+export const Description = styled(Text)`
   margin: 4px 0 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: ${s("textTertiary")};
 `;
 
 const Rows = styled.div<{ $danger?: boolean }>`

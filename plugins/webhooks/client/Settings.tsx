@@ -8,10 +8,8 @@ import { toast } from "sonner";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
-import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -21,6 +19,7 @@ import { useTableRequest } from "~/hooks/useTableRequest";
 import { StickyFilters } from "~/scenes/Settings/components/StickyFilters";
 import { createWebhookSubscription } from "./actions";
 import { WebhookSubscriptionsTable } from "./components/WebhookSubscriptionsTable";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 
 function Webhooks() {
   const team = useCurrentTeam();
@@ -120,16 +119,14 @@ function Webhooks() {
           )}
         </>
       }
-      measure="full"
     >
-      <Heading>{t("Webhooks")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Webhooks")}>
         <Trans>
           Webhooks can be used to notify your application when events happen in{" "}
           {{ appName }}. Events are sent as an HTTPS request with a JSON payload
           in near real-time.
         </Trans>
-      </Text>
+      </SettingsTitle>
       <StickyFilters>
         <InputSearch
           short

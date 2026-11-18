@@ -4,11 +4,11 @@ import { useTranslation, Trans } from "react-i18next";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import { AvatarSize } from "~/components/Avatar";
-import Heading from "~/components/Heading";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import TeamLogo from "~/components/TeamLogo";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 import Text from "~/components/Text";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
@@ -35,7 +35,7 @@ function Figma() {
 
   return (
     <IntegrationScene title="Figma" icon={<FigmaIcon />}>
-      <Heading>Figma</Heading>
+      <SettingsTitle title="Figma" />
 
       {error === "access_denied" && (
         <Notice>

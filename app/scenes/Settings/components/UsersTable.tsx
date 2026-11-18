@@ -20,7 +20,6 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
-import { UserHoverCard } from "~/components/UserHoverCard";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
@@ -95,8 +94,9 @@ export function UsersTable({ canManage, ...rest }: Props) {
                   showHoverCard={false}
                 />
                 <Text selectable ellipsis>
-                  {user.name} {currentUser.id === user.id && `(${t("You")})`}
+                  {user.name}
                 </Text>
+                {currentUser.id === user.id && <Badge>{t("You")}</Badge>}
               </HStack>
             </RowLink>
           ),
@@ -114,46 +114,6 @@ export function UsersTable({ canManage, ...rest }: Props) {
               minWidth: 180,
             }
           : undefined,
-        {
-          type: "data",
-          id: "lastActiveAt",
-          header: t("Last active"),
-          accessor: (user) => user.lastActiveAt,
-          component: (user) =>
-            user.lastActiveAt ? (
-              <Time dateTime={user.lastActiveAt} addSuffix shorten />
-            ) : null,
-          width: "2fr",
-        },
-        canManage
-          ? {
-              type: "data",
-              id: "invitedBy",
-              header: t("Invited by"),
-              accessor: (user) => user.invitedBy?.name,
-              component: (user) =>
-                user.invitedBy ? (
-                  <UserHoverCard user={user.invitedBy}>
-                    <Text selectable ellipsis>
-                      {user.invitedBy.name}
-                    </Text>
-                  </UserHoverCard>
-                ) : null,
-              sortable: false,
-              width: "2fr",
-            }
-          : undefined,
-        {
-          type: "data",
-          id: "createdAt",
-          header: t("Joined"),
-          accessor: (user) => user.createdAt,
-          component: (user) =>
-            user.createdAt ? (
-              <Time dateTime={user.createdAt} addSuffix shorten />
-            ) : null,
-          width: "2fr",
-        },
         {
           type: "data",
           id: "role",
@@ -176,6 +136,17 @@ export function UsersTable({ canManage, ...rest }: Props) {
             </HStack>
           ),
           width: "minmax(160px, 2fr)",
+        },
+        {
+          type: "data",
+          id: "lastActiveAt",
+          header: t("Last active"),
+          accessor: (user) => user.lastActiveAt,
+          component: (user) =>
+            user.lastActiveAt ? (
+              <Time dateTime={user.lastActiveAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
         },
         canManage
           ? {

@@ -10,14 +10,13 @@ import type Integration from "~/models/Integration";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
-import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
 import Flex from "~/components/Flex";
 import { disconnectAnalyticsIntegrationActionFactory } from "~/actions/definitions/integrations";
 import styled from "styled-components";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 
 type FormData = {
   umamiDomain: string;
@@ -84,14 +83,12 @@ function Umami() {
 
   return (
     <IntegrationScene title="Umami" icon={<Icon />}>
-      <Heading>Umami</Heading>
-
-      <Text as="p" type="secondary">
+      <SettingsTitle title="Umami">
         <Trans>
           Configure an Umami installation to send views and analytics from the
           workspace to your own Umami instance.
         </Trans>
-      </Text>
+      </SettingsTitle>
       <form onSubmit={formHandleSubmit(handleSubmit)}>
         <SettingRow
           label={t("Instance URL")}

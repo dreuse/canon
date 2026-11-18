@@ -1,4 +1,6 @@
 import { Redirect, Switch } from "react-router-dom";
+import { breakpoint } from "@shared/styles/breakpoint";
+import { useLocationSelector } from "~/hooks/useLocationSelector";
 import styled from "styled-components";
 import Error404 from "~/scenes/Errors/Error404";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
@@ -7,7 +9,44 @@ import useSettingsConfig from "~/hooks/useSettingsConfig";
 import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
 
-const SETTINGS_MEASURE = "760px";
+const FORM_COLUMN = "816px";
+const LIST_COLUMN = "1064px";
+const COLUMN_PADDING = 56;
+const CONTAINER_PADDING = 44;
+const GROUPS_PREFIX = `${settingsPath("groups")}/`;
+const MEMBERS_SUFFIX = "/members";
+
+function isGroupMembersPath(pathname: string) {
+  const path = pathname.replace(/\/$/, "");
+  if (!path.startsWith(GROUPS_PREFIX) || !path.endsWith(MEMBERS_SUFFIX)) {
+    return false;
+  }
+  const id = path.slice(GROUPS_PREFIX.length, -MEMBERS_SUFFIX.length);
+  return id.length > 0 && !id.includes("/");
+}
+
+const LIST_ROUTES = [
+  "users",
+  "groups",
+  "templates",
+  "emojis",
+  "shares",
+  "api-keys",
+  "webhooks",
+].map((route) => settingsPath(route));
+
+/**
+ * Returns the column width for a settings route.
+ *
+ * @param pathname the current location pathname.
+ * @returns the CSS width of the column, wider for list routes.
+ */
+export function settingsColumnWidth(pathname: string) {
+  const isList =
+    LIST_ROUTES.includes(pathname.replace(/\/$/, "")) ||
+    isGroupMembersPath(pathname);
+  return isList ? LIST_COLUMN : FORM_COLUMN;
+}
 
 const TOUCH_TARGET = 44;
 
@@ -20,9 +59,10 @@ const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
 
 function SettingsRoutes() {
   const configs = useSettingsConfig();
+  const pathname = useLocationSelector((location) => location.pathname);
 
   return (
-    <Measure>
+    <Measure $width={settingsColumnWidth(pathname)}>
       <Switch>
         {configs.map((config) => (
           <Route
@@ -70,9 +110,15 @@ function SettingsRoutes() {
   );
 }
 
-const Measure = styled.div`
+const Measure = styled.div<{ $width: string }>`
   display: contents;
-  --content-measure: ${SETTINGS_MEASURE};
+  --content-measure: ${(props) => props.$width};
+  --content-margin: 0;
+
+  ${breakpoint("tablet")`
+    --content-measure: calc(${(props: { $width: string }) => props.$width} - ${2 * COLUMN_PADDING}px);
+    --content-margin: 0 0 0 ${COLUMN_PADDING - CONTAINER_PADDING}px;
+  `}
 
   @media (max-width: 768px) and (hover: none), (max-width: 768px) {
     button,

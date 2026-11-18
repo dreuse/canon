@@ -2,6 +2,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { breakpoint } from "@shared/styles/breakpoint";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
@@ -73,6 +74,17 @@ const ControlColumn = styled.div`
 
 const Label = styled(Text)`
   margin-bottom: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: ${s("text")};
+`;
+
+const Description = styled(Text)`
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 18px;
+  color: ${s("textTertiary")};
 `;
 
 const SettingRow: React.FC<Props> = ({
@@ -95,9 +107,7 @@ const SettingRow: React.FC<Props> = ({
           <label htmlFor={name}>{label}</label>
         </Label>
         {description && (
-          <Text as="p" type="secondary">
-            {description}
-          </Text>
+          <Description as="p">{description}</Description>
         )}
       </LabelColumn>
       <ControlColumn>{children}</ControlColumn>

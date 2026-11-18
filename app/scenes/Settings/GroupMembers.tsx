@@ -201,7 +201,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
       <Scene
         title={group.name}
         left={<Breadcrumb actions={breadcrumbActions} />}
-        measure="full"
       >
         <SettingsTitle
           title={

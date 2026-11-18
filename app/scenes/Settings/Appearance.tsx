@@ -8,6 +8,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled, { ThemeProvider } from "styled-components";
 import { errToString } from "@shared/utils/error";
+import { s } from "@shared/styles";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import {
   BodyFontFamilyStacks,
@@ -49,6 +50,7 @@ import {
   AccentPalettePreview,
 } from "./components/AccentPaletteCards";
 import { SettingGroup } from "./components/SettingGroup";
+import { Description } from "./components/SettingsSection";
 import SettingRow from "./components/SettingRow";
 
 import { SettingsTitle } from "./components/SettingsTitle";
@@ -480,11 +482,11 @@ function Appearance() {
             <SectionHeading id={ACCENT_HEADING_ID}>
               {t("Accent color")}
             </SectionHeading>
-            <Text as="p" type="secondary">
+            <Description as="p">
               {t(
                 "Appears on primary buttons, links, focus and the active item. Each palette has a tone tuned for each theme, and all pass 4.5:1."
               )}
-            </Text>
+            </Description>
             <AccentPaletteCards
               labelledBy={ACCENT_HEADING_ID}
               checked={checkedPaletteName(customTheme)}
@@ -532,9 +534,9 @@ function Appearance() {
             <SectionHeading id={PREVIEW_HEADING_ID}>
               {t("Preview")}
             </SectionHeading>
-            <Text as="p" type="secondary">
+            <Description as="p">
               {t("The same color in both themes, as members will see it.")}
-            </Text>
+            </Description>
             <AccentPalettePreview
               lightTheme={lightPreview}
               darkTheme={darkPreview}
@@ -654,6 +656,8 @@ const PreviewSection = styled.section`
 
 const SectionHeading = styled.h2`
   margin: 0 0 4px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  line-height: 20px;
+  color: ${s("text")};
 `;

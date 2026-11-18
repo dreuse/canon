@@ -1,12 +1,11 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
-import Heading from "~/components/Heading";
-import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import ZapierIcon from "./Icon";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 
 function Zapier() {
   const { ui } = useStores();
@@ -16,7 +15,13 @@ function Zapier() {
 
   return (
     <IntegrationScene title="Zapier" icon={<ZapierIcon />}>
-      <Heading>Zapier</Heading>
+      <SettingsTitle title="Zapier">
+        <Trans>
+          Zapier is a platform that allows {{ appName }} to easily integrate
+          with thousands of other business tools. Automate your workflows, sync
+          data, and more.
+        </Trans>
+      </SettingsTitle>
       <script
         type="module"
         async
@@ -26,14 +31,6 @@ function Zapier() {
         rel="stylesheet"
         href="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.css"
       />
-      <Text as="p" type="secondary">
-        <Trans>
-          Zapier is a platform that allows {{ appName }} to easily integrate
-          with thousands of other business tools. Automate your workflows, sync
-          data, and more.
-        </Trans>
-      </Text>
-      <br />
       <zapier-app-directory
         app="outline"
         link-target="new-tab"

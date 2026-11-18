@@ -107,7 +107,7 @@ function Templates() {
   }, [query, updateQuery]);
 
   return (
-    <Scene title={t("Templates")} icon={<ShapesIcon />} measure="full">
+    <Scene title={t("Templates")} icon={<ShapesIcon />}>
       <SettingsTitle
         title={t("Templates")}
         actions={can.readTemplate ? <NewTemplateMenu /> : null}

@@ -13,6 +13,7 @@ import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import PlaceholderText from "~/components/PlaceholderText";
 import TeamLogo from "~/components/TeamLogo";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import env from "~/env";
@@ -41,7 +42,7 @@ function Gitea() {
 
   return (
     <IntegrationScene title="Gitea" icon={<GiteaIcon />}>
-      <Heading>Gitea</Heading>
+      <SettingsTitle title="Gitea" />
 
       {error && (
         <Notice>

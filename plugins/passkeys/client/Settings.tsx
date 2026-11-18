@@ -8,8 +8,8 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 import Text from "~/components/Text";
 import PlaceholderList from "~/components/List/Placeholder";
 import useStores from "~/hooks/useStores";
@@ -157,14 +157,13 @@ function PasskeysSettings() {
         </Action>
       }
     >
-      <Heading>{t("Passkeys")}</Heading>
-      <Text as="p" type="secondary">
+      <SettingsTitle title={t("Passkeys")}>
         <Trans>
           Passkeys allow you to sign in safely without a password using your
           device’s biometric authentication (Face ID, Touch ID, Windows Hello)
           or security key.
         </Trans>
-      </Text>
+      </SettingsTitle>
 
       {team.passkeysEnabled === false && (
         <Notice>

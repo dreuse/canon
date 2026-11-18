@@ -13,7 +13,7 @@ import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ContentEditable from "~/components/ContentEditable";
-import Heading from "~/components/Heading";
+import { SettingsTitle } from "./components/SettingsTitle";
 import Input from "~/components/Input";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
@@ -145,20 +145,22 @@ const Application = observer(function Application({ oauthClient }: Props) {
       actions={<OAuthClientMenu oauthClient={oauthClient} showEdit={false} />}
     >
       <form onSubmit={formHandleSubmit(handleSubmit)}>
-        <Heading>
-          <Controller
-            control={control}
-            name="name"
-            render={({ field }) => (
-              <ContentEditable
-                value={field.value}
-                placeholder={t("Name")}
-                onChange={field.onChange}
-                maxLength={OAuthClientValidation.maxNameLength}
-              />
-            )}
-          />
-        </Heading>
+        <SettingsTitle
+          title={
+            <Controller
+              control={control}
+              name="name"
+              render={({ field }) => (
+                <ContentEditable
+                  value={field.value}
+                  placeholder={t("Name")}
+                  onChange={field.onChange}
+                  maxLength={OAuthClientValidation.maxNameLength}
+                />
+              )}
+            />
+          }
+        />
 
         <SettingRow
           label={t("Icon")}

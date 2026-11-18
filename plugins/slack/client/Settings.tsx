@@ -14,6 +14,7 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
+import { SettingsTitle } from "~/scenes/Settings/components/SettingsTitle";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -62,7 +63,7 @@ function Slack() {
 
   return (
     <IntegrationScene title="Slack" icon={<SlackIcon />}>
-      <Heading>Slack</Heading>
+      <SettingsTitle title="Slack" />
 
       {error === "access_denied" && (
         <Notice>

@@ -96,7 +96,7 @@ function Emojis() {
   }, [query, updateParams]);
 
   return (
-    <Scene title={t("Emojis")} icon={<SmileyIcon />} measure="full">
+    <Scene title={t("Emojis")} icon={<SmileyIcon />}>
       <SettingsTitle
         title={t("Emojis")}
         actions={

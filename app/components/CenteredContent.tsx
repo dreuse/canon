@@ -27,7 +27,7 @@ const Content = styled.div<ContentProps>`
   max-width: ${(props: ContentProps) =>
     props.$maxWidth ??
     `var(--content-measure, ${EditorStyleHelper.documentWidth})`};
-  margin: 0 auto;
+  margin: var(--content-margin, 0 auto);
 `;
 
 const CenteredContent: React.FC<Props> = ({
