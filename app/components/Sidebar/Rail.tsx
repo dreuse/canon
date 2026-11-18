@@ -46,6 +46,7 @@ import {
   draftsPath,
   homePath,
   settingsPath,
+  templatesPath,
   trashPath,
 } from "~/utils/routeHelpers";
 import Collections from "./components/Collections";
@@ -214,10 +215,7 @@ export const Rail = observer(function Rail({
       {can.readTemplate && (
         <Tooltip content={t("Templates")} side="right">
           <Trigger>
-            <RailLink
-              to={settingsPath("templates")}
-              aria-label={t("Templates")}
-            >
+            <RailLink to={templatesPath()} aria-label={t("Templates")}>
               <VoTemplateIcon size={ICON_SIZE} />
             </RailLink>
           </Trigger>

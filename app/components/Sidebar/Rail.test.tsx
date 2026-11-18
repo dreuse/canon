@@ -225,7 +225,7 @@ describe("Rail", () => {
 
     expect(hrefOf("Home")).toBe("/home");
     expect(hrefOf("Drafts")).toBe("/drafts");
-    expect(hrefOf("Templates")).toBe("/settings/templates");
+    expect(hrefOf("Templates")).toBe("/templates");
     expect(hrefOf("Settings")).toBe("/settings");
   });
 
@@ -235,6 +235,18 @@ describe("Rail", () => {
     const rail = within(getRail());
     expect(
       rail.getByRole("link", { name: "Drafts" }).getAttribute("aria-current")
+    ).toBe("page");
+    expect(
+      rail.getByRole("link", { name: "Home" }).getAttribute("aria-current")
+    ).toBeNull();
+  });
+
+  it("R33 marks the Templates link with aria-current on /templates", () => {
+    renderSidebar("/templates");
+
+    const rail = within(getRail());
+    expect(
+      rail.getByRole("link", { name: "Templates" }).getAttribute("aria-current")
     ).toBe("page");
     expect(
       rail.getByRole("link", { name: "Home" }).getAttribute("aria-current")

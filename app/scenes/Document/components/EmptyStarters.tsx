@@ -17,7 +17,7 @@ import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { settingsPath } from "~/utils/routeHelpers";
+import { templatesPath } from "~/utils/routeHelpers";
 
 const MAX_COLLECTION_TEMPLATES = 3;
 const STRUCTURE_HEADING_LEVEL = 2;
@@ -164,9 +164,7 @@ export const EmptyStarters = observer(function EmptyStarters({
           </Tile>
         )}
       </Grid>
-      <AllTemplates to={settingsPath("templates")}>
-        {t("See all templates")}
-      </AllTemplates>
+      <AllTemplates to={templatesPath()}>{t("See all templates")}</AllTemplates>
     </Wrapper>
   );
 });

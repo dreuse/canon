@@ -24,7 +24,7 @@ import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import { SettingsFooter } from "./components/SettingsFooter";
 
-const NON_EXACT_PATHS = [settingsPath("templates"), settingsPath("groups")];
+const NON_EXACT_PATHS = [settingsPath("groups")];
 
 function SettingsSidebar() {
   const { t } = useTranslation();

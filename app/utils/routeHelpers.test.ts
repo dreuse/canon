@@ -1,4 +1,4 @@
-import { sharedModelPath, desktopify } from "./routeHelpers";
+import { sharedModelPath, desktopify, newTemplatePath } from "./routeHelpers";
 
 describe("#sharedDocumentPath", () => {
   it("should return share path for a document", () => {
@@ -24,5 +24,15 @@ describe("#desktopify", () => {
     expect(desktopify("/doc/test-DjDlkBi77t", "http://localhost:3000")).toBe(
       "outline://localhost:3000/doc/test-DjDlkBi77t"
     );
+  });
+});
+
+describe("#newTemplatePath", () => {
+  it("R33 returns /templates/new without a collection", () => {
+    expect(newTemplatePath()).toBe("/templates/new");
+  });
+
+  it("R33 adds the collection id as a query parameter", () => {
+    expect(newTemplatePath("abc")).toBe("/templates/new?collectionId=abc");
   });
 });

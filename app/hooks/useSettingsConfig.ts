@@ -7,7 +7,6 @@ import {
   VoDownloadIcon,
   VoGroupsIcon,
   VoKeyIcon,
-  VoLayoutIcon,
   VoMembersIcon,
   VoNotificationsIcon,
   VoPaletteIcon,
@@ -46,7 +45,6 @@ const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
 const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Security = lazy(() => import("~/scenes/Settings/Security"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
-const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 const Embeds = lazy(() => import("~/scenes/Settings/Embeds"));
 const About = lazy(() => import("~/scenes/Settings/About"), {
@@ -173,16 +171,6 @@ const useSettingsConfig = () => {
         enabled: can.listGroups,
         group: t("Workspace"),
         icon: VoGroupsIcon,
-      },
-      {
-        name: t("Templates"),
-        path: settingsPath("templates"),
-        component: Templates.Component,
-        preload: Templates.preload,
-        description: t("Starting points for new documents."),
-        enabled: can.readTemplate,
-        group: t("Workspace"),
-        icon: VoLayoutIcon,
       },
       {
         name: t("Shared links"),

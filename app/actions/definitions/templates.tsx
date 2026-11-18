@@ -32,7 +32,7 @@ import history from "~/utils/history";
 import {
   newDocumentPath,
   newTemplatePath,
-  settingsPath,
+  templatesPath,
   urlify,
 } from "~/utils/routeHelpers";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
@@ -57,7 +57,7 @@ export const manageTemplates = createInternalLinkAction({
   icon: <SettingsIcon />,
   visible: ({ currentTeamId, stores }) =>
     !!stores.policies.abilities(currentTeamId!).readTemplate,
-  to: settingsPath("templates"),
+  to: templatesPath(),
 });
 
 export const deleteTemplate = dialogActionFactory({
@@ -78,7 +78,7 @@ export const deleteTemplate = dialogActionFactory({
         onSubmit={async () => {
           await performBatch(templates, (template) => template.delete());
           onSubmit();
-          history.push(settingsPath("templates"));
+          history.push(templatesPath());
           toast.success(
             templates.length === 1
               ? t("Template deleted")

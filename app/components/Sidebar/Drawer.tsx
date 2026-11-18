@@ -28,7 +28,12 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import { undraggableOnDesktop } from "~/styles";
-import { draftsPath, homePath, settingsPath } from "~/utils/routeHelpers";
+import {
+  draftsPath,
+  homePath,
+  settingsPath,
+  templatesPath,
+} from "~/utils/routeHelpers";
 import { PanelFooter } from "./Rail";
 import Collections from "./components/Collections";
 import { SidebarScrollProvider } from "./components/DragActiveContext";
@@ -113,7 +118,7 @@ export const DrawerNav = observer(function DrawerNav() {
             )}
             {can.readTemplate && (
               <SidebarLink
-                to={settingsPath("templates")}
+                to={templatesPath()}
                 icon={<VoTemplateIcon />}
                 label={t("Templates")}
               />

@@ -34,7 +34,6 @@ const EXPECTED_NAV: Record<string, string[]> = {
     "Appearance",
     "Members",
     "Groups",
-    "Templates",
     "Shared links",
     "Emojis",
   ],
@@ -132,6 +131,17 @@ describe("useSettingsConfig", () => {
     EXPECTED_GROUPS.forEach((group) => {
       expect(groups[group]).toEqual(EXPECTED_NAV[group]);
     });
+  });
+
+  it("R33 has no Templates entry in the settings navigation", () => {
+    seedStores(ALL_ABILITIES);
+
+    const items = renderConfig();
+
+    expect(items.map((item) => item.path)).not.toContain(
+      settingsPath("templates")
+    );
+    expect(Object.values(navGroups(items)).flat()).not.toContain("Templates");
   });
 
   it("R20 gives every nav item an icon", () => {

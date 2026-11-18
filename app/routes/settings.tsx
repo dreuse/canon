@@ -1,3 +1,4 @@
+import type { RouteComponentProps } from "react-router-dom";
 import { Redirect, Switch } from "react-router-dom";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { useLocationSelector } from "~/hooks/useLocationSelector";
@@ -6,7 +7,12 @@ import Error404 from "~/scenes/Errors/Error404";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
-import { settingsPath } from "~/utils/routeHelpers";
+import {
+  newTemplatePath,
+  settingsPath,
+  templatePath,
+  templatesPath,
+} from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
 
 const FORM_COLUMN = "816px";
@@ -28,7 +34,6 @@ function isGroupMembersPath(pathname: string) {
 const LIST_ROUTES = [
   "users",
   "groups",
-  "templates",
   "emojis",
   "shares",
   "api-keys",
@@ -54,8 +59,6 @@ const Application = lazy(() => import("~/scenes/Settings/Application"));
 const GroupMembers = lazy(() => import("~/scenes/Settings/GroupMembers"), {
   exportName: "GroupMembersScene",
 });
-const Template = lazy(() => import("~/scenes/Templates/Template"));
-const TemplateNew = lazy(() => import("~/scenes/Templates/TemplateNew"));
 
 function SettingsRoutes() {
   const configs = useSettingsConfig();
@@ -94,15 +97,22 @@ function SettingsRoutes() {
           path={settingsPath("applications", ":id")}
           component={Application.Component}
         />
+        <Redirect exact from={settingsPath("templates")} to={templatesPath()} />
         <Route
           exact
           path={settingsPath("templates", "new")}
-          component={TemplateNew.Component}
+          render={({ location }) => (
+            <Redirect
+              to={{ pathname: newTemplatePath(), search: location.search }}
+            />
+          )}
         />
         <Route
           exact
           path={settingsPath("templates", ":id")}
-          component={Template.Component}
+          render={({ match }: RouteComponentProps<{ id: string }>) => (
+            <Redirect to={templatePath(match.params.id)} />
+          )}
         />
         <Route component={Error404} />
       </Switch>

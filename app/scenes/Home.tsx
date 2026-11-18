@@ -45,7 +45,7 @@ import { useHomeImportAction } from "./useHomeImportAction";
 import {
   documentPath,
   newDocumentPath,
-  settingsPath,
+  templatesPath,
 } from "~/utils/routeHelpers";
 
 const CONTINUE_LIMIT = 3;
@@ -458,7 +458,7 @@ const HomeContent = observer(function HomeContent() {
           {can.readTemplate && (
             <QuickAction
               as={Link}
-              to={settingsPath("templates")}
+              to={templatesPath()}
               data-quick-action="template"
             >
               <QuickIcon>
