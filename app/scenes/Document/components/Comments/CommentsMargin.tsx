@@ -32,7 +32,7 @@ import { useSplitView } from "~/components/SplitView/context";
 import { type CommentSortOption, CommentSortType } from "~/types";
 import {
   type CommentsLayout,
-  getCentredMarginShift,
+  getMarginShift,
 } from "~/scenes/Document/components/commentsLayout";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
@@ -80,25 +80,28 @@ function findAnchorElement(threadId: string): Element | null {
   return sibling ?? marker;
 }
 
-function measureCentredOffset(
+function measureMarginOffset(
   column: HTMLElement,
   text: HTMLElement,
-  appliedOffset: number
+  appliedOffset: number,
+  gap: number
 ): number {
   const columnRect = column.getBoundingClientRect();
   const textRect = text.getBoundingClientRect();
   const textStyle = getComputedStyle(text);
 
   if (getComputedStyle(column).direction === "rtl") {
-    return getCentredMarginShift(
+    return getMarginShift(
       -(textRect.left + parseFloat(textStyle.paddingLeft)),
-      -(columnRect.right - appliedOffset)
+      -(columnRect.right - appliedOffset),
+      gap
     );
   }
 
-  return -getCentredMarginShift(
+  return -getMarginShift(
     textRect.right - parseFloat(textStyle.paddingRight),
-    columnRect.left - appliedOffset
+    columnRect.left - appliedOffset,
+    gap
   );
 }
 
@@ -256,8 +259,13 @@ export const CommentsMargin = observer(function CommentsMargin({
 
     const text = editor?.view.dom;
     const offset =
-      layout.mode === "centred" && text
-        ? measureCentredOffset(column, text, appliedOffset.current)
+      layout.mode !== "none" && text
+        ? measureMarginOffset(
+            column,
+            text,
+            appliedOffset.current,
+            layout.marginOffset
+          )
         : 0;
     appliedOffset.current = offset;
     if (slotRef.current) {
@@ -301,7 +309,13 @@ export const CommentsMargin = observer(function CommentsMargin({
         measuredIds.current.add(id);
       }
     });
-  }, [editor, isEditorInitialized, layout.mode, showResolved]);
+  }, [
+    editor,
+    isEditorInitialized,
+    layout.mode,
+    layout.marginOffset,
+    showResolved,
+  ]);
 
   useLayoutEffect(measure, [
     measure,

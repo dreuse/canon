@@ -3,7 +3,6 @@ import { breakpoints } from "@shared/styles/breakpoint";
 const CENTRED_MARGIN_WIDTH = 300;
 const CENTRED_MARGIN_OFFSET = 40;
 const CENTRED_CARD_END_GAP = 18;
-const CENTRED_TEXT_GAP = 40;
 const SHIFTED_MARGIN_WIDTH = 280;
 const SHIFTED_COLUMN_GAP = 32;
 export const SHIFTED_TEXT_MAX_WIDTH = 660;
@@ -77,16 +76,18 @@ export function getCommentsLayout(
 }
 
 /**
- * Computes how far the centred margin moves toward the text so that the cards
- * sit a fixed gap from the text column at every window width.
+ * Computes how far the margin moves toward the text so that the cards sit a
+ * fixed gap from the text column at every window width.
  *
  * @param textEnd the position in pixels of the text column's end edge.
  * @param columnStart the position in pixels of the margin column's start edge.
+ * @param gap the wanted space in pixels between the text and the margin column.
  * @returns the distance in pixels to move the margin column toward the text.
  */
-export function getCentredMarginShift(
+export function getMarginShift(
   textEnd: number,
-  columnStart: number
+  columnStart: number,
+  gap: number
 ): number {
-  return Math.max(0, columnStart - textEnd - CENTRED_TEXT_GAP);
+  return Math.max(0, columnStart - textEnd - gap);
 }

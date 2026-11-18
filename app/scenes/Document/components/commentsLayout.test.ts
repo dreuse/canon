@@ -1,5 +1,5 @@
 import { sidebarRailWidth, sidebarPanelWidth } from "@shared/styles/theme";
-import { getCentredMarginShift, getCommentsLayout } from "./commentsLayout";
+import { getCommentsLayout, getMarginShift } from "./commentsLayout";
 
 const DEFAULT_SIDEBAR_WIDTH = sidebarRailWidth + sidebarPanelWidth;
 
@@ -54,7 +54,7 @@ describe("getCommentsLayout", () => {
   });
 });
 
-describe("getCentredMarginShift", () => {
+describe("getMarginShift", () => {
   it.each([
     { width: 1440, textEnd: 1024, columnStart: 1140, shift: 76 },
     { width: 1920, textEnd: 1430, columnStart: 1620, shift: 150 },
@@ -62,12 +62,28 @@ describe("getCentredMarginShift", () => {
   ])(
     "R04 pulls the cards to 40px from the text at $width",
     ({ textEnd, columnStart, shift }) => {
-      expect(getCentredMarginShift(textEnd, columnStart)).toBe(shift);
+      expect(getMarginShift(textEnd, columnStart, 40)).toBe(shift);
     }
   );
 
   it("R04 does not push the cards when the text is already within 40px", () => {
-    expect(getCentredMarginShift(1100, 1140)).toBe(0);
-    expect(getCentredMarginShift(1120, 1140)).toBe(0);
+    expect(getMarginShift(1100, 1140, 40)).toBe(0);
+    expect(getMarginShift(1120, 1140, 40)).toBe(0);
+  });
+});
+
+describe("getMarginShift in the shifted layout", () => {
+  it("R27 pulls the cards to 32px from the text at 1439", () => {
+    const layout = getCommentsLayout(1439, sidebarRailWidth);
+    const textEnd = 724;
+    const columnStart = textEnd + 139;
+
+    expect(getMarginShift(textEnd, columnStart, layout.marginOffset)).toBe(107);
+  });
+
+  it("R27 leaves the cards alone when the gap is already 32px", () => {
+    const layout = getCommentsLayout(1300, DEFAULT_SIDEBAR_WIDTH);
+
+    expect(getMarginShift(900, 932, layout.marginOffset)).toBe(0);
   });
 });
