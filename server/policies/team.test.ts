@@ -16,7 +16,8 @@ describe("policies/team", () => {
     expect(abilities.createTeam).toEqual(false);
     expect(abilities.createAttachment).toBeTruthy();
     expect(abilities.createCollection).toBeTruthy();
-    expect(abilities.createTemplate).toEqual(false);
+    expect(abilities.createTemplate).toBeTruthy();
+    expect(abilities.updateTemplate).toEqual(false);
     expect(abilities.createGroup).toEqual(false);
     expect(abilities.createIntegration).toEqual(false);
   });
@@ -83,7 +84,7 @@ describe("policies/team", () => {
   describe("create template", () => {
     const permissions = new Map<UserRole, boolean>([
       [UserRole.Admin, true],
-      [UserRole.Member, false],
+      [UserRole.Member, true],
       [UserRole.Viewer, false],
       [UserRole.Guest, false],
     ]);

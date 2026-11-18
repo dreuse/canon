@@ -1,7 +1,9 @@
 import { Scope } from "@shared/types";
 import {
   buildUser,
+  buildAdmin,
   buildCollection,
+  buildPersonalCollection,
   buildTemplate,
   buildOAuthAuthentication,
 } from "@server/test/factories";
@@ -135,5 +137,36 @@ describe("list_templates", () => {
 
     expect(res?.result?.isError).not.toBe(true);
     expect(ids).not.toContain(privateTemplate.id);
+  });
+
+  it("R29 returns a personal template to its owner only", async () => {
+    const owner = await buildUser();
+    const other = await buildUser({ teamId: owner.teamId });
+    const admin = await buildAdmin({ teamId: owner.teamId });
+    const personal = await buildPersonalCollection(owner);
+    const template = await buildTemplate({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: personal.id,
+    });
+
+    const idsFor = async (user: typeof owner) => {
+      const auth = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+      const res = await callMcpTool(
+        server,
+        auth.accessToken!,
+        "list_templates"
+      );
+      return (res?.result?.content ?? []).map(
+        (c: { text?: string }) => JSON.parse(c.text ?? "{}").id
+      );
+    };
+
+    expect(await idsFor(owner)).toContain(template.id);
+    expect(await idsFor(other)).not.toContain(template.id);
+    expect(await idsFor(admin)).not.toContain(template.id);
   });
 });

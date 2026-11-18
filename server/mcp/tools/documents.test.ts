@@ -7,6 +7,8 @@ import {
   TeamPreference,
 } from "@shared/types";
 import {
+  buildAdmin,
+  buildPersonalCollection,
   buildUser,
   buildViewer,
   buildCollection,
@@ -675,6 +677,48 @@ describe("create_document", () => {
     });
 
     expect(res?.result?.isError).toBe(true);
+  });
+
+  it("R29 creates from a personal template for its owner only", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const personal = await buildPersonalCollection(user);
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: personal.id,
+    });
+    const otherUser = await buildUser({ teamId: user.teamId });
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const ownerRes = await callMcpTool(server, accessToken, "create_document", {
+      title: "From personal",
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+    const refused = await Promise.all(
+      [otherUser, admin].map(async (actor) => {
+        const auth = await buildOAuthAuthentication({
+          user: actor,
+          scope: [Scope.Read, Scope.Write],
+        });
+        const actorCollection = await buildCollection({
+          teamId: user.teamId,
+          userId: actor.id,
+        });
+        return callMcpTool(server, auth.accessToken!, "create_document", {
+          title: "Stolen",
+          collectionId: actorCollection.id,
+          templateId: template.id,
+        });
+      })
+    );
+
+    expect(ownerRes?.result?.isError).not.toBe(true);
+    expect(refused.map((res) => res?.result?.isError)).toEqual([true, true]);
   });
 
   it("does not allow a viewer to create a draft", async () => {

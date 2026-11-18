@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PersonalCollectionId } from "@shared/constants";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -35,10 +36,15 @@ export const TemplatesListSchema = BaseSchema.extend({
   }),
 });
 
+const TemplateCollectionIdSchema = z.union([
+  z.string().uuid(),
+  z.literal(PersonalCollectionId),
+]);
+
 export const TemplatesCreateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
-    collectionId: z.string().uuid().optional(),
+    collectionId: TemplateCollectionIdSchema.optional(),
     title: z.string().max(255).optional(),
     data: ProsemirrorSchema({ allowEmpty: true }).optional(),
     icon: zodIconType().nullish(),
@@ -76,7 +82,7 @@ export const TemplatesDuplicateSchema = BaseSchema.extend({
   body: z.object({
     id: zodIdType(),
     title: z.string().optional(),
-    collectionId: z.string().uuid().nullish(),
+    collectionId: TemplateCollectionIdSchema.nullish(),
   }),
 });
 
@@ -93,7 +99,7 @@ export const TemplatesUpdateSchema = BaseSchema.extend({
       .regex(ValidateColor.regex, { message: ValidateColor.message })
       .nullish(),
     fullWidth: z.boolean().optional(),
-    collectionId: z.string().uuid().nullish(),
+    collectionId: TemplateCollectionIdSchema.nullish(),
 
     /** Whether to make a draft template available to other members */
     publish: z.boolean().optional(),

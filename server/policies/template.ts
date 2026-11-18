@@ -29,17 +29,28 @@ allow(User, "listRevisions", Template, (actor, template) =>
   )
 );
 
-allow(User, ["update", "move", "duplicate"], Template, (actor, template) =>
+const canManageWorkspaceTemplate = (actor: User, template?: Template | null) =>
+  and(
+    !!template?.isWorkspaceTemplate,
+    or(actor.isAdmin, and(actor.isMember, template?.createdById === actor.id))
+  );
+
+allow(User, ["update", "move"], Template, (actor, template) =>
   and(
     can(actor, "read", template),
     isTeamMutable(actor),
     or(
-      and(
-        !!template?.isWorkspaceTemplate,
-        can(actor, "updateTemplate", actor.team)
-      ),
+      canManageWorkspaceTemplate(actor, template),
       can(actor, "manageTemplate", template?.collection)
     )
+  )
+);
+
+allow(User, "duplicate", Template, (actor, template) =>
+  and(
+    can(actor, "read", template),
+    isTeamMutable(actor),
+    or(actor.isAdmin, actor.isMember)
   )
 );
 
@@ -58,10 +69,7 @@ allow(User, "restore", Template, (actor, template) =>
     isTeamModel(actor, template),
     isTeamMutable(actor),
     or(
-      and(
-        !!template?.isWorkspaceTemplate,
-        can(actor, "updateTemplate", actor.team)
-      ),
+      canManageWorkspaceTemplate(actor, template),
       can(actor, "manageTemplate", template?.collection)
     )
   )

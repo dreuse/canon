@@ -2,7 +2,8 @@ import Router from "@koa/router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import { ValidationError } from "@server/errors";
+import { resolvePersonalCollectionId } from "@server/commands/personalCollectionLoader";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -38,10 +39,13 @@ router.post(
 
     let collection;
     if (collectionId) {
-      collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        transaction,
-      });
+      collection = await Collection.findByPk(
+        await resolvePersonalCollectionId(ctx, collectionId),
+        {
+          userId: user.id,
+          transaction,
+        }
+      );
       authorize(user, "createTemplate", collection);
     } else {
       authorize(user, "createTemplate", user.team);
@@ -260,8 +264,10 @@ router.post(
     });
     authorize(user, "duplicate", original);
 
-    const targetCollectionId =
-      collectionId === undefined ? original.collectionId : collectionId;
+    const targetCollectionId = await resolvePersonalCollectionId(
+      ctx,
+      collectionId === undefined ? original.collectionId : collectionId
+    );
     if (targetCollectionId) {
       const collection = await Collection.findByPk(targetCollectionId, {
         userId: user.id,
@@ -317,7 +323,13 @@ router.post(
     authorize(user, "update", template);
 
     if (updatedFields.collectionId !== undefined) {
+      authorize(user, "move", template);
+
       if (updatedFields.collectionId) {
+        updatedFields.collectionId = await resolvePersonalCollectionId(
+          ctx,
+          updatedFields.collectionId
+        );
         const collection = await Collection.findByPk(
           updatedFields.collectionId,
           {
@@ -326,6 +338,10 @@ router.post(
           }
         );
         authorize(user, "createTemplate", collection);
+
+        if (collection?.isPersonal && template.createdById !== user.id) {
+          throw AuthorizationError();
+        }
       } else {
         authorize(user, "createTemplate", user.team);
       }

@@ -635,8 +635,8 @@ describe("personal collection", () => {
     expect(abilities.share).toEqual(false);
     expect(abilities.star).toEqual(false);
     expect(abilities.unstar).toEqual(false);
-    expect(abilities.createTemplate).toEqual(false);
-    expect(abilities.manageTemplate).toEqual(false);
+    expect(abilities.createTemplate).toBeTruthy();
+    expect(abilities.manageTemplate).toBeTruthy();
     expect(abilities.manageUsers).toEqual(false);
     expect(abilities.duplicate).toEqual(false);
     expect(abilities.archive).toEqual(false);
@@ -686,6 +686,37 @@ describe("personal collection", () => {
     }
   });
 
+  it("R29 should not allow the owner to manage templates after demotion to viewer or guest", async () => {
+    const { owner, collection } = await buildPersonal();
+    const reload = () =>
+      Collection.findByPk(collection.id, { userId: owner.id });
+
+    const asMember = serialize(owner, await reload());
+    owner.role = UserRole.Viewer;
+    const asViewer = serialize(owner, await reload());
+    owner.role = UserRole.Guest;
+    const asGuest = serialize(owner, await reload());
+
+    expect(asMember.createTemplate).toBeTruthy();
+    expect(asMember.manageTemplate).toBeTruthy();
+    expect(asViewer.createTemplate).toEqual(false);
+    expect(asViewer.manageTemplate).toEqual(false);
+    expect(asGuest.createTemplate).toEqual(false);
+    expect(asGuest.manageTemplate).toEqual(false);
+  });
+
+  it("R29 should allow an admin owner to manage templates in their own personal collection", async () => {
+    const { team } = await buildPersonal();
+    const admin = await buildAdmin({ teamId: team.id });
+    const own = await buildPersonalCollection(admin);
+    const reloaded = await Collection.findByPk(own.id, { userId: admin.id });
+
+    const abilities = serialize(admin, reloaded);
+
+    expect(abilities.createTemplate).toBeTruthy();
+    expect(abilities.manageTemplate).toBeTruthy();
+  });
+
   it("should be read-only when personal documents are turned off", async () => {
     const { team, owner, collection } = await buildPersonal();
     team.setPreference(TeamPreference.PersonalDocs, false);
@@ -700,6 +731,7 @@ describe("personal collection", () => {
     expect(abilities.createDocument).toEqual(false);
     expect(abilities.updateDocument).toEqual(false);
     expect(abilities.createTemplate).toEqual(false);
+    expect(abilities.manageTemplate).toEqual(false);
   });
 
   it("should become an ordinary private collection without an owner", async () => {

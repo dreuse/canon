@@ -68,7 +68,16 @@ export default class WebsocketsProcessor {
       }
 
       case "templates.delete": {
-        return socketio.to(`team-${event.teamId}`).emit("entities", {
+        const template = await Template.findByPk(event.modelId, {
+          paranoid: false,
+        });
+        if (!template) {
+          return;
+        }
+
+        const channels = await this.getTemplateEventChannels(event, template);
+
+        return socketio.to(channels).emit("entities", {
           event: event.name,
           modelId: event.modelId,
         });

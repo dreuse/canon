@@ -229,26 +229,31 @@ allow(
       !!collection?.isActive,
       isTeamModel(user, collection),
       isTeamMutable(user),
-      // Templates in a personal collection would only be visible to its owner.
-      !collection?.isPersonal,
-      or(
-        isTeamAdmin(user, collection),
-        includesMembership(collection, [CollectionPermission.Admin]),
-        and(
-          collection?.templateManagement === CollectionPermission.ReadWrite,
-          !user.isGuest,
-          or(
-            and(
-              collection?.permission === CollectionPermission.ReadWrite,
-              !user.isViewer
-            ),
-            includesMembership(collection, [
-              CollectionPermission.ReadWrite,
-              CollectionPermission.Admin,
-            ])
+      collection?.isPersonal
+        ? and(
+            isCollectionOwner(user, collection),
+            !user.isViewer,
+            !user.isGuest,
+            isCollectionWritable(user, collection)
           )
-        )
-      )
+        : or(
+            isTeamAdmin(user, collection),
+            includesMembership(collection, [CollectionPermission.Admin]),
+            and(
+              collection?.templateManagement === CollectionPermission.ReadWrite,
+              !user.isGuest,
+              or(
+                and(
+                  collection?.permission === CollectionPermission.ReadWrite,
+                  !user.isViewer
+                ),
+                includesMembership(collection, [
+                  CollectionPermission.ReadWrite,
+                  CollectionPermission.Admin,
+                ])
+              )
+            )
+          )
     )
 );
 

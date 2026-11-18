@@ -45,6 +45,7 @@ import {
   buildTeam,
   buildGroup,
   buildAdmin,
+  buildPersonalCollection,
   buildTemplate,
   buildAttachment,
   buildSubdomain,
@@ -4580,7 +4581,7 @@ describe("#documents.templatize", () => {
     expect(body.data.publishedAt).toBeTruthy();
     expect(body.data.collectionId).toEqual(anotherCollection.id);
   });
-  it("should not allow non-admin to create workspace template", async () => {
+  it("should allow a member to create a workspace template", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       createdById: user.id,
@@ -4597,7 +4598,9 @@ describe("#documents.templatize", () => {
         publish: true,
       },
     });
-    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.collectionId).toBeNull();
   });
   it("should not allow editor without collection admin to templatize", async () => {
     const user = await buildUser();
@@ -6523,6 +6526,30 @@ describe("#documents.create", () => {
     expect(body.data.text).toEqual(
       TextHelper.replaceTemplateVariables(text, user)
     );
+  });
+
+  it("R29 creates from a personal template for its owner only", async () => {
+    const owner = await buildUser();
+    const other = await buildUser({ teamId: owner.teamId });
+    const admin = await buildAdmin({ teamId: owner.teamId });
+    const personal = await buildPersonalCollection(owner);
+    const template = await buildTemplate({
+      userId: owner.id,
+      teamId: owner.teamId,
+      collectionId: personal.id,
+    });
+
+    const [ownerRes, otherRes, adminRes] = await Promise.all(
+      [owner, other, admin].map((user) =>
+        server.post("/api/documents.create", user, {
+          body: { templateId: template.id },
+        })
+      )
+    );
+
+    expect(ownerRes.status).toEqual(200);
+    expect(otherRes.status).toEqual(403);
+    expect(adminRes.status).toEqual(403);
   });
 
   it("should create a document with empty title if no title is explicitly passed", async () => {

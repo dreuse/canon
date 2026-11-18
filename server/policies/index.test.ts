@@ -24,7 +24,7 @@ describe("serialize", () => {
     });
     const response = serialize(user, team);
     expect(response.readTemplate).toBeTruthy();
-    expect(response.createTemplate).toEqual(false);
+    expect(response.createTemplate).toBeTruthy();
     expect(response.inviteUser).toBeTruthy();
   });
 });
