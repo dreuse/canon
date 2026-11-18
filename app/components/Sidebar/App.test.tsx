@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { runInAction } from "mobx";
 import { vi } from "vitest";
 import { Provider } from "mobx-react";
@@ -65,6 +65,19 @@ describe("AppSidebar", () => {
 
     expect(screen.queryByText("Recent")).toBeNull();
     expect(screen.queryByText(RECENT_TITLE)).toBeNull();
+  });
+
+  it("loads starred documents on mount so the sidebar shows", async () => {
+    runInAction(() => {
+      stores.stars.isLoaded = false;
+    });
+
+    renderSidebar();
+
+    await waitFor(() => expect(stores.ui.readyToShow).toBe(true));
+    expect(
+      vi.mocked(client.post).mock.calls.some(([path]) => path === "/stars.list")
+    ).toBe(true);
   });
 
   it("R06 renders no search field", () => {

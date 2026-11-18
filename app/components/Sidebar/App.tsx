@@ -12,18 +12,19 @@ import DragPlaceholder from "./components/DragPlaceholder";
 import HistoryNavigation from "./components/HistoryNavigation";
 
 function AppSidebar() {
-  const { documents, ui, collections } = useStores();
+  const { documents, ui, collections, stars } = useStores();
   const user = useCurrentUser();
   const belowDesktop = useBelowDesktop();
   const [panel, setPanel] = useState<RailPanelId>("collections");
 
   useEffect(() => {
     void collections.fetchAllIfNeeded();
+    void stars.fetchPage();
 
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
-  }, [documents, collections, user.isViewer]);
+  }, [documents, collections, stars, user.isViewer]);
 
   return (
     <Sidebar
