@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { CheckmarkIcon } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -7,12 +8,17 @@ import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import type Document from "~/models/Document";
 
+const COMPACT_ICON_SIZE = 16;
+
 interface Props {
   document: Document;
+  /** Show only a check mark and "Verified", without who verified or when. */
+  compact?: boolean;
 }
 
 export const VerifiedBadge = observer(function VerifiedBadge({
   document,
+  compact,
 }: Props) {
   const { t } = useTranslation();
   const { users } = useStores();
@@ -32,6 +38,15 @@ export const VerifiedBadge = observer(function VerifiedBadge({
     document.deletedAt
   ) {
     return null;
+  }
+
+  if (compact) {
+    return (
+      <Badge>
+        <CheckmarkIcon size={COMPACT_ICON_SIZE} />
+        {t("Verified")}
+      </Badge>
+    );
   }
 
   return (

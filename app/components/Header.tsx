@@ -25,6 +25,7 @@ import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEventListener from "~/hooks/useEventListener";
 import useBelowDesktop from "~/hooks/useBelowDesktop";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
@@ -54,6 +55,7 @@ type Props = {
 
 const NavigationShortcuts = observer(function NavigationShortcuts() {
   const { t } = useTranslation();
+  const isPhone = useMobile();
   const { notifications } = useStores();
   const { query } = useKBar();
   const unread = notifications.approximateUnreadCount;
@@ -68,23 +70,25 @@ const NavigationShortcuts = observer(function NavigationShortcuts() {
         neutral
         borderOnHover
       />
-      <NotificationsPopover>
-        <ShortcutButton
-          aria-label={
-            unread > 0
-              ? t("Notifications, {{ count }} new", { count: unread })
-              : t("Notifications")
-          }
-          icon={
-            <BellIcon>
-              <VoBellIcon />
-              {unread > 0 && <UnreadDot />}
-            </BellIcon>
-          }
-          neutral
-          borderOnHover
-        />
-      </NotificationsPopover>
+      {!isPhone && (
+        <NotificationsPopover>
+          <ShortcutButton
+            aria-label={
+              unread > 0
+                ? t("Notifications, {{ count }} new", { count: unread })
+                : t("Notifications")
+            }
+            icon={
+              <BellIcon>
+                <VoBellIcon />
+                {unread > 0 && <UnreadDot />}
+              </BellIcon>
+            }
+            neutral
+            borderOnHover
+          />
+        </NotificationsPopover>
+      )}
     </>
   );
 });
@@ -104,6 +108,7 @@ function Header({
   const { t } = useTranslation();
   const { pane, isSplitView } = useSplitView();
   const belowDesktop = useBelowDesktop();
+  const isPhone = useMobile();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const sidebarCollapsed = useSidebarCollapsed();
   const hasMobileSidebar = hasSidebar && belowDesktop;
@@ -160,6 +165,7 @@ function Header({
         align="center"
         shrink={false}
         className={className}
+        data-top-bar={isPhone && !passThrough ? "" : undefined}
         $passThrough={passThrough}
         $topBar={titleInBreadcrumbs}
         $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
@@ -236,29 +242,6 @@ function Header({
   );
 }
 
-/** Height of the fade at the bottom of the mobile header background. */
-const HeaderFadeHeight = 64;
-
-/** Eased mask stops for a fade of the given height, so it has no visible start or end. */
-const fadeStops = (height: number) =>
-  [1, 0.85, 0.5, 0.15, 0]
-    .map(
-      (opacity, index, stops) =>
-        `rgb(0 0 0 / ${opacity}) calc(100% - ${height * (1 - index / (stops.length - 1))}px)`
-    )
-    .join(", ");
-
-const headerFadeStops = fadeStops(HeaderFadeHeight);
-
-/** Raised capsule that holds header buttons on mobile, like an iOS toolbar. */
-const mobilePill = css`
-  background: ${s("menuBackground")};
-  box-shadow:
-    0 0 0 1px ${s("divider")},
-    0 4px 12px rgb(0 0 0 / 8%);
-  border-radius: ${MOBILE_TOUCH_TARGET / 2}px;
-`;
-
 const Breadcrumbs = styled("div")`
   flex-grow: 1;
   flex-basis: 0;
@@ -268,17 +251,7 @@ const Breadcrumbs = styled("div")`
   display: flex;
 
   ${breakpoint("mobile", "tablet")`
-    gap: 8px;
-
-    && [data-variant] {
-      ${mobilePill}
-    }
-
-    && [data-variant]:${hover}:not(:disabled),
-    && [data-variant][aria-expanded="true"] {
-      ${mobilePill}
-      background: ${s("buttonNeutralBackground")};
-    }
+    gap: 2px;
   `};
 `;
 
@@ -292,18 +265,9 @@ const Actions = styled(Flex)<{ $fixed?: boolean }>`
 
   ${breakpoint("mobile", "tablet")`
     flex: 0 0 auto;
-    gap: 0;
+    gap: 2px;
     margin-inline-start: auto;
-
-    &:not(:empty) {
-      ${mobilePill}
-      padding-inline: 10px;
-    }
-
-    /* Touch targets overlap so icons sit closer than their 44px hit areas. */
-    & > * {
-      margin-inline: -4px;
-    }
+    padding-inline: 0;
 
     && [data-variant] {
       background: transparent;
@@ -402,41 +366,15 @@ const Wrapper = styled(Flex)<WrapperProps>`
   }
 
   ${breakpoint("mobile", "tablet")`
+    padding: 6px;
+    padding-inline-end: ${endPadding(6)};
+
     ${(props: WrapperProps & { theme: DefaultTheme }) =>
       !props.$passThrough &&
       `
-      background: transparent;
+      background: ${props.theme.background};
       backdrop-filter: none;
-
-      /* The blurred background extends past the header and fades out, so content blends under it. */
-      &::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 -${HeaderFadeHeight / 2}px;
-        z-index: -1;
-        pointer-events: none;
-        background: ${transparentize(0.2, props.theme.background)};
-        backdrop-filter: blur(20px);
-        mask-image: linear-gradient(to bottom, ${headerFadeStops});
-      }
-
-      /* A stuck tab bar or table header continues the header, so the header is solid above it. */
-      body:has([data-stuck]) &::before {
-        inset: 0;
-        background: ${props.theme.background};
-        backdrop-filter: none;
-        mask-image: none;
-      }
-
-      /* iOS blurs the top of an installed web app unless the sticky header has a solid background. */
-      @media (display-mode: standalone) {
-        background: ${props.theme.background};
-
-        &::before {
-          background: ${props.theme.background};
-          mask-image: linear-gradient(to bottom, ${fadeStops(HeaderFadeHeight / 2)});
-        }
-      }
+      border-bottom: 1px solid ${props.theme.divider};
       `}
   `};
 

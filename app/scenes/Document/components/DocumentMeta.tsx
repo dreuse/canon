@@ -5,6 +5,8 @@ import { useRef, Fragment, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
+import { textSizeStyles } from "@shared/components/Text";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type Template from "~/models/Template";
@@ -12,6 +14,7 @@ import {
   Insights,
   openDocumentInsights,
 } from "~/actions/definitions/documents";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import DocumentMeta from "~/components/DocumentMeta";
 import {
   MetaButton,
@@ -20,13 +23,16 @@ import {
 } from "~/components/HeaderMeta";
 import Fade from "~/components/Fade";
 import { useSplitView } from "~/components/SplitView/context";
+import Time from "~/components/Time";
 import useClickIntent from "~/hooks/useClickIntent";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useMobile from "~/hooks/useMobile";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import { DocumentComments, DocumentHistory } from "../hooks/useDocumentSidebar";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 type Props = {
   /* The document to display meta data for */
@@ -39,6 +45,7 @@ type Props = {
 function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
+  const isPhone = useMobile();
   const history = useHistory();
   const { pane } = useSplitView();
   const sidebarContext = useLocationSidebarContext();
@@ -82,6 +89,10 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
     });
     ui.setRightSidebar(commentsOpen ? null : "comments", pane);
   }, [history, document, sidebarContext, ui, pane, commentsOpen]);
+
+  if (isPhone) {
+    return <PhoneMeta document={document as Document} revision={revision} />;
+  }
 
   return (
     <Meta
@@ -140,6 +151,52 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
     </Meta>
   );
 }
+
+const PhoneMeta = observer(function PhoneMeta({
+  document,
+  revision,
+}: {
+  document: Document;
+  revision?: Revision;
+}) {
+  const person = revision
+    ? revision.createdBy
+    : document.deletedAt
+      ? document.deletedBy
+      : document.updatedBy;
+  const date =
+    revision?.createdAt ??
+    document.deletedAt ??
+    document.archivedAt ??
+    document.updatedAt;
+
+  return (
+    <PhoneContainer data-document-meta>
+      {person && <Avatar model={person} size={AvatarSize.Toast} />}
+      {person && <PersonName>{person.name}</PersonName>}
+      <Time dateTime={date} addSuffix />
+      <VerifiedBadge document={document} compact />
+    </PhoneContainer>
+  );
+});
+
+const PhoneContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0 0 24px;
+  color: ${s("textTertiary")};
+  ${textSizeStyles("small")}
+
+  @media print {
+    display: none;
+  }
+`;
+
+const PersonName = styled.span`
+  color: ${s("textSecondary")};
+`;
 
 export const Meta = styled(DocumentMeta)<{ $rtl?: boolean }>`
   ${headerMetaStyles}

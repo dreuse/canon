@@ -34,6 +34,8 @@ type Props = {
   align?: "start" | "end";
   /** Trigger's variant - renders nude variant if unset */
   neutral?: boolean;
+  /** Accessible name of the trigger, defaults to "Document options" */
+  ariaLabel?: string;
   /** Pass true if the document is currently being displayed */
   showDisplayOptions?: boolean;
   /** Whether to include the option of toggling embeds as menu item */
@@ -53,6 +55,7 @@ type Props = {
 function DocumentMenu({
   document,
   align,
+  ariaLabel,
   neutral,
   showToggleEmbeds,
   showDisplayOptions,
@@ -211,7 +214,7 @@ function DocumentMenu({
         align={align}
         onOpen={onOpen}
         onClose={onClose}
-        ariaLabel={t("Document options")}
+        ariaLabel={ariaLabel ?? t("Document options")}
         append={toggleSwitches}
       >
         <OverflowMenuButton

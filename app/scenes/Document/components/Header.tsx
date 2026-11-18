@@ -4,12 +4,14 @@ import {
   EditIcon,
   CommentIcon,
   CheckmarkIcon,
+  BackIcon,
 } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
 import useMeasure from "react-use-measure";
 import styled, { useTheme } from "styled-components";
+import DotIcon from "@shared/components/DotIcon";
 import { HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
@@ -41,7 +43,12 @@ import TemplatesMenu from "~/menus/TemplatesMenu";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type Template from "~/models/Template";
-import { documentEditPath, documentPath } from "~/utils/routeHelpers";
+import {
+  documentEditPath,
+  documentPath,
+  draftsPath,
+  homePath,
+} from "~/utils/routeHelpers";
 import { ChangesNavigation } from "./ChangesNavigation";
 import ObservingBanner from "./ObservingBanner";
 import { SearchHighlightChip } from "./SearchHighlightChip";
@@ -50,6 +57,7 @@ import ShareButton from "./ShareButton";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 const SHOW_ALL_BREADCRUMB_LEVELS = Infinity;
+const COLLECTION_DOT_SIZE = 24;
 
 type Props = {
   document: Document;
@@ -101,6 +109,13 @@ function DocumentHeader({
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
   const isMobile = isMobileMedia || (size.width > 0 && size.width < 700);
+  const isPhone = isMobileMedia;
+  const { collection } = document;
+  const backPath = collection
+    ? collection.path
+    : document.isDraft
+      ? draftsPath()
+      : homePath();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -189,10 +204,36 @@ function DocumentHeader({
     <StyledHeader
       ref={measureRef}
       $hidden={isEditingFocus}
-      hasSidebar
+      hasSidebar={!isPhone}
       fullLeft
       left={
-        isMobile ? (
+        isPhone ? (
+          <>
+            <BackButton
+              forwardedAs={Link}
+              to={backPath}
+              aria-label={
+                collection
+                  ? t("Back to {{ name }}", { name: collection.displayName })
+                  : t("Back")
+              }
+              icon={<BackIcon />}
+              borderOnHover
+              neutral
+            />
+            {collection && (
+              <PhoneCollection>
+                <DotIcon
+                  color={collection.color ?? undefined}
+                  size={COLLECTION_DOT_SIZE}
+                />
+                <PhoneCollectionName>
+                  {collection.displayName}
+                </PhoneCollectionName>
+              </PhoneCollection>
+            )}
+          </>
+        ) : isMobile ? (
           <MobileBreadcrumb>
             <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
           </MobileBreadcrumb>
@@ -228,13 +269,13 @@ function DocumentHeader({
               <Badge>{t("Draft")}</Badge>
             </Action>
           )}
-          {showSaved && !isCompact && (
+          {showSaved && !isCompact && !isPhone && (
             <SavedStatus>
               <CheckmarkIcon size={16} />
               {t("Saved")}
             </SavedStatus>
           )}
-          {!isDeleted && !isRevision && can.listViews && (
+          {!isDeleted && !isRevision && can.listViews && !isPhone && (
             <Collaborators
               document={document}
               limit={isCompact ? 3 : undefined}
@@ -255,7 +296,7 @@ function DocumentHeader({
               />
             </Action>
           )}
-          {!isEditing && !isRevision && !isDraft && can.update && (
+          {!isEditing && !isRevision && !isDraft && can.update && !isPhone && (
             <Action>
               <ShareButton document={document} />
             </Action>
@@ -318,6 +359,7 @@ function DocumentHeader({
             <DocumentMenu
               document={document}
               align="end"
+              ariaLabel={isPhone ? t("More actions") : undefined}
               neutral
               onSelectTemplate={onSelectTemplate}
               onFindAndReplace={editor?.commands.openFindAndReplace}
@@ -400,6 +442,26 @@ const SavedStatus = styled.span`
   color: ${s("textTertiary")};
   font-size: 13px;
   white-space: nowrap;
+`;
+
+const BackButton = styled(Button)`
+  flex-shrink: 0;
+`;
+
+const PhoneCollection = styled.span`
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: ${s("text")};
+`;
+
+const PhoneCollectionName = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const MobileBreadcrumb = styled.span`

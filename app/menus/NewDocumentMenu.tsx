@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Button from "~/components/Button";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { preloadEditor } from "~/routes/scenes";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -13,6 +14,7 @@ function NewDocumentMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const can = usePolicy(team);
+  const isPhone = useMobile();
 
   if (!can.createDocument) {
     return null;
@@ -24,10 +26,11 @@ function NewDocumentMenu() {
         as={Link}
         to={newDocumentPath()}
         icon={<PlusIcon />}
+        aria-label={isPhone ? t("New document") : undefined}
         onPointerEnter={preloadEditor}
         onFocus={preloadEditor}
       >
-        {t("New doc")}
+        {isPhone ? null : t("New doc")}
       </Button>
     </Tooltip>
   );
