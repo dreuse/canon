@@ -15,8 +15,9 @@ import Aside from "~/components/Sidebar/Aside";
 import PlaceholderText from "~/components/PlaceholderText";
 import { useSplitView } from "~/components/SplitView/context";
 import useMobile from "~/hooks/useMobile";
-import usePolicy from "~/hooks/usePolicy";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
+import { breakpoints } from "@shared/styles";
 import lazyWithRetry from "@shared/utils/lazyWithRetry";
 import {
   documentPath,
@@ -24,10 +25,7 @@ import {
   matchDocumentSlug,
 } from "~/utils/routeHelpers";
 import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
-import {
-  CommentsRail,
-  CommentsRailWidth,
-} from "~/scenes/Document/components/Comments/CommentsRail";
+import { CommentsMargin } from "~/scenes/Document/components/Comments/CommentsMargin";
 
 /** Lazy comments sidebar, exported so that triggers can preload it. */
 export const DocumentComments = lazyWithRetry(
@@ -52,9 +50,10 @@ interface DocumentSidebarContentProps {
 const DocumentSidebarContent = observer(function DocumentSidebarContent({
   skipInitialAnimation,
 }: DocumentSidebarContentProps) {
-  const { ui, comments, documents } = useStores();
+  const { ui, documents } = useStores();
   const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
+  const isWide = useMediaQuery(`(min-width: ${breakpoints.desktopWide}px)`);
   const panel = ui.getRightSidebar(pane);
 
   const slugMatch = useRouteMatch<{ documentSlug: string }>({
@@ -64,11 +63,6 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
     ? documents.get(slugMatch.params.documentSlug)
     : undefined;
 
-  const handleExpand = React.useCallback(
-    () => ui.setRightSidebar("comments", pane),
-    [ui, pane]
-  );
-
   // The store clears the panel before the sidebar has animated closed, so the
   // last panel stays visible until the content unmounts.
   const [lastPanel, setLastPanel] = React.useState(panel);
@@ -77,19 +71,8 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   }
   const visiblePanel = panel ?? lastPanel;
 
-  if (!isMobile && panel === null) {
-    return (
-      <Aside width={CommentsRailWidth}>
-        <CommentsRail
-          threadCount={
-            document
-              ? comments.unresolvedThreadsInDocument(document.id).length
-              : 0
-          }
-          onExpand={handleExpand}
-        />
-      </Aside>
-    );
+  if (isWide && !isSplitView && visiblePanel === "comments") {
+    return document ? <CommentsMargin document={document} /> : null;
   }
 
   const fallback = (
@@ -145,23 +128,14 @@ export default function useDocumentSidebar() {
   const paneHistory = useHistory();
   const { pane } = useSplitView();
   const setSidebar = useSetRightSidebar();
-  const isMobile = useMobile();
   const isHistoryRoute = !!matchPath(location.pathname, {
     path: matchDocumentHistory,
   });
-  const documentMatch = matchPath<{ documentSlug: string }>(location.pathname, {
-    path: `/doc/${matchDocumentSlug}`,
-  });
-  const can = usePolicy(
-    documentMatch ? documents.get(documentMatch.params.documentSlug) : undefined
-  );
   const panel = ui.getRightSidebar(pane);
   // A history panel outside of a history route is closed by the effect below,
   // so it is treated as closed here – otherwise the sidebar renders open for a
   // frame and then animates away again.
-  const isOpen =
-    (panel !== null && (panel !== "history" || isHistoryRoute)) ||
-    (!isMobile && !!can.comment);
+  const isOpen = panel !== null && (panel !== "history" || isHistoryRoute);
   const wasOpenRef = React.useRef(isOpen);
 
   React.useEffect(() => {
