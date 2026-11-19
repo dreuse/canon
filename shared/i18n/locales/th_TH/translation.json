@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "ได้ส่งคำขอให้เจ้าของบัญชี GitHub ติดตั้งแอป GitHub {{githubAppName}} แล้ว เมื่อได้รับอนุมัติ จะแสดงตัวอย่างสำหรับลิงก์ที่เกี่ยวข้อง",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "เปิดใช้ตัวอย่างของปัญหาและคำขอดึงข้อมูลจาก GitHub ในเอกสาร โดยเชื่อมต่อองค์กร GitHub หรือที่เก็บข้อมูลเฉพาะกับ {{appName}}",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.",
   "Connect GitLab": "Connect GitLab",
   "Enter the details for your GitLab instance.": "Enter the details for your GitLab instance.",
   "GitLab URL": "GitLab URL",

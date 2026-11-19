@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "GitHub 계정 소유자에게 {{githubAppName}} GitHub 앱 설치를 요청했습니다. 승인되면 해당 링크의 미리보기가 표시됩니다.",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "GitHub 조직 또는 특정 리포지토리를 {{appName}}에 연결하여 문서에서 GitHub 이슈 및 풀 리퀘스트의 미리보기를 활성화하세요.",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "연결을 해제하면 문서에서 이 조직의 GitHub 링크의 미리보기를 볼 수 없습니다. 계속하시겠습니까?",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "GitHub 통합은 현재 비활성화되어 있습니다. 연관된 환경변수를 설정하고 서버를 다시 시작하여 통합을 활성화하세요.",
   "Connect GitLab": "GitLab 연결",
   "Enter the details for your GitLab instance.": "GitLab 인스턴스 정보를 입력하세요.",
   "GitLab URL": "GitLab URL",

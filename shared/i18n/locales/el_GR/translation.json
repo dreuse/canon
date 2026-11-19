@@ -1628,7 +1628,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "Ζητήθηκε από τον κάτοχο του λογαριασμού GitHub να εγκαταστήσει την εφαρμογή GitHub {{githubAppName}}. Μόλις εγκριθεί, θα εμφανίζονται προεπισκοπήσεις για τους αντίστοιχους συνδέσμους.",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "Ενεργοποιήστε προεπισκοπήσεις των issues και pull requests του GitHub στα έγγραφα, συνδέοντας έναν οργανισμό GitHub ή συγκεκριμένα αποθετήρια με το {{appName}}.",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "Η αποσύνδεση θα σταματήσει την προεπισκόπηση συνδέσμων GitHub από αυτόν τον οργανισμό στα έγγραφα. Είστε βέβαιοι;",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Η ενσωμάτωση GitHub είναι προς το παρόν απενεργοποιημένη. Ορίστε τις σχετικές μεταβλητές περιβάλλοντος και επανεκκινήστε τον διακομιστή για να την ενεργοποιήσετε.",
   "Connect GitLab": "Σύνδεση GitLab",
   "Enter the details for your GitLab instance.": "Εισαγάγετε τα στοιχεία της εγκατάστασης GitLab.",
   "GitLab URL": "URL GitLab",

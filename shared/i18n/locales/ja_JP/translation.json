@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "GitHubアカウントの所有者に、{{githubAppName}} GitHubアプリのインストールをリクエストしました。承認されると、該当するリンクにプレビューが表示されます。",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "GitHub 組織または特定のリポジトリを {{appName}} に接続して、ドキュメント内の GitHub の Issue とプルリクエストのプレビューを有効にします。",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "連携を解除すると、GitHub のリンクをドキュメントでプレビューできなくなります。よろしいですか？",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "現在、GitHub との連携は無効になっています。\n関連する環境変数を正しく設定し、サーバーを再起動すると有効になります。",
   "Connect GitLab": "GitLabに接続",
   "Enter the details for your GitLab instance.": "GitLabインスタンスの詳細を入力してください。",
   "GitLab URL": "GitLab URL",

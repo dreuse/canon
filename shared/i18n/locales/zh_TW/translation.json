@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "已要求 GitHub 帳號擁有者安裝 {{githubAppName}} GitHub 應用程式。獲得核准後，相關連結將顯示預覽。",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "將 GitHub 組織或特定儲存庫連結到 {{appName}}，即可在文件中啟用 GitHub issue 與 pull request 預覽。",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "中斷連結後，將無法在文件中預覽此組織的 GitHub 連結。您確定嗎？",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Slack 整合目前已停用，若要啟用，請設定相關的環境變數並重新啟動伺服器。",
   "Connect GitLab": "連結 GitLab",
   "Enter the details for your GitLab instance.": "輸入 GitLab 執行個體的詳細資訊。",
   "GitLab URL": "GitLab 網址",

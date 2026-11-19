@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "از مالک حساب GitHub درخواست شده است که برنامه GitHub ‏{{githubAppName}} را نصب کند. پس از تأیید، پیش‌نمایش لینک‌های مربوطه نمایش داده خواهد شد.",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "با اتصال یک سازمان GitHub یا مخازن مشخص به {{appName}}، پیش‌نمایش مسائل و درخواست‌های کشش GitHub را در اسناد فعال کنید.",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "قطع اتصال باعث جلوگیری از پیش‌نمایش لینک‌های GitHub این سازمان در اسناد می‌شود. آیا مطمئن هستید؟",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "یکپارچه‌سازی GitHub در حال حاضر غیرفعال است. لطفاً متغیرهای محیطی مربوطه را تنظیم کرده و سرور را مجدداً راه‌اندازی کنید تا یکپارچه‌سازی فعال شود.",
   "Connect GitLab": "Connect GitLab",
   "Enter the details for your GitLab instance.": "Enter the details for your GitLab instance.",
   "GitLab URL": "GitLab URL",

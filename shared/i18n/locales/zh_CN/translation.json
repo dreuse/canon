@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "已请求 GitHub 账户所有者安装 {{githubAppName}} GitHub 应用。获得批准后，将显示相应链接的预览。",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "将 GitHub 组织或特定仓库连接到 {{appName}}，即可在文档中启用 GitHub 问题和拉取请求的预览。",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "断开连接后将无法在文档中预览此 GitHub 组织内的链接。您确定吗？",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Github 集成当前已禁用。请设置相关的环境变量并重新启动服务以启用此集成。",
   "Connect GitLab": "连接 GitLab",
   "Enter the details for your GitLab instance.": "输入您的GitLab 实例的详细信息。",
   "GitLab URL": "GitLab 服务器地址",

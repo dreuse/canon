@@ -1317,7 +1317,6 @@
   "Whoops, you need to accept the permissions in GitHub to connect {{appName}} to your workspace. Try again?": "Whoops, you need to accept the permissions in GitHub to connect {{appName}} to your workspace. Try again?",
   "Enabled by {{integrationCreatedBy}}": "Enabled by {{integrationCreatedBy}}",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.",
   "Connect GitLab": "Connect GitLab",
   "Enter the details for your GitLab instance.": "Enter the details for your GitLab instance.",
   "GitLab URL": "GitLab URL",

@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "Eieren av GitHub-kontoen er bedt om å installere GitHub-appen {{githubAppName}}. Når den er godkjent, vises forhåndsvisninger for de aktuelle lenkene.",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "Aktiver forhåndsvisninger av GitHub-saker og pull-forespørsler i dokumenter ved å koble en GitHub-organisasjon eller bestemte repositorier til {{appName}}.",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "Frakobling vil forhindre forhåndsvisning av GitHub-lenker fra denne organisasjonen i dokumenter. Er du sikker?",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "GitHub-integrasjonen er for øyeblikket deaktivert. Vennligst sett de tilhørende miljøvariablene og start serveren på nytt for å aktivere integrasjonen.",
   "Connect GitLab": "Connect GitLab",
   "Enter the details for your GitLab instance.": "Enter the details for your GitLab instance.",
   "GitLab URL": "GitLab URL",

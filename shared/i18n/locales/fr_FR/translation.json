@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "Le propriétaire du compte GitHub a été invité à installer l'application GitHub {{githubAppName}}. Une fois approuvée, des aperçus seront affichés pour les liens concernés.",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "Activez les aperçus des tickets et des demandes de tirage GitHub dans les documents en connectant une organisation GitHub ou des dépôts spécifiques à {{appName}}.",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "La déconnexion empêchera l'aperçu des liens GitHub de cette organisation dans les documents. Êtes-vous sûr ?",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "L'intégration GitHub est actuellement désactivée. Veuillez définir les variables d'environnement associées et redémarrer le serveur pour activer l'intégration.",
   "Connect GitLab": "Connecter GitLab",
   "Enter the details for your GitLab instance.": "Saisissez les informations de votre instance GitLab.",
   "GitLab URL": "URL GitLab",

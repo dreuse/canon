@@ -1627,7 +1627,6 @@
   "The owner of the GitHub account has been requested to install the {{githubAppName}} GitHub app. Once approved, previews will be shown for the respective links.": "בעל החשבון ב-GitHub התבקש להתקין את אפליקציית GitHub ‏{{githubAppName}}. לאחר האישור, יוצגו תצוגות מקדימות עבור הקישורים המתאימים.",
   "Enable previews of GitHub issues and pull requests in documents by connecting a GitHub organization or specific repositories to {{appName}}.": "אפשר תצוגות מקדימות של בעיות ובקשות משיכה ב-GitHub במסמכים על ידי חיבור ארגון GitHub או מאגרים ספציפיים אל {{appName}}.",
   "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?": "ניתוק ימנע תצוגה מקדימה של קישורי GitHub מארגון זה במסמכים. אתה בטוח?",
-  "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "שילוב GitHub מושבת כעת. אנא הגדר את משתני הסביבה המשויכים והפעל מחדש את השרת כדי לאפשר את האינטגרציה.",
   "Connect GitLab": "חבר את GitLab",
   "Enter the details for your GitLab instance.": "הזן את הפרטים עבור מופע GitLab שלך.",
   "GitLab URL": "כתובת אתר של GitLab",
