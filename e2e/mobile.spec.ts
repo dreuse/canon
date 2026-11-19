@@ -25,7 +25,11 @@ const SCREENS = [
   {
     name: "home",
     url: "/home",
-    ready: (page: Page) => page.getByRole("heading", { name: "Home" }),
+    ready: (page: Page) =>
+      page.getByRole("heading", {
+        level: 1,
+        name: seed.userName.split(" ")[0],
+      }),
   },
   {
     name: "search",
