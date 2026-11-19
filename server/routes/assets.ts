@@ -85,7 +85,7 @@ router.get("/locales/:lng.json", async (ctx) => {
 
   const locale = await loadClientLocale(lng);
 
-  ctx.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
+  ctx.set("Cache-Control", "no-cache");
   ctx.set("ETag", locale.etag);
   ctx.set("Access-Control-Allow-Origin", "*");
   ctx.type = "application/json";
