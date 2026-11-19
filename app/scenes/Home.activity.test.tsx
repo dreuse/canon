@@ -6,7 +6,7 @@ import { light } from "@shared/styles/theme";
 import type Document from "~/models/Document";
 import Event from "~/models/Event";
 import stores from "~/stores";
-import { ActivityEventRow } from "./Home";
+import { ActivityEventRow } from "~/components/ActivityFeed";
 
 const DOCUMENT_ID = "doc-1";
 const COLLECTION_ID = "collection-1";

@@ -4,7 +4,6 @@ import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { breakpoint } from "@shared/styles/breakpoint";
 import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -13,6 +12,7 @@ import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import { RailGrid } from "~/components/Section";
 import Text from "~/components/Text";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -98,7 +98,7 @@ function Overview({
   );
 
   return (
-    <Columns>
+    <Columns $withRail={!!showStatus}>
       {collections.isSaving && <LoadingIndicator />}
       <Main>
         <Prose>
@@ -132,16 +132,8 @@ function Overview({
   );
 }
 
-const Columns = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 32px;
-  align-items: start;
+const Columns = styled(RailGrid)`
   padding-bottom: 30vh;
-
-  ${breakpoint("tablet")`
-    grid-template-columns: minmax(0, 1fr) 232px;
-  `};
 `;
 
 const Main = styled.div`

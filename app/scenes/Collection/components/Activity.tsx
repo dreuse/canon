@@ -1,16 +1,10 @@
 import { observer } from "mobx-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { hairlineColor, s } from "@shared/styles";
 import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
-import type Event from "~/models/Event";
-import { Avatar, AvatarSize } from "~/components/Avatar";
-import Time from "~/components/Time";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import { ActivityDays } from "~/components/ActivityFeed";
+import { SectionHeading } from "~/components/Section";
 import useStores from "~/hooks/useStores";
 
 const ACTIVITY_LIMIT = 8;
@@ -33,7 +27,6 @@ type Props = {
 export const Activity = observer(function Activity_({ collection }: Props) {
   const { t } = useTranslation();
   const { events, documents } = useStores();
-  const sidebarContext = useLocationSidebarContext();
 
   useEffect(() => {
     void events.fetchPage({
@@ -46,14 +39,12 @@ export const Activity = observer(function Activity_({ collection }: Props) {
   const seen = new Set<string>();
   const items = events.orderedData
     .filter(
-      (event) => ACTIVITY_EVENTS.includes(event.name) && !!event.documentId
+      (event) =>
+        ACTIVITY_EVENTS.includes(event.name) &&
+        !!event.documentId &&
+        documents.get(event.documentId)?.collectionId === collection.id
     )
-    .map((event) => ({ event, document: documents.get(event.documentId!) }))
-    .filter(
-      (item): item is { event: Event<Document>; document: Document } =>
-        !!item.document && item.document.collectionId === collection.id
-    )
-    .filter(({ event }) => {
+    .filter((event) => {
       const key = `${event.name}:${event.documentId}`;
       if (seen.has(key)) {
         return false;
@@ -68,86 +59,15 @@ export const Activity = observer(function Activity_({ collection }: Props) {
   }
 
   return (
-    <Wrapper>
-      <Label>{t("Activity in this collection")}</Label>
-      {items.map(({ event, document }) => (
-        <Row key={event.id}>
-          <Avatar model={event.actor} size={AvatarSize.Small} />
-          <Sentence>
-            {describe(event, t)}{" "}
-            <DocumentLink
-              to={{ pathname: document.path, state: { sidebarContext } }}
-            >
-              {document.displayTitle}
-            </DocumentLink>
-          </Sentence>
-          <When>
-            <Time dateTime={event.createdAt} relative shorten addSuffix />
-          </When>
-        </Row>
-      ))}
+    <Wrapper aria-labelledby="collection-activity">
+      <SectionHeading>
+        <h2 id="collection-activity">{t("Activity in this collection")}</h2>
+      </SectionHeading>
+      <ActivityDays events={items} hideCollection />
     </Wrapper>
   );
 });
 
-function describe(event: Event<Document>, t: TFunction) {
-  const opts = { userName: event.actor?.name };
-
-  switch (event.name) {
-    case "documents.move":
-      return t("{{userName}} moved", opts);
-    case "documents.archive":
-      return t("{{userName}} archived", opts);
-    case "documents.unarchive":
-    case "documents.restore":
-      return t("{{userName}} restored", opts);
-    case "comments.create":
-      return t("{{userName}} commented on", opts);
-    case "revisions.create":
-      return t("{{userName}} updated", opts);
-    default:
-      return t("{{userName}} published", opts);
-  }
-}
-
-const Wrapper = styled.div`
+const Wrapper = styled.section`
   margin-top: 32px;
-`;
-
-const Label = styled.h3`
-  margin: 0 0 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: ${s("textTertiary")};
-`;
-
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-top: 1px solid ${hairlineColor};
-  font-size: 13px;
-  color: ${s("textSecondary")};
-`;
-
-const Sentence = styled.span`
-  min-width: 0;
-  flex: 1 1 auto;
-`;
-
-const DocumentLink = styled(Link)`
-  color: ${s("link")};
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const When = styled.span`
-  flex: 0 0 auto;
-  color: ${s("textTertiary")};
 `;

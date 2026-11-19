@@ -3,12 +3,13 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { cardBorder, hairlineColor, s } from "@shared/styles";
+import { hairlineColor, s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type DocumentsStore from "~/stores/DocumentsStore";
+import { cardSurface, Pill, SectionHeading } from "~/components/Section";
 import Time from "~/components/Time";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
@@ -106,15 +107,14 @@ export const Index = observer(function Index_({ collection, order }: Props) {
 
   return (
     <Wrapper>
-      <Label>
-        {t("Contents")}
-        {collection.documentCount !== undefined && (
-          <>
-            {" "}
-            · {t("{{ count }} document", { count: collection.documentCount })}
-          </>
-        )}
-      </Label>
+      <SectionHeading>
+        <h2>
+          {t("Contents")}
+          {collection.documentCount !== undefined && (
+            <Pill>{collection.documentCount}</Pill>
+          )}
+        </h2>
+      </SectionHeading>
       <Cards>
         {roots.map((node) => {
           const document = documents.get(node.id);
@@ -177,15 +177,6 @@ const Wrapper = styled.div`
   margin-top: 24px;
 `;
 
-const Label = styled.h3`
-  margin: 0 0 12px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: ${s("textTertiary")};
-`;
-
 const Cards = styled.div`
   columns: 280px;
   column-gap: 16px;
@@ -196,9 +187,7 @@ const Card = styled.section`
   flex-direction: column;
   margin-bottom: 16px;
   padding: 16px 20px;
-  background: ${s("backgroundSecondary")};
-  border: 1px solid ${cardBorder};
-  border-radius: 8px;
+  ${cardSurface}
   break-inside: avoid;
 `;
 

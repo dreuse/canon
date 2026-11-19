@@ -10,6 +10,7 @@ import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
 import { AvatarSize } from "~/components/Avatar";
+import { cardSurface } from "~/components/Section";
 import Facepile from "~/components/Facepile";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
@@ -187,9 +188,8 @@ export const StatusRail = observer(function StatusRail_({
 });
 
 const Rail = styled.aside`
+  ${cardSurface}
   padding: 16px;
-  border-radius: 8px;
-  background: ${s("backgroundSecondary")};
 `;
 
 const Block = styled.div`
@@ -214,11 +214,9 @@ const Block = styled.div`
 
 const Label = styled.h3`
   margin: 0;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: ${s("textTertiary")};
+  color: ${s("text")};
 `;
 
 const Value = styled.p`

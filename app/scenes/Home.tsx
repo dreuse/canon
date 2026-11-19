@@ -1,4 +1,3 @@
-import { isToday, isYesterday, startOfDay } from "date-fns";
 import { observer } from "mobx-react";
 import {
   ClockIcon,
@@ -12,22 +11,33 @@ import {
   UserAddIcon,
 } from "outline-icons";
 import * as React from "react";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled, { css, type DefaultTheme } from "styled-components";
+import styled, { type DefaultTheme } from "styled-components";
 import { s } from "@shared/styles";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { actionToMenuItem } from "~/actions";
 import { inviteUser } from "~/actions/definitions/users";
-import { Avatar, AvatarSize } from "~/components/Avatar";
+import {
+  ActivityCollection,
+  ActivityDays,
+  CHIP_ICON_SIZE,
+} from "~/components/ActivityFeed";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import { PageHeader } from "~/components/PageHeader";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
+import {
+  cardHover,
+  cardSurface,
+  Pill,
+  RailGrid,
+  SectionHeading,
+} from "~/components/Section";
 import Time from "~/components/Time";
 import useActionContext from "~/hooks/useActionContext";
 import useBelowDesktop from "~/hooks/useBelowDesktop";
@@ -36,10 +46,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import useStores from "~/hooks/useStores";
-import useUserLocale from "~/hooks/useUserLocale";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
-import type Document from "~/models/Document";
-import type Event from "~/models/Event";
 import { ActivityFilter, matchesActivityFilter } from "./homeActivityFilter";
 import { HomeFirstRun } from "./HomeFirstRun";
 import { useHomeImportAction } from "./useHomeImportAction";
@@ -61,8 +68,6 @@ const PERCENT = 100;
 
 const SUMMARY_BLOCKS = 2;
 
-const CHIP_ICON_SIZE = 16;
-
 const STALE_DRAFT_DAYS = 7;
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -80,177 +85,6 @@ const MENTION_EVENTS = [
   NotificationEventType.GroupMentionedInComment,
   NotificationEventType.CreateComment,
 ];
-
-function ActivityVerb({
-  name,
-  userName,
-}: {
-  name: string;
-  userName: string | undefined;
-}) {
-  const values = { userName };
-  const components = { actor: <ActorName /> };
-
-  switch (name) {
-    case "documents.create":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> created"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.publish":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> published"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.unpublish":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> unpublished"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.archive":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> archived"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.unarchive":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> restored"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.restore":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> restored from trash"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.move":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> moved"
-          values={values}
-          components={components}
-        />
-      );
-    case "documents.delete":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> deleted"
-          values={values}
-          components={components}
-        />
-      );
-    case "comments.create":
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> commented on"
-          values={values}
-          components={components}
-        />
-      );
-    default:
-      return (
-        <Trans
-          defaults="<actor>{{userName}}</actor> edited"
-          values={values}
-          components={components}
-        />
-      );
-  }
-}
-
-/**
- * A single row of the workspace activity feed.
- *
- * @param props.event the event to render.
- * @returns the row element.
- */
-export const ActivityEventRow = observer(function ActivityEventRow({
-  event,
-}: {
-  event: Event<Document>;
-}) {
-  const { t } = useTranslation();
-  const { documents, collections, auth } = useStores();
-  const userLocale = useUserLocale();
-  const document = event.documentId
-    ? documents.get(event.documentId)
-    : undefined;
-  const collectionId = event.collectionId ?? document?.collectionId;
-  const collection = collectionId ? collections.get(collectionId) : undefined;
-  const title =
-    document?.displayTitle ?? event.documentTitle ?? t("a document");
-  const path = document?.isDeleted
-    ? event.documentUrl
-    : (document?.path ?? event.documentUrl);
-  const clock = new Intl.DateTimeFormat(
-    userLocale ? unicodeCLDRtoBCP47(userLocale) : undefined,
-    { hour: "2-digit", minute: "2-digit" }
-  ).format(new Date(event.createdAt));
-
-  return (
-    <ActivityRow>
-      {event.actor && <Avatar model={event.actor} size={AvatarSize.Small} />}
-      <ActivityTitle>
-        <ActivityVerb
-          name={event.name}
-          userName={
-            event.actorId === auth.user?.id ? t("You") : event.actor?.name
-          }
-        />{" "}
-        {path ? (
-          <ActivityDocument to={path}>{title}</ActivityDocument>
-        ) : (
-          <ActivityName>{title}</ActivityName>
-        )}
-      </ActivityTitle>
-      {collection && (
-        <ActivityCollection>
-          <CollectionIcon collection={collection} size={CHIP_ICON_SIZE} />
-          {collection.displayName}
-        </ActivityCollection>
-      )}
-      <RowTime>
-        <Time dateTime={event.createdAt}>{clock}</Time>
-      </RowTime>
-    </ActivityRow>
-  );
-});
-
-interface DayGroup {
-  day: Date;
-  events: Event<Document>[];
-}
-
-function groupByDay(events: Event<Document>[]) {
-  const groups: DayGroup[] = [];
-  for (const event of events) {
-    const day = startOfDay(new Date(event.createdAt));
-    const last = groups[groups.length - 1];
-    if (last && last.day.getTime() === day.getTime()) {
-      last.events.push(event);
-    } else {
-      groups.push({ day, events: [event] });
-    }
-  }
-  return groups;
-}
 
 function NeedsRow({
   to,
@@ -364,14 +198,11 @@ const HomeContent = observer(function HomeContent() {
     : "";
   const hasAside = attentionCount > 0 || hasStartHere;
 
-  const activityGroups = groupByDay(
-    events.orderedData
-      .filter(
-        (event) =>
-          !!event.documentId && matchesActivityFilter(event.name, filter)
-      )
-      .slice(0, ACTIVITY_LIMIT)
-  );
+  const activityEvents = events.orderedData
+    .filter(
+      (event) => !!event.documentId && matchesActivityFilter(event.name, filter)
+    )
+    .slice(0, ACTIVITY_LIMIT);
 
   const now = new Date();
   const greetingName = user.name.split(" ")[0];
@@ -387,18 +218,6 @@ const HomeContent = observer(function HomeContent() {
     day: "numeric",
     month: "long",
   });
-  const groupFormat = new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-  });
-
-  const dayLabel = (day: Date) =>
-    isToday(day)
-      ? t("Today")
-      : isYesterday(day)
-        ? t("Yesterday")
-        : groupFormat.format(day);
-
   const inviteItem = actionToMenuItem(inviteUser, context);
   const { importItem, canImport } = useHomeImportAction();
 
@@ -554,7 +373,7 @@ const HomeContent = observer(function HomeContent() {
           )}
         </Section>
 
-        <Grid $withRail={hasAside}>
+        <RailGrid $withRail={hasAside}>
           <section aria-labelledby="home-activity">
             <SectionHeading>
               <h2 id="home-activity">{t("Recent activity")}</h2>
@@ -572,15 +391,8 @@ const HomeContent = observer(function HomeContent() {
                 ))}
               </Segmented>
             </SectionHeading>
-            {activityGroups.length ? (
-              activityGroups.map((group) => (
-                <div key={group.day.getTime()}>
-                  <DayHeading>{dayLabel(group.day)}</DayHeading>
-                  {group.events.map((event) => (
-                    <ActivityEventRow key={event.id} event={event} />
-                  ))}
-                </div>
-              ))
+            {activityEvents.length ? (
+              <ActivityDays events={activityEvents} />
             ) : (
               <EmptyLine>{t("No activity yet")}</EmptyLine>
             )}
@@ -713,7 +525,7 @@ const HomeContent = observer(function HomeContent() {
                 ))}
             </aside>
           )}
-        </Grid>
+        </RailGrid>
       </Page>
     </Scene>
   );
@@ -729,18 +541,6 @@ const Capitalized = styled.span`
 
   &::first-letter {
     text-transform: uppercase;
-  }
-`;
-
-const cardSurface = css`
-  background: ${s("background")};
-  border: 1px solid ${s("divider")};
-  border-radius: 10px;
-`;
-
-const cardHover = css`
-  &:hover {
-    background: ${s("listItemHoverBackground")};
   }
 `;
 
@@ -812,39 +612,6 @@ const Section = styled.section`
   margin-bottom: 36px;
 `;
 
-const SectionHeading = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 32px;
-  margin-bottom: 12px;
-
-  h2 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 20px;
-    color: ${s("text")};
-  }
-`;
-
-const Pill = styled.span`
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: ${s("listItemHoverBackground")};
-  color: ${s("link")};
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 20px;
-  text-align: center;
-`;
-
 const EmptyLine = styled.p`
   margin: 0;
   color: ${s("textTertiary")};
@@ -896,18 +663,6 @@ const CardMeta = styled.div`
   color: ${s("textTertiary")};
 `;
 
-const Grid = styled.div<{ $withRail: boolean }>`
-  display: grid;
-  grid-template-columns: ${(props) =>
-    props.$withRail ? "minmax(0, 1fr) 300px" : "minmax(0, 1fr)"};
-  gap: 40px;
-  align-items: start;
-
-  @media (max-width: 1180px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-`;
-
 const Segmented = styled.div`
   display: inline-flex;
   padding: 2px;
@@ -931,75 +686,6 @@ const SegmentButton = styled.button<{ $active: boolean }>`
   font-size: 13px;
   font-weight: 500;
   cursor: var(--pointer);
-`;
-
-const DayHeading = styled.h3`
-  margin: 18px 0 4px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  color: ${s("textTertiary")};
-`;
-
-const ActivityRow = styled.div`
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto auto;
-  align-items: center;
-  column-gap: 12px;
-  margin: 0 -10px;
-  padding: 9px 10px;
-  border-radius: 6px;
-
-  &:hover {
-    background: ${s("listItemHoverBackground")};
-  }
-`;
-
-const ActivityTitle = styled.div`
-  grid-column: 2;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  color: ${s("textSecondary")};
-`;
-
-const ActorName = styled.b`
-  font-weight: 500;
-  color: ${s("text")};
-`;
-
-const ActivityDocument = styled(Link)`
-  font-weight: 500;
-  color: ${s("text")};
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const ActivityName = styled.span`
-  font-weight: 500;
-  color: ${s("text")};
-`;
-
-const ActivityCollection = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${s("textTertiary")};
-  white-space: nowrap;
-`;
-
-const RowTime = styled.div`
-  min-width: 36px;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  text-align: end;
-  color: ${s("textTertiary")};
 `;
 
 const NEEDS_TONES = {
