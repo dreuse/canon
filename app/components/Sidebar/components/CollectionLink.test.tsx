@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { AcademicCapIcon } from "outline-icons";
 import { runInAction } from "mobx";
 import { Provider } from "mobx-react";
 import { MemoryRouter } from "react-router-dom";
@@ -12,12 +13,12 @@ import CollectionLink from "./CollectionLink";
 
 const USER_ID = "user-1";
 const NOOP = () => undefined;
-const COLLECTION_COLOR = "rgb(47, 125, 79)";
 const COLLECTION_HEX = "#2f7d4f";
 const dark = buildDarkTheme({});
 const VERY_DARK_HEX = "#1a1a1a";
-const RAW_DARK_RGB = "rgb(26, 26, 26)";
 const DOT_TEST_ID = "collection-dot";
+const CHOSEN_ICON = "academicCap";
+const ROW_ICON_SIZE = "16px";
 const LOCK_LABEL = "Private collection";
 
 beforeAll(() => {
@@ -30,7 +31,8 @@ beforeAll(() => {
 function renderLink(
   permission: CollectionPermission | null,
   color = COLLECTION_HEX,
-  theme = light
+  theme = light,
+  icon: string | null = CHOSEN_ICON
 ) {
   const collection = new Collection(
     {
@@ -38,6 +40,7 @@ function renderLink(
       name: "Engineering",
       color,
       permission,
+      icon,
     },
     stores.collections
   );
@@ -53,23 +56,40 @@ function renderLink(
   );
 }
 
-function dotColor() {
-  return getComputedStyle(screen.getByTestId(DOT_TEST_ID)).backgroundColor;
+function rowIcon() {
+  return document.querySelector('span[aria-hidden="true"] > svg');
+}
+
+function glyphPath(svg: Element | null) {
+  return svg?.querySelector("path")?.getAttribute("d");
 }
 
 describe("CollectionLink", () => {
-  it("R10 renders a dot and no lock for a workspace-visible collection", () => {
+  it("renders the chosen icon and no lock for a workspace-visible collection", () => {
+    const { container: expected } = render(<AcademicCapIcon />);
+    const chosen = glyphPath(expected.querySelector("svg"));
+    expected.remove();
+
     renderLink(CollectionPermission.ReadWrite);
 
-    expect(screen.getByTestId(DOT_TEST_ID)).not.toBeNull();
+    expect(screen.queryByTestId(DOT_TEST_ID)).toBeNull();
+    expect(glyphPath(rowIcon())).toBe(chosen);
     expect(screen.queryByRole("img", { name: LOCK_LABEL })).toBeNull();
   });
 
-  it("R10 renders a dot and a lock for a private collection", () => {
+  it("renders the chosen icon and a lock for a private collection", () => {
     renderLink(null);
 
-    expect(screen.getByTestId(DOT_TEST_ID)).not.toBeNull();
+    expect(screen.queryByTestId(DOT_TEST_ID)).toBeNull();
+    expect(rowIcon()).not.toBeNull();
     expect(screen.getByRole("img", { name: LOCK_LABEL })).not.toBeNull();
+  });
+
+  it("draws the icon at 16px so the row keeps the dot's footprint", () => {
+    renderLink(CollectionPermission.ReadWrite);
+
+    expect(rowIcon()?.getAttribute("width")).toBe(ROW_ICON_SIZE);
+    expect(rowIcon()?.getAttribute("height")).toBe(ROW_ICON_SIZE);
   });
 
   it("R10 draws the lock as a 12px outline glyph in the faint tone", () => {
@@ -85,18 +105,19 @@ describe("CollectionLink", () => {
     expect(getComputedStyle(lock).color).toBe("rgb(95, 102, 115)");
   });
 
-  it("R10 draws the dot in the collection colour", () => {
-    renderLink(CollectionPermission.ReadWrite);
+  it("draws the default icon in the collection colour", () => {
+    renderLink(CollectionPermission.ReadWrite, COLLECTION_HEX, light, null);
 
-    expect(dotColor()).toBe(COLLECTION_COLOR);
+    expect(rowIcon()?.getAttribute("fill")).toBe(COLLECTION_HEX);
   });
 
-  it("R10 lifts a very dark colour to stay visible on the dark theme", () => {
-    renderLink(CollectionPermission.ReadWrite, VERY_DARK_HEX, dark);
+  it("lifts a very dark colour to stay visible on the dark theme", () => {
+    renderLink(CollectionPermission.ReadWrite, VERY_DARK_HEX, dark, null);
 
     expect(resolveIconColor(VERY_DARK_HEX, dark.background)).not.toBe(
       VERY_DARK_HEX
     );
-    expect(dotColor()).not.toBe(RAW_DARK_RGB);
+    expect(rowIcon()?.getAttribute("fill")).toBeTruthy();
+    expect(rowIcon()?.getAttribute("fill")).not.toBe(VERY_DARK_HEX);
   });
 });

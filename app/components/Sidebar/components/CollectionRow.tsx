@@ -12,6 +12,7 @@ import { resolveIconColor } from "@shared/utils/iconColor";
 import { isTouchDevice } from "@shared/utils/browser";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
@@ -94,6 +95,7 @@ export type CollectionRowProps = {
   children: (newChild: React.ReactNode) => React.ReactNode;
 };
 
+const ROW_ICON_SIZE = 16;
 const DOT_SIZE = 10;
 const DOT_RADIUS = 3;
 const DOT_MARGIN = 3;
@@ -250,7 +252,13 @@ function CollectionRow({
     collection.displayName
   );
 
-  const iconElement = icon ?? <CollectionDot color={collection.color} />;
+  const iconElement = icon ?? (
+    <CollectionIcon
+      collection={collection}
+      expanded={expanded}
+      size={ROW_ICON_SIZE}
+    />
+  );
   const lockElement = collection.isPrivate ? <PrivateLock /> : undefined;
 
   // Touch devices cannot hover to reveal the actions, so the new doc button
