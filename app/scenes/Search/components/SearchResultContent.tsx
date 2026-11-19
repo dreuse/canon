@@ -6,7 +6,7 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import { breakpoint } from "@shared/styles/breakpoint";
 import { Avatar, AvatarSize } from "~/components/Avatar";
-import { CollectionDot } from "~/components/Sidebar/components/CollectionRow";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Highlight from "~/components/Highlight";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
@@ -14,6 +14,8 @@ import type Document from "~/models/Document";
 import { VerifiedBadge } from "~/scenes/Document/components/VerifiedBadge";
 
 const SNIPPET_LINES = 3;
+
+const PATH_ICON_SIZE = 16;
 
 const ACTIONS_WIDTH = 104;
 
@@ -60,7 +62,9 @@ export const SearchResultContent = observer(function SearchResultContent({
   return (
     <>
       <Path data-testid="search-result-path">
-        <CollectionDot color={collection?.color} />
+        {collection && (
+          <CollectionIcon collection={collection} size={PATH_ICON_SIZE} />
+        )}
         <PathText>{path.join(" / ")}</PathText>
       </Path>
       <Title data-testid="search-result-title">

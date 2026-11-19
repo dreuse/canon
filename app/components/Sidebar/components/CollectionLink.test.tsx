@@ -18,7 +18,7 @@ const dark = buildDarkTheme({});
 const VERY_DARK_HEX = "#1a1a1a";
 const DOT_TEST_ID = "collection-dot";
 const CHOSEN_ICON = "academicCap";
-const ROW_ICON_SIZE = "16px";
+const ROW_ICON_SIZE = "20px";
 const LOCK_LABEL = "Private collection";
 
 beforeAll(() => {
@@ -85,7 +85,7 @@ describe("CollectionLink", () => {
     expect(screen.getByRole("img", { name: LOCK_LABEL })).not.toBeNull();
   });
 
-  it("draws the icon at 16px so the row keeps the dot's footprint", () => {
+  it("draws the icon at 20px", () => {
     renderLink(CollectionPermission.ReadWrite);
 
     expect(rowIcon()?.getAttribute("width")).toBe(ROW_ICON_SIZE);

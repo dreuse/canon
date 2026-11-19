@@ -24,7 +24,9 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useSyncSidebarContext } from "~/hooks/useSyncSidebarContext";
 import { documentEditPath } from "~/utils/routeHelpers";
-import { CollectionDot, PrivateLock } from "./CollectionRow";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { VoCollectionIcon } from "~/components/Icons/VobysIcons";
+import { PrivateLock, ROW_ICON_SIZE } from "./CollectionRow";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import { getHeaderExpandedKey } from "./Header";
 import Relative from "./Relative";
@@ -189,7 +191,13 @@ export const PersonalDocs = observer(function PersonalDocs() {
             }
             onDisclosureClick={handleToggle}
             expanded={expanded}
-            icon={<CollectionDot color={collection?.color} />}
+            icon={
+              collection ? (
+                <CollectionIcon collection={collection} size={ROW_ICON_SIZE} />
+              ) : (
+                <VoCollectionIcon size={ROW_ICON_SIZE} />
+              )
+            }
             compactIcon
             trailing={<PrivateLock />}
             label={t("Personal")}

@@ -16,6 +16,7 @@ import { Pagination, PersonalCollectionId } from "@shared/constants";
 import { s } from "@shared/styles";
 import { TeamPreference } from "@shared/types";
 import Button from "~/components/Button";
+import CollectionIconOfCollection from "~/components/Icons/CollectionIcon";
 import { PageHeader } from "~/components/PageHeader";
 import Scene from "~/components/Scene";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -28,6 +29,7 @@ import { TemplateCard } from "./components/TemplateCard";
 
 const PAGE_MAX_WIDTH = "984px";
 const CARD_MIN_WIDTH = "220px";
+const GROUP_ICON_SIZE = 16;
 
 interface SectionProps {
   title: string;
@@ -166,7 +168,10 @@ export const Templates = observer(function Templates() {
             {collectionGroups.map(({ collection, templates: group }) => (
               <div key={collection.id}>
                 <GroupHeading>
-                  <Dot $color={collection.color} />
+                  <CollectionIconOfCollection
+                    collection={collection}
+                    size={GROUP_ICON_SIZE}
+                  />
                   {collection.displayName}
                   <Note> · {group.length}</Note>
                 </GroupHeading>
@@ -251,13 +256,6 @@ const GroupHeading = styled.h3`
   font-size: 13px;
   font-weight: 500;
   line-height: 18px;
-`;
-
-const Dot = styled.span<{ $color?: string | null }>`
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: ${(props) => props.$color ?? props.theme.textTertiary};
 `;
 
 const CardGrid = styled.div`

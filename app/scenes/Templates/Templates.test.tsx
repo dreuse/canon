@@ -267,6 +267,18 @@ describe("Templates page", () => {
     expect(groups).toEqual(["Engineering · 1", "Product · 1"]);
   });
 
+  it("R33 shows each collection's icon in its group heading", async () => {
+    await renderPage();
+    await screen.findByText(ENGINEERING_TITLE);
+
+    const headings = screen.getAllByRole("heading", { level: 3 });
+
+    expect(headings.map((heading) => !!heading.querySelector("svg"))).toEqual([
+      true,
+      true,
+    ]);
+  });
+
   it("R33 shows the first line of text and no line for an empty template", async () => {
     seedStores({
       templates: [

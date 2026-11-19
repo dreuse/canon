@@ -7,8 +7,6 @@ import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import type { match } from "react-router";
-import { useSurface } from "@shared/components/SurfaceContext";
-import { resolveIconColor } from "@shared/utils/iconColor";
 import { isTouchDevice } from "@shared/utils/browser";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
@@ -95,22 +93,10 @@ export type CollectionRowProps = {
   children: (newChild: React.ReactNode) => React.ReactNode;
 };
 
-const ROW_ICON_SIZE = 16;
-const DOT_SIZE = 10;
-const DOT_RADIUS = 3;
-const DOT_MARGIN = 3;
+export const ROW_ICON_SIZE = 20;
 const LOCK_SIZE = 12;
 const LOCK_STROKE = 1.75;
 const LOCK_START_MARGIN = 8;
-
-const Dot = styled.span<{ $color?: string }>`
-  width: ${DOT_SIZE}px;
-  height: ${DOT_SIZE}px;
-  border-radius: ${DOT_RADIUS}px;
-  margin: 0 ${DOT_MARGIN}px;
-  flex: none;
-  background: ${(props) => props.$color ?? props.theme.textTertiary};
-`;
 
 const Lock = styled.span`
   display: flex;
@@ -119,22 +105,6 @@ const Lock = styled.span`
   margin-inline-start: ${LOCK_START_MARGIN}px;
   color: ${(props) => props.theme.textTertiary};
 `;
-
-/**
- * Small colour dot that stands in for a collection icon in the sidebar.
- *
- * @param color the collection colour, or undefined for the default text tone.
- */
-export function CollectionDot({ color }: { color?: string | null }) {
-  const surface = useSurface();
-
-  return (
-    <Dot
-      data-testid="collection-dot"
-      $color={color ? resolveIconColor(color, surface) : undefined}
-    />
-  );
-}
 
 /**
  * Padlock shown on the trailing side of a private collection row.

@@ -84,6 +84,13 @@ describe("Home activity row", () => {
     expect(screen.getByText(COLLECTION_NAME)).toBeTruthy();
   });
 
+  it("R03 renders the collection icon beside the collection name", () => {
+    renderRow(makeEvent());
+    expect(
+      screen.getByText(COLLECTION_NAME).querySelector("svg")
+    ).not.toBeNull();
+  });
+
   it("R03 renders the title without a link when no path exists", () => {
     renderRow(makeEvent({ documentUrl: undefined }));
     expect(screen.getByText(STORED_TITLE).closest("a")).toBeNull();

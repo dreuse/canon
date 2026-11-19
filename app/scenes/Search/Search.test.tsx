@@ -142,6 +142,15 @@ describe("search page", () => {
     expect(isBefore(snippet, meta)).toBe(true);
   });
 
+  it("R06 result path shows the collection icon and no dot", async () => {
+    renderSearch("");
+    const path = await screen.findByTestId("search-result-path");
+
+    expect(path.textContent).toContain(COLLECTION_NAME);
+    expect(path.querySelector("svg")).not.toBeNull();
+    expect(path.querySelector('[data-testid="collection-dot"]')).toBeNull();
+  });
+
   it("R06 result row highlights the matched term in the snippet", async () => {
     renderSearch("");
     const snippet = await screen.findByTestId("search-result-snippet");

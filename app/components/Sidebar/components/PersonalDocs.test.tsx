@@ -24,7 +24,7 @@ beforeAll(() => {
 });
 
 describe("PersonalDocs", () => {
-  it("R10 renders a dot and a lock on the personal collection row", () => {
+  it("R10 renders an icon, no dot and a lock on the personal collection row", () => {
     render(
       <ThemeProvider theme={light}>
         <Provider rootStore={stores}>
@@ -35,7 +35,10 @@ describe("PersonalDocs", () => {
       </ThemeProvider>
     );
 
-    expect(screen.getByTestId("collection-dot")).not.toBeNull();
+    expect(screen.queryByTestId("collection-dot")).toBeNull();
+    expect(
+      document.querySelector('span[aria-hidden="true"] > svg')
+    ).not.toBeNull();
     expect(
       screen.getByRole("img", { name: "Private collection" })
     ).not.toBeNull();

@@ -7,7 +7,7 @@ import { durationForDateFilter } from "@shared/helpers/FilterHelper";
 import { StatusFilter } from "@shared/types";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import type { TFilterOption } from "~/components/FilterOptions";
-import { CollectionDot } from "~/components/Sidebar/components/CollectionRow";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type { PaginatedItem } from "~/components/PaginatedList";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -29,6 +29,8 @@ export interface FilterOptionSource {
 
 const userFetchQueryOptions = { sort: "name", direction: "ASC" };
 
+const OPTION_ICON_SIZE = 24;
+
 /**
  * Options for each collection the user can see.
  *
@@ -42,7 +44,9 @@ export function useCollectionOptions(): FilterOptionSource {
       options: collections.orderedData.map((collection) => ({
         key: collection.id,
         label: collection.displayName,
-        icon: <CollectionDot color={collection.color} />,
+        icon: (
+          <CollectionIcon collection={collection} size={OPTION_ICON_SIZE} />
+        ),
       })),
       showFilter: true,
     }),

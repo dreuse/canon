@@ -22,6 +22,7 @@ import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { actionToMenuItem } from "~/actions";
 import { inviteUser } from "~/actions/definitions/users";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import { PageHeader } from "~/components/PageHeader";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -59,6 +60,8 @@ const ONBOARDING_FETCH_LIMIT = 100;
 const PERCENT = 100;
 
 const SUMMARY_BLOCKS = 2;
+
+const CHIP_ICON_SIZE = 16;
 
 const STALE_DRAFT_DAYS = 7;
 
@@ -219,7 +222,7 @@ export const ActivityEventRow = observer(function ActivityEventRow({
       </ActivityTitle>
       {collection && (
         <ActivityCollection>
-          <CollectionDot $color={collection.color} />
+          <CollectionIcon collection={collection} size={CHIP_ICON_SIZE} />
           {collection.displayName}
         </ActivityCollection>
       )}
@@ -510,7 +513,10 @@ const HomeContent = observer(function HomeContent() {
                 <Card key={document.id} to={documentPath(document)}>
                   {document.collection && (
                     <ActivityCollection>
-                      <CollectionDot $color={document.collection.color} />
+                      <CollectionIcon
+                        collection={document.collection}
+                        size={CHIP_ICON_SIZE}
+                      />
                       {document.collection.displayName}
                     </ActivityCollection>
                   )}
@@ -986,14 +992,6 @@ const ActivityCollection = styled.span`
   font-weight: 500;
   color: ${s("textTertiary")};
   white-space: nowrap;
-`;
-
-const CollectionDot = styled.span<{ $color?: string | null }>`
-  width: 10px;
-  height: 10px;
-  margin: 0 3px;
-  border-radius: 3px;
-  background: ${(props) => props.$color ?? props.theme.textTertiary};
 `;
 
 const RowTime = styled.div`
