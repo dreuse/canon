@@ -1,4 +1,5 @@
 import { breakpoints } from "@shared/styles/breakpoint";
+import { light } from "@shared/styles/theme";
 import stores from "~/stores";
 import Document from "~/models/Document";
 import UiStore from "./UiStore";
@@ -137,5 +138,36 @@ describe("UiStore Conversas panel yield", () => {
     ui.setRightSidebar("comments");
     ui.expandSidebar();
     expect(ui.sidebarIsClosed).toBe(false);
+  });
+});
+
+describe("UiStore sidebar width", () => {
+  const STORAGE_KEY = "UI_STORE";
+  const RESIZED_WIDTH = 380;
+  const TOO_WIDE = 900;
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it("restores a resized width after a reload", () => {
+    new UiStore(stores).set({ sidebarWidth: RESIZED_WIDTH });
+
+    expect(new UiStore(stores).sidebarWidth).toBe(RESIZED_WIDTH);
+  });
+
+  it("clamps a stored width to the resize bounds", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ sidebarWidth: TOO_WIDE })
+    );
+    expect(new UiStore(stores).sidebarWidth).toBe(light.sidebarMaxWidth);
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ sidebarWidth: 1 }));
+    expect(new UiStore(stores).sidebarWidth).toBe(light.sidebarResizeMinWidth);
+  });
+
+  it("defaults to the theme width when nothing is stored", () => {
+    expect(new UiStore(stores).sidebarWidth).toBe(light.sidebarWidth);
   });
 });

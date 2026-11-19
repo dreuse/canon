@@ -53,6 +53,7 @@ type PersistedData = Pick<
   | "startHereDismissed"
   | "rightSidebar"
   | "theme"
+  | "sidebarWidth"
   | "sidebarRightWidth"
   | "sidebarCollapsed"
   | "tocVisible"
@@ -99,7 +100,11 @@ class UiStore {
   @observable
   mobileSidebarVisible = false;
 
-  readonly sidebarWidth: number = defaultTheme.sidebarWidth;
+  @observable
+  sidebarWidth: number = defaultTheme.sidebarWidth;
+
+  @observable
+  sidebarIsResizing = false;
 
   @observable
   sidebarRightWidth: number = defaultTheme.sidebarRightWidth;
@@ -182,6 +187,11 @@ class UiStore {
     // or the bounds themselves may have since changed.
     const { sidebarResizeMinWidth: minWidth, sidebarMaxWidth: maxWidth } =
       defaultTheme;
+    this.sidebarWidth = clamp(
+      data.sidebarWidth || defaultTheme.sidebarWidth,
+      minWidth,
+      maxWidth
+    );
     this.sidebarRightWidth = clamp(
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth,
       minWidth,
@@ -502,6 +512,16 @@ class UiStore {
     this.showPanel(true);
   };
 
+  /**
+   * Marks whether the sidebar edge is being dragged, so that layout transitions pause.
+   *
+   * @param sidebarIsResizing whether a drag is in progress.
+   */
+  @action
+  setSidebarResizing = (sidebarIsResizing: boolean): void => {
+    this.sidebarIsResizing = sidebarIsResizing;
+  };
+
   @action
   set = (data: Partial<PersistedData>) => {
     for (const key in data) {
@@ -641,6 +661,7 @@ class UiStore {
       tocVisible: this.tocVisible,
       fontScale: this.fontScale,
       sidebarCollapsed: this.sidebarCollapsed,
+      sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       startHereDismissed: this.startHereDismissed,

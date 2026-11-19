@@ -56,6 +56,7 @@ function Layout({
               auto
               justify="center"
               role="main"
+              $isResizing={ui.sidebarIsResizing}
               $sidebarCollapsed={sidebarCollapsed}
               $hasSidebar={showSidebar}
               style={
@@ -85,6 +86,7 @@ const Container = styled(Flex)`
 `;
 
 type ContentProps = {
+  $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
   $hasSidebar?: boolean;
   theme: DefaultTheme;
@@ -92,7 +94,8 @@ type ContentProps = {
 
 const Content = styled(Flex)<ContentProps>`
   margin: 0;
-  transition: margin-inline-start 100ms ease-out;
+  transition: ${(props) =>
+    props.$isResizing ? "none" : "margin-inline-start 100ms ease-out"};
 
   @media print {
     margin: 0 !important;

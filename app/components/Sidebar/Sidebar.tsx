@@ -1,6 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { clamp } from "es-toolkit";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
 import styled, { ThemeProvider, keyframes, useTheme } from "styled-components";
@@ -11,15 +12,19 @@ import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useBelowDesktop from "~/hooks/useBelowDesktop";
+import { useResizeHandle } from "~/hooks/useResizeHandle";
 import useStores from "~/hooks/useStores";
 import { useSwipeToDismiss } from "~/hooks/useSwipeToDismiss";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { drawerTransition, fadeIn, fadeOut } from "~/styles/animations";
 import { TooltipProvider } from "../TooltipContext";
+import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
 import { useTranslation } from "react-i18next";
 import { useDirection } from "@radix-ui/react-direction";
+
+const RESIZE_KEY_STEP = 16;
 
 type Props = {
   /** Whether to hide the sidebar content (sets opacity to 0). */
@@ -59,11 +64,71 @@ function Sidebar({
   const isDrawer = drawer ?? belowDesktop;
   const width = ui.sidebarWidth;
   const collapsed = ui.sidebarIsClosed && canCollapse && !isDrawer;
+  const canResize = !isDrawer && !collapsed;
+  const minWidth = theme.sidebarResizeMinWidth;
+  const maxWidth = theme.sidebarMaxWidth;
   const direction = useDirection();
 
   const internalRef = React.useRef<HTMLDivElement | null>(null);
   const backdropRef = React.useRef<HTMLDivElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
+
+  const measure = React.useCallback(
+    (event: MouseEvent) => {
+      const rect = internalRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return undefined;
+      }
+      return direction === "rtl"
+        ? rect.right - event.clientX
+        : event.clientX - rect.left;
+    },
+    [direction]
+  );
+
+  const handleResize = React.useCallback(
+    (sidebarWidth: number) => ui.set({ sidebarWidth }),
+    [ui]
+  );
+
+  const handleResizeEnd = React.useCallback(() => {
+    const settled = clamp(ui.sidebarWidth, minWidth, maxWidth);
+    if (settled !== ui.sidebarWidth) {
+      ui.set({ sidebarWidth: settled });
+    }
+  }, [ui, minWidth, maxWidth]);
+
+  const { isResizing, startResize } = useResizeHandle({
+    measure,
+    onResize: handleResize,
+    onResizeEnd: handleResizeEnd,
+    min: minWidth,
+    max: maxWidth,
+  });
+
+  React.useEffect(() => {
+    ui.setSidebarResizing(isResizing);
+  }, [ui, isResizing]);
+
+  const handleResetWidth = React.useCallback(() => {
+    ui.set({ sidebarWidth: theme.sidebarWidth });
+  }, [ui, theme.sidebarWidth]);
+
+  const handleResizeKeyDown = React.useCallback(
+    (event: React.KeyboardEvent) => {
+      const growKey = direction === "rtl" ? "ArrowLeft" : "ArrowRight";
+      const shrinkKey = direction === "rtl" ? "ArrowRight" : "ArrowLeft";
+      if (event.key !== growKey && event.key !== shrinkKey) {
+        return;
+      }
+      event.preventDefault();
+      const step = event.key === growKey ? RESIZE_KEY_STEP : -RESIZE_KEY_STEP;
+      ui.set({
+        sidebarWidth: clamp(ui.sidebarWidth + step, minWidth, maxWidth),
+      });
+    },
+    [ui, direction, minWidth, maxWidth]
+  );
 
   // Subscribe to history rather than the location, so that the sidebar does
   // not re-render on every navigation.
@@ -171,6 +236,22 @@ function Sidebar({
           </SidebarButton>
         </AccountMenu>
       )}
+      {canResize && (
+        <Edge
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t("Resize sidebar")}
+          aria-valuenow={width}
+          aria-valuemin={minWidth}
+          aria-valuemax={maxWidth}
+          tabIndex={0}
+          onMouseDown={startResize}
+          onDoubleClick={handleResetWidth}
+          onKeyDown={handleResizeKeyDown}
+        >
+          <Grip data-grip aria-hidden $active={isResizing} />
+        </Edge>
+      )}
     </Container>
   );
 
@@ -199,6 +280,45 @@ function Sidebar({
     </ThemeProvider>
   );
 }
+
+const Grip = styled.span<{ $active: boolean }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border: 1px solid
+    ${(props) => (props.$active ? props.theme.accent : props.theme.divider)};
+  border-radius: 4px;
+  color: ${(props) => (props.$active ? props.theme.accent : props.theme.textTertiary)};
+  background-color: ${s("sidebarBackground")};
+  background-image: radial-gradient(
+    circle,
+    currentColor 1px,
+    transparent 1.25px
+  );
+  background-size: 4px 4px;
+  background-position: center;
+  transition:
+    color 150ms ease-in-out,
+    border-color 150ms ease-in-out;
+`;
+
+const Edge = styled(ResizeBorder)`
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:hover > ${Grip}, &:focus-visible > ${Grip} {
+    color: ${s("textSecondary")};
+    border-color: ${s("textTertiary")};
+  }
+
+  &:focus-visible > ${Grip} {
+    box-shadow: 0 0 0 2px ${s("accent")};
+  }
+`;
 
 const DrawerOverlay = styled(Dialog.Overlay)`
   position: fixed;

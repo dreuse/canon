@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
-import { sidebarPanelWidth, sidebarRailWidth } from "@shared/styles/theme";
+import { sidebarRailWidth } from "@shared/styles/theme";
 import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import { createCollection } from "~/actions/definitions/collections";
 import { navigateToImport } from "~/actions/definitions/navigation";
@@ -537,9 +537,9 @@ const End = styled.div`
 
 const Panel = styled.nav`
   display: flex;
-  flex: none;
+  flex: 1;
   flex-direction: column;
-  width: ${sidebarPanelWidth}px;
+  min-width: 0;
   min-height: 0;
   padding-block: ${RAIL_PADDING_BLOCK}px;
   background: ${s("sidebarBackground")};
