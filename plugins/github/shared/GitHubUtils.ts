@@ -81,7 +81,9 @@ export class GitHubUtils {
         ? MentionType.Issue
         : type === "projects"
           ? MentionType.Project
-          : undefined;
+          : type === "commit"
+            ? MentionType.URL
+            : undefined;
   }
 
   public static getColorForStatus(status: string, isDraftPR: boolean = false) {

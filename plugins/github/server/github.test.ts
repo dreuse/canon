@@ -151,6 +151,7 @@ describe("GitHub.unfurl", () => {
     });
     vi.spyOn(GitHub, "authenticateAsInstallation").mockResolvedValue({
       requestResource: async () => ({ data }),
+      requestCommit: async () => ({ data }),
     } as unknown as InstallationClient);
     return GitHub.unfurl(url, user);
   }
@@ -186,6 +187,29 @@ describe("GitHub.unfurl", () => {
 
     expect(result).toMatchObject({
       labels: [{ name: "bug", color: "#d73a4a" }],
+    });
+  });
+
+  it("should unfurl a commit as a link", async () => {
+    const result = await unfurlWith(
+      "https://github.com/acme/app/commit/0123456789abcdef",
+      {
+        sha: "0123456789abcdef",
+        html_url: "https://github.com/acme/app/commit/0123456789abcdef",
+        commit: {
+          message: "Fix login\n\nLonger body",
+          author: { name: "Octo Cat", date: "2026-01-02T03:04:05Z" },
+        },
+        author: { login: "octocat", avatar_url: "https://avatars/octocat" },
+      }
+    );
+
+    expect(result).toMatchObject({
+      type: "url",
+      url: "https://github.com/acme/app/commit/0123456789abcdef",
+      title: "Fix login",
+      description: "0123456 · octocat · 2026-01-02",
+      thumbnailUrl: "https://avatars/octocat",
     });
   });
 });

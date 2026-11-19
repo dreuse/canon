@@ -17,6 +17,7 @@ import type {
   UnfurlIssueOrPR,
   UnfurlProject,
   UnfurlSignature,
+  UnfurlURL,
 } from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
@@ -53,7 +54,20 @@ type ParsedProject = {
   url: string;
 };
 
-type GitHubResource = ParsedIssueOrPR | ParsedProject;
+type ParsedCommit = {
+  owner: string;
+  repo: string;
+  type: typeof COMMIT_RESOURCE;
+  sha: string;
+  url: string;
+};
+
+type GitHubResource = ParsedIssueOrPR | ParsedProject | ParsedCommit;
+
+const COMMIT_RESOURCE = "commit";
+const SHORT_SHA_LENGTH = 7;
+const ISO_DATE_LENGTH = 10;
+const GITHUB_FAVICON_URL = "https://github.com/favicon.ico";
 
 type GitHubProject = {
   number: number;
@@ -83,6 +97,17 @@ const requestPlugin = (octokit: Octokit) => ({
       pull_number: params.id,
       headers: {
         Accept: "application/vnd.github.text+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  requestCommit: async (params: ParsedCommit) =>
+    octokit.request(`GET /repos/{owner}/{repo}/commits/{ref}`, {
+      owner: params.owner,
+      repo: params.repo,
+      ref: params.sha,
+      headers: {
+        Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
       },
     }),
@@ -295,6 +320,11 @@ export class GitHub {
 
       const owner = parts[1];
       const repo = parts[2];
+
+      if (parts[3] === COMMIT_RESOURCE && parts[4]) {
+        return { owner, repo, type: COMMIT_RESOURCE, sha: parts[4], url };
+      }
+
       const type = parts[3]
         ? (pluralize.singular(parts[3]) as UnfurlResourceType)
         : undefined;
@@ -463,6 +493,24 @@ export class GitHub {
 
       if (resource.type === UnfurlResourceType.Project) {
         return GitHub.unfurlProject(client, resource);
+      }
+
+      if (resource.type === COMMIT_RESOURCE) {
+        const { data: commit } = await client.requestCommit(resource);
+        return {
+          type: UnfurlResourceType.URL,
+          url: commit.html_url,
+          title: commit.commit.message.split("\n")[0],
+          description: [
+            commit.sha.slice(0, SHORT_SHA_LENGTH),
+            commit.author?.login ?? commit.commit.author?.name,
+            commit.commit.author?.date?.slice(0, ISO_DATE_LENGTH),
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          thumbnailUrl: commit.author?.avatar_url ?? "",
+          faviconUrl: GITHUB_FAVICON_URL,
+        } satisfies UnfurlURL;
       }
 
       const res = await client.requestResource(resource);
