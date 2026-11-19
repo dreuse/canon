@@ -1,6 +1,8 @@
 import { buildDarkTheme, light } from "../../styles/theme";
+import { isFullWidthImage } from "./Image";
 import {
   codeScrollbarStyle,
+  fullWidthImageShift,
   mermaidBoxStyle,
   tableScrollableStyle,
 } from "./Styles";
@@ -22,6 +24,19 @@ describe("editor media styles", () => {
 
   it("R13 lifts the dark diagram box above the page background", () => {
     expect(mermaidBoxStyle(dark)).toContain("background: #262930");
+  });
+
+  it("R13 centres a full-width image on the text column at its capped size", () => {
+    expect(fullWidthImageShift).toBe(
+      "var(--full-width-shift, calc((100% - var(--full-width-size, var(--container-width))) / 2 + var(--full-width-transform-offset)))"
+    );
+  });
+
+  it("R13 fits a wide image to the text column unless the author picks full width", () => {
+    expect(isFullWidthImage({ width: 960 })).toBe(false);
+    expect(isFullWidthImage({ width: 960, layoutClass: "full-width" })).toBe(
+      true
+    );
   });
 
   it("R13 gives read-only tables no side margin or padding", () => {

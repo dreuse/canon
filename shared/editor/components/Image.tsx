@@ -37,8 +37,6 @@ type Props = ComponentProps & {
 /** Images rendered smaller than this width are displayed as inline icons. */
 export const InlineIconMaxWidth = 48;
 
-export const FullWidthMinWidth = 832;
-
 export const ErrorLabelMinWidth = 300;
 
 type ImageClassNameOptions = {
@@ -94,12 +92,8 @@ export function imageClassName(options: ImageClassNameOptions): string {
 
 export function isFullWidthImage({
   layoutClass,
-  width,
 }: ImageClassNameOptions): boolean {
-  if (layoutClass) {
-    return layoutClass === "full-width";
-  }
-  return !!width && width > FullWidthMinWidth;
+  return layoutClass === "full-width";
 }
 
 const Image = (props: Props) => {

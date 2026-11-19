@@ -119,6 +119,13 @@ export const mermaidBoxStyle = (theme: DefaultTheme) => `
 `;
 
 /**
+ * The horizontal shift of a full-width image. It centres the image, at its
+ * capped size, on the text column unless the layout sets a fixed shift.
+ */
+export const fullWidthImageShift =
+  "var(--full-width-shift, calc((100% - var(--full-width-size, var(--container-width))) / 2 + var(--full-width-transform-offset)))";
+
+/**
  * Builds the margin and padding of the horizontal scroll area of a table. A
  * read-only table has no gutter, so it stays within the text column. The
  * editor keeps the gutter that holds the row grips.
@@ -1280,7 +1287,7 @@ th .image .${EditorStyleHelper.imageWrapper} img {
   max-width: 100vw;
   clear: both;
   position: initial;
-  transform: translateX(var(--full-width-shift, calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset))));
+  transform: translateX(${fullWidthImageShift});
 
   img {
     max-width: 100vw;
