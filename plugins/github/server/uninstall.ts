@@ -1,7 +1,10 @@
+import { RequestError } from "octokit";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService } from "@shared/types";
 import type { Integration } from "@server/models";
 import { GitHub } from "./github";
+
+const NOT_FOUND = 404;
 
 export async function uninstall(
   integration: Integration<IntegrationType.Embed>
@@ -11,7 +14,13 @@ export async function uninstall(
 
     if (installationId) {
       const client = await GitHub.authenticateAsInstallation(installationId);
-      await client.requestAppUninstall(installationId);
+      try {
+        await client.requestAppUninstall(installationId);
+      } catch (err) {
+        if (!(err instanceof RequestError && err.status === NOT_FOUND)) {
+          throw err;
+        }
+      }
     }
   }
 }

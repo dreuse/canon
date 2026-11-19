@@ -7,8 +7,12 @@ import Logger from "@server/logging/Logger";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { BaseIssueProvider } from "@server/utils/BaseIssueProvider";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { GitHub } from "./github";
 
+type InstallationDeletedEvent =
+  components["schemas"]["webhook-installation-deleted"];
 type InstallationNewPermissionsAcceptedEvent =
   components["schemas"]["webhook-installation-new-permissions-accepted"];
 type InstallationRepositoriesEvent =
@@ -94,6 +98,13 @@ export class GitHubIssueProvider extends BaseIssueProvider {
     payload: Record<string, unknown>,
     action: string
   ): Promise<void> {
+    if (action === "deleted") {
+      await this.removeInstallation(
+        (payload as unknown as InstallationDeletedEvent).installation.id
+      );
+      return;
+    }
+
     if (action !== "new_permissions_accepted") {
       return;
     }
@@ -149,6 +160,29 @@ export class GitHubIssueProvider extends BaseIssueProvider {
       integration.changed("issueSources", true);
       await integration.save({ transaction });
     });
+  }
+
+  private async removeInstallation(installationId: number): Promise<void> {
+    const teamIds = await sequelize.transaction(async (transaction) => {
+      const integrations = await Integration.findAll({
+        where: {
+          service: IntegrationService.GitHub,
+          "settings.github.installation.id": installationId,
+        },
+        transaction,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
+      });
+
+      for (const integration of integrations) {
+        await integration.destroy({ transaction });
+      }
+
+      return integrations.map((integration) => integration.teamId);
+    });
+
+    for (const teamId of new Set(teamIds)) {
+      await CacheHelper.clearData(RedisPrefixHelper.getUnfurlPrefix(teamId));
+    }
   }
 
   private async handleInstallationRepositoriesEvent(
