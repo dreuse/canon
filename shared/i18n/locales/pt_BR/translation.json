@@ -1696,6 +1696,8 @@
   "Enable previews of Gitea issues, pull requests, and repositories in documents by connecting a Gitea or Forgejo instance to {{appName}}.": "Ative pré-visualizações de issues, pull requests e repositórios do Gitea em documentos conectando uma instância do Gitea ou Forgejo ao {{appName}}.",
   "Enabled by {{integrationCreatedBy}}": "Habilitado por {{integrationCreatedBy}}",
   "Disconnecting will prevent previewing links from Gitea in documents. Are you sure?": "Desconectar impedirá a pré-visualização de links do Gitea em documentos. Tem certeza?",
+  "GitHub organization": "Organização do GitHub",
+  "Create GitHub App": "Criar aplicativo do GitHub",
   "Whoops, you need to accept the permissions in GitHub to connect {{appName}} to your workspace. Try again?": "Ops, você precisa aceitar as permissões no GitHub para conectar {{appName}} ao seu espaço de trabalho. Tentar novamente?",
   "Only an owner of the GitHub account or organization can connect it to {{appName}}.": "Somente um proprietário da conta ou organização do GitHub pode conectá-la ao {{appName}}.",
   "The GitHub app needs new permissions for the organization. Ask an owner of the organization to accept them in GitHub, then try again.": "O aplicativo do GitHub precisa de novas permissões para a organização. Peça a um proprietário da organização que as aceite no GitHub e tente novamente.",
