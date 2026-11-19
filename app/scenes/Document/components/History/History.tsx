@@ -106,6 +106,7 @@ function History() {
   );
 
   const selectedRevisionId = historyMatch?.params.revisionId;
+  const isHistoryRoute = !!historyMatch;
 
   // Reset "Compare to" when the user clicks a different revision in the list,
   // but not on initial mount (which would break deep links with ?compareTo=…)
@@ -203,6 +204,37 @@ function History() {
     isDocUpdated || !latestRevision?.data || latestRevision.deletedAt
       ? "latest"
       : latestRevision.id;
+
+  const isCurrentRevisionKnown = isDocUpdated || !!latestRevision?.data;
+
+  React.useEffect(() => {
+    if (
+      !showChanges ||
+      !isHistoryRoute ||
+      selectedRevisionId ||
+      !document ||
+      document.isDeleted ||
+      !isCurrentRevisionKnown
+    ) {
+      return;
+    }
+
+    prevSelectedRef.current = currentRevisionId;
+    history.replace({
+      pathname: documentHistoryPath(document, currentRevisionId),
+      search: history.location.search,
+      state: { sidebarContext, retainScrollPosition: true },
+    });
+  }, [
+    showChanges,
+    isHistoryRoute,
+    selectedRevisionId,
+    document,
+    isCurrentRevisionKnown,
+    currentRevisionId,
+    history,
+    sidebarContext,
+  ]);
 
   const handleCompareToChange = React.useCallback(
     (value: string) => {

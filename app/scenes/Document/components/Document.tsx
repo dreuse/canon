@@ -280,7 +280,7 @@ function DocumentScene({
       }
       ev.preventDefault();
 
-      if (history.location.pathname.endsWith("history")) {
+      if (matchPath(history.location.pathname, matchDocumentHistory)) {
         history.push({
           pathname: document.path,
           state: { sidebarContext },
