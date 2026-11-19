@@ -578,7 +578,6 @@ const Main = styled.div<MainProps>`
     ${({ hasTocGutter }: MainProps) =>
       hasTocGutter
         ? css`
-            --full-width-shift: 0px;
             --full-width-size: ${fullWidthSize(TOC_GUTTER_INSET)};
           `
         : css`
