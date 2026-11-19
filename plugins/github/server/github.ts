@@ -72,6 +72,7 @@ export const MAX_SNIPPET_LINES = 200;
 const COMMIT_RESOURCE = "commit";
 const NOT_FOUND = 404;
 const BASE64_ENCODING = "base64";
+const COMMENTS_PER_PAGE = 100;
 const SHORT_SHA_LENGTH = 7;
 const ISO_DATE_LENGTH = 10;
 const GITHUB_FAVICON_URL = "https://github.com/favicon.ico";
@@ -141,6 +142,46 @@ const requestPlugin = (octokit: Octokit) => ({
         "X-GitHub-Api-Version": "2022-11-28",
       },
     }),
+
+  requestRepo: async (params: ParsedIssueOrPR) =>
+    octokit.request(`GET /repos/{owner}/{repo}`, {
+      owner: params.owner,
+      repo: params.repo,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  requestIssueComments: (params: ParsedIssueOrPR) =>
+    octokit.paginate.iterator(
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+      {
+        owner: params.owner,
+        repo: params.repo,
+        issue_number: params.id,
+        per_page: COMMENTS_PER_PAGE,
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    ),
+
+  createIssueComment: async (params: ParsedIssueOrPR, body: string) =>
+    octokit.request(
+      `POST /repos/{owner}/{repo}/issues/{issue_number}/comments`,
+      {
+        owner: params.owner,
+        repo: params.repo,
+        issue_number: params.id,
+        body,
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    ),
 
   /**
    * Fetches details of a GitHub ProjectV2 using the GraphQL API.
@@ -364,6 +405,17 @@ export class GitHub {
       // Invalid URL format
       return;
     }
+  }
+
+  /**
+   * Parses a GitHub issue or pull request URL.
+   *
+   * @param url the URL to parse.
+   * @returns the issue or pull request identifiers, or undefined for any other URL.
+   */
+  public static parseIssueOrPR(url: string) {
+    const resource = GitHub.parseUrl(url);
+    return resource && "id" in resource ? resource : undefined;
   }
 
   private static authenticateAsApp = () => {

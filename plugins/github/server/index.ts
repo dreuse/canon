@@ -7,6 +7,8 @@ import { GitHubIssueProvider } from "./GitHubIssueProvider";
 import router from "./api/github";
 import env from "./env";
 import { GitHub } from "./github";
+import GitHubBacklinkProcessor from "./processors/GitHubBacklinkProcessor";
+import GitHubBacklinkTask from "./tasks/GitHubBacklinkTask";
 import GitHubWebhookTask from "./tasks/GitHubWebhookTask";
 import { uninstall } from "./uninstall";
 
@@ -32,6 +34,14 @@ if (enabled) {
     {
       type: Hook.Task,
       value: GitHubWebhookTask,
+    },
+    {
+      type: Hook.Task,
+      value: GitHubBacklinkTask,
+    },
+    {
+      type: Hook.Processor,
+      value: GitHubBacklinkProcessor,
     },
     {
       type: Hook.IssueProvider,

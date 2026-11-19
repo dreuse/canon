@@ -46,7 +46,7 @@ import Node from "./Node";
 
 const MARKDOWN_DESTINATION_UNSAFE_REGEX = /[()<>\s]/g;
 
-const MARKDOWN_LABEL_UNSAFE_REGEX = /[[\]\\]/g;
+export const MARKDOWN_LABEL_UNSAFE_REGEX = /[[\]\\]/g;
 
 const MENTION_MARKDOWN_PREFIX = "@";
 
