@@ -18,6 +18,7 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isList } from "@shared/editor/queries/isList";
 import type { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import { determineIconType } from "@shared/utils/icon";
 import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -28,6 +29,7 @@ import {
   signedUrlToAttachmentUrl,
 } from "@shared/utils/urls";
 import stores from "~/stores";
+import { getCodeSnippetProvider } from "~/utils/codeSnippet";
 import { PasteMenu } from "../components/PasteMenu";
 
 export default class PasteHandler extends Extension {
@@ -435,6 +437,42 @@ export default class PasteHandler extends Extension {
     });
   };
 
+  private insertCodeSnippet = async () => {
+    const href = this.placeholderId();
+    const provider = getCodeSnippetProvider(
+      new URL(href),
+      stores.integrations.orderedData
+    );
+
+    try {
+      if (!provider) {
+        throw new Error("No integration can fetch this code");
+      }
+
+      const { language, code } = await provider.fetch(href);
+      const { view } = this.editor;
+      const { state } = view;
+      const result = this.findPlaceholder(state, href);
+
+      if (!result) {
+        return;
+      }
+
+      const codeBlock = state.schema.nodes.code_fence.create(
+        { language },
+        code ? state.schema.text(code) : undefined
+      );
+      view.dispatch(
+        state.tr
+          .replaceRangeWith(result[0], result[0], codeBlock)
+          .setMeta(this.key, { remove: { id: href } })
+      );
+    } catch (err) {
+      this.removePlaceholder(href);
+      this.editor.props.onNotice?.(errToString(err), "error");
+    }
+  };
+
   private insertMention = () => {
     const { view } = this.editor;
     const { state } = view;
@@ -585,11 +623,10 @@ export default class PasteHandler extends Extension {
       ? this.state.pastedText
       : this.state.pastedText[0];
 
-  private removePlaceholder = () => {
+  private removePlaceholder = (placeholderId = this.placeholderId()) => {
     const { view } = this.editor;
     const { state } = view;
 
-    const placeholderId = this.placeholderId();
     const result = this.findPlaceholder(state, placeholderId);
 
     if (result) {
@@ -625,6 +662,11 @@ export default class PasteHandler extends Extension {
       case "mention": {
         this.hidePasteMenu();
         this.insertMention();
+        break;
+      }
+      case "code": {
+        this.hidePasteMenu();
+        void this.insertCodeSnippet();
         break;
       }
       case "mention_list": {

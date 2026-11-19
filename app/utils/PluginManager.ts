@@ -24,6 +24,7 @@ export enum Hook {
   Icon = "icon",
   MentionProvider = "mentionProvider",
   InstanceUrl = "instanceUrl",
+  CodeSnippetProvider = "codeSnippetProvider",
 }
 
 /**
@@ -73,6 +74,14 @@ type PluginValueMap = {
     url: (
       settings: IntegrationSettings<IntegrationType.Embed>
     ) => string | undefined;
+  };
+  [Hook.CodeSnippetProvider]: {
+    /** The integration service that this provider handles. */
+    service: IntegrationService;
+    /** Whether the URL points at lines of code the provider can fetch. */
+    matches: (url: URL) => boolean;
+    /** Fetches the lines of code the URL points at. */
+    fetch: (url: string) => Promise<{ language: string; code: string }>;
   };
 };
 

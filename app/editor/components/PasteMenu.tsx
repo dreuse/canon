@@ -1,6 +1,11 @@
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-import { AlignImageRightIcon, EmailIcon, LinkIcon } from "outline-icons";
+import {
+  AlignImageRightIcon,
+  CodeIcon,
+  EmailIcon,
+  LinkIcon,
+} from "outline-icons";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
@@ -11,6 +16,7 @@ import type Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
+import { getCodeSnippetProvider } from "~/utils/codeSnippet";
 import { determineMentionType, isURLMentionable } from "~/utils/mention";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
@@ -109,9 +115,11 @@ function useItems({
   // single item is pasted.
   if (typeof pastedText === "string") {
     let mentionType: MentionType | undefined;
+    let isCodeSnippet = false;
 
     if (pastedText && isUrl(pastedText)) {
       const url = new URL(pastedText);
+      isCodeSnippet = !!getCodeSnippetProvider(url, integrations.orderedData);
       const integration = integrations.find((intg: Integration) =>
         isURLMentionable({ url, integration: intg })
       );
@@ -151,6 +159,12 @@ function useItems({
           actorId: user?.id,
           display: MentionDisplay.Card,
         },
+      },
+      {
+        name: "code",
+        title: t("Code"),
+        icon: <CodeIcon />,
+        visible: isCodeSnippet,
       },
       {
         name: "noop",

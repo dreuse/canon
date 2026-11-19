@@ -378,6 +378,104 @@ export const getRefractorLangForLanguage = (
 export const getLoaderForLanguage = (language: string) =>
   codeLanguages[language as keyof typeof codeLanguages]?.loader;
 
+/**
+ * Get the code language for a file path, based on its name or extension.
+ *
+ * @param path the file path.
+ * @returns the code language identifier, or "none" when it is unknown.
+ */
+export const getLanguageForFilename = (path: string) => {
+  const filename = path.split("/").pop()?.toLowerCase() ?? "";
+  const extension = filename.split(".").pop() ?? "";
+
+  return (
+    languageByFilename.get(filename) ??
+    languageByExtension.get(extension) ??
+    PLAIN_TEXT_LANGUAGE
+  );
+};
+
+const PLAIN_TEXT_LANGUAGE = "none";
+
+const languageByFilename = new Map([
+  ["dockerfile", "docker"],
+  ["makefile", "makefile"],
+]);
+
+const languageByExtension = new Map([
+  ["sh", "bash"],
+  ["bash", "bash"],
+  ["zsh", "bash"],
+  ["c", "cpp"],
+  ["h", "cpp"],
+  ["cc", "cpp"],
+  ["cpp", "cpp"],
+  ["hpp", "cpp"],
+  ["cs", "csharp"],
+  ["css", "css"],
+  ["csv", "csv"],
+  ["dart", "dart"],
+  ["diff", "diff"],
+  ["patch", "diff"],
+  ["ex", "elixir"],
+  ["exs", "elixir"],
+  ["erb", "erb"],
+  ["erl", "erlang"],
+  ["f90", "fortran"],
+  ["go", "go"],
+  ["graphql", "graphql"],
+  ["gql", "graphql"],
+  ["groovy", "groovy"],
+  ["gradle", "groovy"],
+  ["hs", "haskell"],
+  ["hcl", "hcl"],
+  ["tf", "hcl"],
+  ["html", "markup"],
+  ["ini", "ini"],
+  ["java", "java"],
+  ["js", "javascript"],
+  ["mjs", "javascript"],
+  ["cjs", "javascript"],
+  ["json", "json"],
+  ["jsx", "jsx"],
+  ["kt", "kotlin"],
+  ["kts", "kotlin"],
+  ["kql", "kusto"],
+  ["lisp", "lisp"],
+  ["lua", "lua"],
+  ["mk", "makefile"],
+  ["md", "markdown"],
+  ["mmd", "mermaid"],
+  ["nix", "nix"],
+  ["m", "objectivec"],
+  ["ml", "ocaml"],
+  ["pl", "perl"],
+  ["php", "php"],
+  ["ps1", "powershell"],
+  ["proto", "protobuf"],
+  ["py", "python"],
+  ["r", "r"],
+  ["rb", "ruby"],
+  ["rs", "rust"],
+  ["scala", "scala"],
+  ["sass", "sass"],
+  ["scss", "scss"],
+  ["sql", "sql"],
+  ["sol", "solidity"],
+  ["swift", "swift"],
+  ["toml", "toml"],
+  ["tsx", "tsx"],
+  ["ts", "typescript"],
+  ["vb", "vb"],
+  ["v", "verilog"],
+  ["vhd", "vhdl"],
+  ["vhdl", "vhdl"],
+  ["yaml", "yaml"],
+  ["yml", "yaml"],
+  ["xml", "xml"],
+  ["zig", "zig"],
+]);
+
 // Mermaid diagrams have a separate insertion entry point, so they should never
 // be remembered as a recently or frequently used code language.
 const nonPersistableLanguages = ["mermaid", "mermaidjs"];

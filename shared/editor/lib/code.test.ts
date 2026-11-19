@@ -7,6 +7,7 @@ import {
   setRecentlyUsedCodeLanguage,
   getRecentlyUsedCodeLanguage,
   getFrequentCodeLanguages,
+  getLanguageForFilename,
 } from "./code";
 
 describe("getRefractorLangForLanguage", () => {
@@ -89,5 +90,24 @@ describe("getFrequentCodeLanguages", () => {
       mermaidjs: 2,
     });
     expect(getFrequentCodeLanguages()).toEqual(["javascript"]);
+  });
+});
+
+describe("getLanguageForFilename", () => {
+  it("should map a file extension to a code language", () => {
+    expect(getLanguageForFilename("src/index.ts")).toBe("typescript");
+    expect(getLanguageForFilename("app/Main.KT")).toBe("kotlin");
+    expect(getLanguageForFilename("config.yml")).toBe("yaml");
+  });
+
+  it("should map a known filename without an extension", () => {
+    expect(getLanguageForFilename("docker/Dockerfile")).toBe("docker");
+    expect(getLanguageForFilename("Makefile")).toBe("makefile");
+  });
+
+  it("should fall back to plain text", () => {
+    expect(getLanguageForFilename("notes.unknown")).toBe("none");
+    expect(getLanguageForFilename("LICENSE")).toBe("none");
+    expect(getLanguageForFilename("a.constructor")).toBe("none");
   });
 });

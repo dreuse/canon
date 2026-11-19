@@ -5,6 +5,7 @@ import { createContext } from "@server/context";
 import { ValidationError } from "@server/errors";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
@@ -12,10 +13,11 @@ import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { verifyOAuthStateNonce } from "@server/utils/oauth";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { RequestHelper } from "@server/utils/RequestHelper";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
 import env from "../env";
-import { GitHub, InstallationAccess } from "../github";
+import { GitHub, InstallationAccess, MAX_SNIPPET_LINES } from "../github";
 import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import * as T from "./schema";
 
@@ -139,6 +141,31 @@ router.post(
     });
 
     ctx.status = 202;
+  }
+);
+
+router.post(
+  "github.snippet",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  validate(T.GitHubSnippetSchema),
+  async (ctx: APIContext<T.GitHubSnippetReq>) => {
+    const { user } = ctx.state.auth;
+    const permalink = GitHubUtils.parseCodePermalink(
+      new URL(ctx.input.body.url)
+    );
+
+    if (!permalink) {
+      throw ValidationError("Not a GitHub link to a line range");
+    }
+
+    if (permalink.endLine - permalink.startLine >= MAX_SNIPPET_LINES) {
+      throw ValidationError(
+        `Select at most ${MAX_SNIPPET_LINES} lines to insert as code`
+      );
+    }
+
+    ctx.body = { data: await GitHub.snippet(user.teamId, permalink) };
   }
 );
 

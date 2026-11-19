@@ -35,3 +35,11 @@ export const GitHubCallbackSchema = BaseSchema.extend({
 });
 
 export type GitHubCallbackReq = z.infer<typeof GitHubCallbackSchema>;
+
+export const GitHubSnippetSchema = BaseSchema.extend({
+  body: z.object({
+    url: z.url(),
+  }),
+});
+
+export type GitHubSnippetReq = z.infer<typeof GitHubSnippetSchema>;

@@ -10,6 +10,17 @@ export type OAuthState = {
   nonce: string;
 };
 
+export interface CodePermalink {
+  owner: string;
+  repo: string;
+  ref: string;
+  path: string;
+  startLine: number;
+  endLine: number;
+}
+
+const LINE_RANGE_REGEX = /^#L([1-9]\d*)(?:C\d+)?(?:-L([1-9]\d*)(?:C\d+)?)?$/;
+
 export class GitHubUtils {
   public static clientId = env.GITHUB_CLIENT_ID;
 
@@ -84,6 +95,42 @@ export class GitHubUtils {
           : type === "commit"
             ? MentionType.URL
             : undefined;
+  }
+
+  /**
+   * Parses a GitHub link to a line range in a file.
+   *
+   * @param url the URL to parse.
+   * @returns the file location and line range, or undefined if the URL is not
+   * a GitHub file link with a valid line range.
+   */
+  public static parseCodePermalink(url: URL): CodePermalink | undefined {
+    const [, owner, repo, type, ref, ...segments] = url.pathname.split("/");
+    const lines = LINE_RANGE_REGEX.exec(url.hash);
+
+    if (
+      url.hostname !== "github.com" ||
+      type !== "blob" ||
+      !ref ||
+      !segments.length ||
+      !lines
+    ) {
+      return undefined;
+    }
+
+    const startLine = Number(lines[1]);
+    const endLine = lines[2] ? Number(lines[2]) : startLine;
+
+    if (endLine < startLine) {
+      return undefined;
+    }
+
+    try {
+      const path = segments.map(decodeURIComponent).join("/");
+      return { owner, repo, ref, path, startLine, endLine };
+    } catch {
+      return undefined;
+    }
   }
 
   public static getColorForStatus(status: string, isDraftPR: boolean = false) {

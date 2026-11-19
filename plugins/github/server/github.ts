@@ -7,9 +7,11 @@ import { Sequelize } from "sequelize";
 import type { Endpoints, OctokitResponse } from "@octokit/types";
 import { Octokit, RequestError } from "octokit";
 import pluralize from "pluralize";
+import { getLanguageForFilename } from "@shared/editor/lib/code";
 import { toError, errToString } from "@shared/utils/error";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService, UnfurlResourceType } from "@shared/types";
+import { NotFoundError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration } from "@server/models";
@@ -19,6 +21,7 @@ import type {
   UnfurlSignature,
   UnfurlURL,
 } from "@server/types";
+import type { CodePermalink } from "../shared/GitHubUtils";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -64,7 +67,11 @@ type ParsedCommit = {
 
 type GitHubResource = ParsedIssueOrPR | ParsedProject | ParsedCommit;
 
+export const MAX_SNIPPET_LINES = 200;
+
 const COMMIT_RESOURCE = "commit";
+const NOT_FOUND = 404;
+const BASE64_ENCODING = "base64";
 const SHORT_SHA_LENGTH = 7;
 const ISO_DATE_LENGTH = 10;
 const GITHUB_FAVICON_URL = "https://github.com/favicon.ico";
@@ -106,6 +113,18 @@ const requestPlugin = (octokit: Octokit) => ({
       owner: params.owner,
       repo: params.repo,
       ref: params.sha,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  requestContent: async (params: CodePermalink) =>
+    octokit.request(`GET /repos/{owner}/{repo}/contents/{path}`, {
+      owner: params.owner,
+      repo: params.repo,
+      path: params.path,
+      ref: params.ref,
       headers: {
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
@@ -463,24 +482,10 @@ export class GitHub {
       return;
     }
 
-    // Find integration, prioritizing one where the installation account matches the resource owner
-    const integration = (await Integration.findOne({
-      where: {
-        service: IntegrationService.GitHub,
-        teamId: actor.teamId,
-      },
-      order: [
-        [
-          Sequelize.literal(
-            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = :owner THEN 0 ELSE 1 END`
-          ),
-          "ASC",
-        ],
-      ],
-      replacements: {
-        owner: resource.owner,
-      },
-    })) as Integration<IntegrationType.Embed>;
+    const integration = await GitHub.integrationForOwner(
+      actor.teamId,
+      resource.owner
+    );
 
     if (!integration) {
       return;
@@ -526,6 +531,87 @@ export class GitHub {
       };
     }
   };
+
+  /**
+   * Finds the team's GitHub integration, preferring the installation on the
+   * given account.
+   *
+   * @param teamId the team to search.
+   * @param owner the GitHub account that owns the resource.
+   * @returns the integration, or null when the team has none.
+   */
+  public static async integrationForOwner(teamId: string, owner: string) {
+    return (await Integration.findOne({
+      where: {
+        service: IntegrationService.GitHub,
+        teamId,
+      },
+      order: [
+        [
+          Sequelize.literal(
+            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = :owner THEN 0 ELSE 1 END`
+          ),
+          "ASC",
+        ],
+      ],
+      replacements: { owner },
+    })) as Integration<IntegrationType.Embed> | null;
+  }
+
+  /**
+   * Fetches a line range of a repository file.
+   *
+   * @param teamId the team whose GitHub installation is used.
+   * @param permalink the file location and line range.
+   * @returns the code language and the selected lines.
+   * @throws {NotFoundError} when the team has no integration or GitHub cannot
+   * see the file.
+   * @throws {ValidationError} when the file is too large or the lines are
+   * outside it.
+   */
+  public static async snippet(teamId: string, permalink: CodePermalink) {
+    const integration = await GitHub.integrationForOwner(
+      teamId,
+      permalink.owner
+    );
+
+    if (!integration) {
+      throw NotFoundError("GitHub integration not found");
+    }
+
+    const client = await GitHub.authenticateAsInstallation(
+      integration.settings.github!.installation.id
+    );
+    const { data: file } = await client
+      .requestContent(permalink)
+      .catch((err: unknown) => {
+        if (err instanceof RequestError && err.status === NOT_FOUND) {
+          throw NotFoundError("File not found on GitHub");
+        }
+        throw err;
+      });
+
+    if (
+      Array.isArray(file) ||
+      file.type !== "file" ||
+      file.encoding !== BASE64_ENCODING
+    ) {
+      throw ValidationError("File is too large to read from GitHub");
+    }
+
+    const lines = Buffer.from(file.content, BASE64_ENCODING)
+      .toString("utf8")
+      .split(/\r?\n/);
+
+    if (permalink.startLine > lines.length) {
+      throw ValidationError("Line range is outside the file");
+    }
+
+    return {
+      language: getLanguageForFilename(permalink.path),
+      code: lines.slice(permalink.startLine - 1, permalink.endLine).join("\n"),
+    };
+  }
 
   private static async unfurlProject(
     client: GitHubClient,
