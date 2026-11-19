@@ -16,6 +16,7 @@ import {
   Description,
   Card,
   CardContent,
+  Label,
   Info,
 } from "./Components";
 
@@ -30,6 +31,7 @@ function HoverPreviewPullRequest({
   description,
   author,
   state,
+  labels,
   createdAt,
   ref,
 }: Props) {
@@ -69,6 +71,15 @@ function HoverPreviewPullRequest({
                   </React.Suspense>
                 </Description>
               )}
+              {labels?.length ? (
+                <Flex wrap gap={6} style={{ marginTop: 8 }}>
+                  {labels.map((label) => (
+                    <Label key={label.name} color={label.color}>
+                      {label.name}
+                    </Label>
+                  ))}
+                </Flex>
+              ) : null}
             </Flex>
           </CardContent>
         </Card>

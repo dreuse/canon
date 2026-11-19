@@ -135,6 +135,8 @@ export type UnfurlResponse = {
     author: { name: string; avatarUrl: string };
     /** Pull Request status */
     state: { name: string; color: string; draft?: boolean };
+    /** Pull Request labels */
+    labels?: Array<{ name: string; color: string }>;
     /** Pull Request creation time */
     createdAt: string;
   };

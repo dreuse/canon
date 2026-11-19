@@ -1,8 +1,13 @@
 import { RequestError } from "octokit";
+import { IntegrationService, IntegrationType } from "@shared/types";
+import { buildIntegration, buildUser } from "@server/test/factories";
 import { GitHub, InstallationAccess } from "./github";
 
 type Client = Parameters<typeof GitHub.canManageInstallation>[0];
 type UserInstallation = Parameters<typeof GitHub.canManageInstallation>[1];
+type InstallationClient = Awaited<
+  ReturnType<typeof GitHub.authenticateAsInstallation>
+>;
 
 function buildInstallation(
   targetType: string,
@@ -121,5 +126,66 @@ describe("GitHub.canManageInstallation", () => {
         buildInstallation("Enterprise")
       )
     ).toBe(InstallationAccess.Denied);
+  });
+});
+
+describe("GitHub.unfurl", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  async function unfurlWith(url: string, data: Record<string, unknown>) {
+    const user = await buildUser();
+    await buildIntegration({
+      service: IntegrationService.GitHub,
+      type: IntegrationType.Embed,
+      teamId: user.teamId,
+      settings: {
+        github: {
+          installation: {
+            id: 1,
+            account: { id: 1, name: "acme", avatarUrl: "" },
+          },
+        },
+      },
+    });
+    vi.spyOn(GitHub, "authenticateAsInstallation").mockResolvedValue({
+      requestResource: async () => ({ data }),
+    } as unknown as InstallationClient);
+    return GitHub.unfurl(url, user);
+  }
+
+  it("should keep the markdown body of an issue", async () => {
+    const result = await unfurlWith("https://github.com/acme/app/issues/1", {
+      html_url: "https://github.com/acme/app/issues/1",
+      number: 1,
+      title: "Bug",
+      body: "**bold**",
+      state: "open",
+      user: { login: "octocat", avatar_url: "" },
+      labels: [],
+      created_at: "2026-01-01T00:00:00Z",
+    });
+
+    expect(result).toMatchObject({ description: "**bold**" });
+  });
+
+  it("should include the labels of a pull request", async () => {
+    const result = await unfurlWith("https://github.com/acme/app/pull/2", {
+      html_url: "https://github.com/acme/app/pull/2",
+      number: 2,
+      title: "Fix",
+      body: null,
+      state: "open",
+      merged: false,
+      draft: false,
+      user: { login: "octocat", avatar_url: "" },
+      labels: [{ name: "bug", color: "d73a4a" }],
+      created_at: "2026-01-01T00:00:00Z",
+    });
+
+    expect(result).toMatchObject({
+      labels: [{ name: "bug", color: "#d73a4a" }],
+    });
   });
 });

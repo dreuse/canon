@@ -93,7 +93,7 @@ const requestPlugin = (octokit: Octokit) => ({
       repo: params.repo,
       issue_number: params.id,
       headers: {
-        Accept: "application/vnd.github.text+json",
+        Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
       },
     }),
@@ -530,15 +530,12 @@ export class GitHub {
         url: issue.html_url,
         id: `#${issue.number}`,
         title: issue.title,
-        description: issue.body_text ?? null,
+        description: issue.body ?? null,
         author: {
           name: issue.user?.login ?? "",
           avatarUrl: issue.user?.avatar_url ?? "",
         },
-        labels: issue.labels.map((label: { name: string; color: string }) => ({
-          name: label.name,
-          color: `#${label.color}`,
-        })),
+        labels: GitHub.mapLabels(issue.labels),
         state: {
           name: issueState,
           color: GitHubUtils.getColorForStatus(issueState),
@@ -564,7 +561,16 @@ export class GitHub {
         color: GitHubUtils.getColorForStatus(prState, !!pr.draft),
         draft: pr.draft,
       },
+      labels: GitHub.mapLabels(pr.labels),
       createdAt: pr.created_at,
     } satisfies UnfurlIssueOrPR;
+  }
+
+  private static mapLabels(labels: Issue["labels"] | PR["labels"]) {
+    return labels.flatMap((label) =>
+      typeof label === "string" || !label.name
+        ? []
+        : [{ name: label.name, color: `#${label.color}` }]
+    );
   }
 }
