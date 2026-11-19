@@ -37,6 +37,35 @@ interface ShowContentsOptions {
   tocVisible: boolean | undefined;
 }
 
+interface ScrollMetrics {
+  viewportHeight: number;
+  scrollY: number;
+  scrollHeight: number;
+}
+
+/**
+ * The distance from the viewport top that a heading must pass to become the
+ * active one. Over the last screen of scrolling the line moves down to the
+ * viewport bottom, so headings that cannot reach the top still become active.
+ *
+ * @param metrics the viewport height, scroll offset and page height.
+ * @returns the distance in pixels from the viewport top.
+ */
+export function activationLine({
+  viewportHeight,
+  scrollY,
+  scrollHeight,
+}: ScrollMetrics) {
+  const maxScroll = scrollHeight - viewportHeight;
+  if (maxScroll <= 0) {
+    return HEADING_OFFSET;
+  }
+
+  const lastScreen = Math.min(viewportHeight, maxScroll);
+  const progress = Math.max(0, 1 - (maxScroll - scrollY) / lastScreen);
+  return HEADING_OFFSET + (viewportHeight - HEADING_OFFSET) * progress;
+}
+
 /**
  * Whether the sticky contents rail renders beside the document. Below the
  * desktop breakpoint the header menu lists the contents instead.
@@ -153,6 +182,11 @@ function Contents({ document }: Props) {
 
   useEffect(() => {
     let activeId = items.length > 0 ? items[0].heading.id : undefined;
+    const line = activationLine({
+      viewportHeight: window.innerHeight,
+      scrollY: window.scrollY,
+      scrollHeight: window.document.documentElement.scrollHeight,
+    });
 
     for (const { heading } of items) {
       const element = window.document.getElementById(
@@ -161,7 +195,7 @@ function Contents({ document }: Props) {
 
       if (element) {
         const bounding = element.getBoundingClientRect();
-        if (bounding.top > HEADING_OFFSET) {
+        if (bounding.top > line) {
           break;
         }
         activeId = heading.id;
