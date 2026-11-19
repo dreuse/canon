@@ -70,3 +70,73 @@ describe("GitHubUtils.parseCodePermalink", () => {
     }
   });
 });
+
+describe("GitHubUtils.manifest", () => {
+  const baseUrl = "https://docs.example.com";
+  const manifest = GitHubUtils.manifest("Canon", baseUrl);
+
+  it("should name the app after the product and host", () => {
+    expect(manifest.name).toBe("Canon docs.example.com");
+  });
+
+  it("should fit the name in GitHub's length limit", () => {
+    const long = GitHubUtils.manifest(
+      "Canon",
+      "https://a-very-long-subdomain.example.com"
+    );
+    expect(long.name).toBe("Canon a-very-long-subdomain.exampl");
+  });
+
+  it("should point every URL at this instance", () => {
+    expect(manifest).toMatchObject({
+      url: baseUrl,
+      hook_attributes: { url: `${baseUrl}/api/github.webhooks` },
+      redirect_url: `${baseUrl}/api/github.manifest`,
+      callback_urls: [`${baseUrl}/api/github.callback`],
+      public: false,
+      request_oauth_on_install: true,
+    });
+  });
+
+  it("should request the permissions and events the integration uses", () => {
+    expect(manifest.default_permissions).toEqual({
+      contents: "read",
+      issues: "write",
+      members: "read",
+      metadata: "read",
+      organization_projects: "read",
+      pull_requests: "write",
+    });
+    expect(manifest.default_events).toEqual(["repository"]);
+  });
+});
+
+describe("GitHubUtils.manifestUrl", () => {
+  const state = { teamId: "team", nonce: "nonce" };
+
+  it("should create the app on the user's account without an organization", () => {
+    const url = new URL(GitHubUtils.manifestUrl(state));
+    expect(url.origin + url.pathname).toBe(
+      "https://github.com/settings/apps/new"
+    );
+    expect(JSON.parse(url.searchParams.get("state")!)).toEqual(state);
+  });
+
+  it("should create the app on an organization", () => {
+    const url = new URL(GitHubUtils.manifestUrl(state, "acme/../x"));
+    expect(url.pathname).toBe("/organizations/acme%2F..%2Fx/settings/apps/new");
+  });
+});
+
+describe("GitHubUtils.authUrl", () => {
+  it("should install the given app", () => {
+    const url = new URL(
+      GitHubUtils.authUrl(
+        { teamId: "team", nonce: "nonce" },
+        { slug: "canon-acme", clientId: "Iv1.abc" }
+      )
+    );
+    expect(url.pathname).toBe("/apps/canon-acme/installations/new");
+    expect(url.searchParams.get("client_id")).toBe("Iv1.abc");
+  });
+});

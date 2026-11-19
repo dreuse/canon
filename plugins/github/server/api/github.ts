@@ -2,7 +2,8 @@ import Router from "@koa/router";
 import { find } from "es-toolkit/compat";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
-import { ValidationError } from "@server/errors";
+import env from "@server/env";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -12,11 +13,13 @@ import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
-import { verifyOAuthStateNonce } from "@server/utils/oauth";
+import {
+  generateOAuthStateNonce,
+  verifyOAuthStateNonce,
+} from "@server/utils/oauth";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { RequestHelper } from "@server/utils/RequestHelper";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
-import env from "../env";
 import { GitHub, InstallationAccess, MAX_SNIPPET_LINES } from "../github";
 import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import * as T from "./schema";
@@ -118,10 +121,47 @@ router.get(
   }
 );
 
+router.post("github.app", auth(), async (ctx: APIContext) => {
+  const app = await GitHub.config();
+  ctx.body = {
+    data: app ? { slug: app.slug, clientId: app.clientId } : null,
+  };
+});
+
+router.get(
+  "github.manifest",
+  auth(),
+  validate(T.GitHubManifestSchema),
+  async (ctx: APIContext<T.GitHubManifestReq>) => {
+    const { code, state } = ctx.input.query;
+    const { user } = ctx.state.auth;
+
+    const parsedState = GitHubUtils.parseState(state);
+    if (!parsedState) {
+      throw ValidationError("Invalid state");
+    }
+
+    verifyOAuthStateNonce(ctx, GitHubOAuthNonceCookie, parsedState.nonce);
+    authorize(user, "createIntegration", user.team);
+
+    if (env.isCloudHosted) {
+      throw AuthorizationError();
+    }
+
+    if (await GitHub.config()) {
+      throw ValidationError("A GitHub App is already configured");
+    }
+
+    const app = await GitHub.createAppFromManifest(code);
+    const nonce = generateOAuthStateNonce(ctx, GitHubOAuthNonceCookie);
+    ctx.redirect(GitHubUtils.authUrl({ teamId: user.teamId, nonce }, app));
+  }
+);
+
 router.post(
   "github.webhooks",
   validateWebhook({
-    secretKey: env.GITHUB_WEBHOOK_SECRET!,
+    secretKey: async () => (await GitHub.config())?.webhookSecret ?? undefined,
     getSignatureFromHeader: (ctx) => {
       const { headers } = ctx.request;
       const signatureHeader = headers["x-hub-signature-256"];

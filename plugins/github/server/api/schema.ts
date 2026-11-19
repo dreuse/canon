@@ -36,6 +36,15 @@ export const GitHubCallbackSchema = BaseSchema.extend({
 
 export type GitHubCallbackReq = z.infer<typeof GitHubCallbackSchema>;
 
+export const GitHubManifestSchema = BaseSchema.extend({
+  query: z.object({
+    code: z.string(),
+    state: z.string(),
+  }),
+});
+
+export type GitHubManifestReq = z.infer<typeof GitHubManifestSchema>;
+
 export const GitHubSnippetSchema = BaseSchema.extend({
   body: z.object({
     url: z.url(),

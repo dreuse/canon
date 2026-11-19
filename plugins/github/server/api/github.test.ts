@@ -1,6 +1,9 @@
+import crypto from "node:crypto";
+import { http, HttpResponse } from "msw";
 import { RequestError } from "octokit";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { Integration } from "@server/models";
+import { GitHubApp, Integration } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildAdmin,
   buildGuestUser,
@@ -9,8 +12,15 @@ import {
   buildUser,
   buildViewer,
 } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { server as githubApi } from "@server/test/msw";
+import {
+  getTestServer,
+  setCloudHosted,
+  setSelfHosted,
+} from "@server/test/support";
+import env from "../env";
 import { GitHub, InstallationAccess, MAX_SNIPPET_LINES } from "../github";
+import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import { SetupAction } from "./schema";
 
 const server = getTestServer();
@@ -333,6 +343,241 @@ describe("#github.snippet", () => {
       body: { url: permalink("L1") },
     });
 
+    expect(res.status).toEqual(401);
+  });
+});
+
+const ENV_KEYS = [
+  "GITHUB_APP_ID",
+  "GITHUB_APP_NAME",
+  "GITHUB_APP_PRIVATE_KEY",
+  "GITHUB_CLIENT_ID",
+  "GITHUB_CLIENT_SECRET",
+  "GITHUB_WEBHOOK_SECRET",
+] as const;
+
+const PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----test";
+
+function withoutEnvApp() {
+  const saved = ENV_KEYS.map((key) => [key, env[key]] as const);
+
+  beforeEach(async () => {
+    ENV_KEYS.forEach((key) => {
+      env[key] = undefined;
+    });
+    await GitHubApp.destroy({ where: {} });
+  });
+
+  afterEach(async () => {
+    saved.forEach(([key, value]) => {
+      env[key] = value;
+    });
+    await GitHubApp.destroy({ where: {} });
+    vi.restoreAllMocks();
+  });
+}
+
+const storeApp = () =>
+  GitHubApp.create({
+    appId: 7,
+    slug: "canon-stored",
+    clientId: "Iv1.stored",
+    clientSecret: "client-secret",
+    webhookSecret: "webhook-secret",
+    privateKey: PRIVATE_KEY,
+  });
+
+describe("#github.app", () => {
+  withoutEnvApp();
+
+  it("should return null without an app", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/github.app", user);
+    expect(res.status).toEqual(200);
+    expect((await res.json()).data).toBeNull();
+  });
+
+  it("should return the stored app", async () => {
+    await storeApp();
+    const user = await buildUser();
+    const res = await server.post("/api/github.app", user);
+    expect((await res.json()).data).toEqual({
+      slug: "canon-stored",
+      clientId: "Iv1.stored",
+    });
+  });
+
+  it("should prefer the app from the environment", async () => {
+    await storeApp();
+    env.GITHUB_APP_ID = "1";
+    env.GITHUB_APP_NAME = "canon-env";
+    env.GITHUB_APP_PRIVATE_KEY = Buffer.from(PRIVATE_KEY).toString("base64");
+    env.GITHUB_CLIENT_ID = "Iv1.env";
+    env.GITHUB_CLIENT_SECRET = "env-secret";
+    const user = await buildUser();
+    const res = await server.post("/api/github.app", user);
+    expect((await res.json()).data).toEqual({
+      slug: "canon-env",
+      clientId: "Iv1.env",
+    });
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/github.app");
+    expect(res.status).toEqual(401);
+  });
+});
+
+describe("#github.manifest", () => {
+  withoutEnvApp();
+
+  const conversion = vi.fn();
+
+  beforeEach(() => {
+    setSelfHosted();
+    conversion.mockReset();
+    githubApi.use(
+      http.post(
+        "https://api.github.com/app-manifests/:code/conversions",
+        ({ params }) => {
+          conversion(params.code);
+          return HttpResponse.json(
+            {
+              id: 42,
+              slug: "canon-acme",
+              client_id: "Iv1.abc",
+              client_secret: "client-secret",
+              webhook_secret: "webhook-secret",
+              pem: PRIVATE_KEY,
+            },
+            { status: 201 }
+          );
+        }
+      )
+    );
+  });
+
+  const callManifest = (
+    user: Awaited<ReturnType<typeof buildUser>>,
+    cookieNonce = "nonce"
+  ) =>
+    server.get(
+      `/api/github.manifest?code=manifest-code&state=${encodeURIComponent(
+        JSON.stringify({ teamId: user.teamId, nonce: "nonce" })
+      )}`,
+      user,
+      {
+        redirect: "manual",
+        headers: { Cookie: `githubOAuthNonce=${cookieNonce}` },
+      }
+    );
+
+  it("should store the app encrypted and continue to its installation", async () => {
+    const user = await buildAdmin();
+
+    const res = await callManifest(user);
+
+    expect(res.status).toEqual(302);
+    expect(conversion).toHaveBeenCalledWith("manifest-code");
+    const location = new URL(res.headers.get("location")!);
+    expect(location.origin + location.pathname).toEqual(
+      "https://github.com/apps/canon-acme/installations/new"
+    );
+    const state = JSON.parse(location.searchParams.get("state")!);
+    expect(state.teamId).toEqual(user.teamId);
+    expect(res.headers.get("set-cookie")).toContain(
+      `githubOAuthNonce=${state.nonce}`
+    );
+
+    const app = await GitHubApp.findOne({ rejectOnEmpty: true });
+    expect(app).toMatchObject({
+      appId: 42,
+      slug: "canon-acme",
+      clientId: "Iv1.abc",
+      clientSecret: "client-secret",
+      webhookSecret: "webhook-secret",
+      privateKey: PRIVATE_KEY,
+    });
+    const [rows] = await sequelize.query(
+      "SELECT encode(\"privateKey\", 'escape') AS raw FROM github_apps"
+    );
+    expect(JSON.stringify(rows)).not.toContain("PRIVATE KEY");
+  });
+
+  it("should reject a mismatched state nonce", async () => {
+    const user = await buildAdmin();
+
+    const res = await callManifest(user, "other");
+
+    expect(res.status).toEqual(400);
+    expect(conversion).not.toHaveBeenCalled();
+    expect(await GitHubApp.count()).toEqual(0);
+  });
+
+  it("should reject a user who cannot create integrations", async () => {
+    const user = await buildUser();
+
+    const res = await callManifest(user);
+
+    expect(res.status).toEqual(403);
+    expect(conversion).not.toHaveBeenCalled();
+    expect(await GitHubApp.count()).toEqual(0);
+  });
+
+  it("should refuse to create an instance-wide app on a cloud-hosted instance", async () => {
+    setCloudHosted();
+    const user = await buildAdmin();
+
+    const res = await callManifest(user);
+
+    expect(res.status).toEqual(403);
+    expect(conversion).not.toHaveBeenCalled();
+    expect(await GitHubApp.count()).toEqual(0);
+  });
+
+  it("should not replace a configured app", async () => {
+    await storeApp();
+    const user = await buildAdmin();
+
+    const res = await callManifest(user);
+
+    expect(res.status).toEqual(400);
+    expect(conversion).not.toHaveBeenCalled();
+    expect(await GitHubApp.count()).toEqual(1);
+  });
+});
+
+describe("#github.webhooks", () => {
+  withoutEnvApp();
+
+  const payload = { action: "created", installation: { id: 1 } };
+  const sign = (secret: string) =>
+    `sha256=${crypto
+      .createHmac("sha256", secret)
+      .update(JSON.stringify(payload))
+      .digest("hex")}`;
+  const deliver = (signature: string) =>
+    server.post("/api/github.webhooks", {
+      body: payload,
+      headers: { "x-hub-signature-256": signature },
+    });
+
+  it("should accept a delivery signed with the stored secret", async () => {
+    await storeApp();
+    const schedule = vi
+      .spyOn(GitHubWebhookTask.prototype, "schedule")
+      .mockResolvedValue(
+        {} as Awaited<ReturnType<GitHubWebhookTask["schedule"]>>
+      );
+
+    const res = await deliver(sign("webhook-secret"));
+
+    expect(res.status).toEqual(202);
+    expect(schedule).toHaveBeenCalledTimes(1);
+  });
+
+  it("should reject a delivery without an app", async () => {
+    const res = await deliver(sign("webhook-secret"));
     expect(res.status).toEqual(401);
   });
 });

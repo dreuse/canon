@@ -24,6 +24,8 @@ export { default as ExternalGroup } from "./ExternalGroup";
 
 export { default as FileOperation } from "./FileOperation";
 
+export { default as GitHubApp } from "./GitHubApp";
+
 export { default as Group } from "./Group";
 
 export { default as GroupUser } from "./GroupUser";

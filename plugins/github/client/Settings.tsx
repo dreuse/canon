@@ -18,11 +18,22 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { isTruthyQueryValue } from "~/utils/urls";
 import GitHubIcon from "./Icon";
+import type { GitHubAppIdentity } from "../shared/GitHubUtils";
 import { GitHubConnectButton } from "./components/GitHubButton";
+import { GitHubCreateAppForm } from "./components/GitHubCreateAppForm";
+
+const fetchApp = async () => {
+  const res = await client.post<{ data: GitHubAppIdentity | null }>(
+    "/github.app"
+  );
+  return res.data;
+};
 
 function GitHub() {
   const { integrations } = useStores();
@@ -34,7 +45,8 @@ function GitHub() {
   const error = query.get("error");
   const installRequest = query.get("install_request");
   const appName = env.APP_NAME;
-  const githubAppName = env.GITHUB_APP_NAME;
+  const { data: app, loaded } = useRequest(fetchApp, true);
+  const githubAppName = app?.slug;
 
   React.useEffect(() => {
     void integrations.fetchAllIfNeeded({
@@ -97,7 +109,7 @@ function GitHub() {
           </Trans>
         </Notice>
       )}
-      {env.GITHUB_CLIENT_ID ? (
+      {!loaded ? null : app ? (
         <>
           <Text as="p">
             <Trans>
@@ -112,7 +124,7 @@ function GitHub() {
               <Heading as="h2">
                 <Flex justify="space-between" auto>
                   {t("Connected")}
-                  <GitHubConnectButton icon={<PlusIcon />} />
+                  <GitHubConnectButton app={app} icon={<PlusIcon />} />
                 </Flex>
               </Heading>
               <List>
@@ -164,18 +176,12 @@ function GitHub() {
             </>
           ) : (
             <p>
-              <GitHubConnectButton icon={<GitHubIcon />} />
+              <GitHubConnectButton app={app} icon={<GitHubIcon />} />
             </p>
           )}
         </>
-      ) : (
-        <Notice>
-          <Trans>
-            The GitHub integration is currently disabled. Please set the
-            associated environment variables and restart the server to enable
-            the integration.
-          </Trans>
-        </Notice>
+      ) : isCloudHosted ? null : (
+        <GitHubCreateAppForm />
       )}
     </IntegrationScene>
   );

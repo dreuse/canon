@@ -10,6 +10,11 @@ export type OAuthState = {
   nonce: string;
 };
 
+export interface GitHubAppIdentity {
+  slug: string;
+  clientId: string;
+}
+
 export interface CodePermalink {
   owner: string;
   repo: string;
@@ -20,10 +25,19 @@ export interface CodePermalink {
 }
 
 const LINE_RANGE_REGEX = /^#L([1-9]\d*)(?:C\d+)?(?:-L([1-9]\d*)(?:C\d+)?)?$/;
+const GITHUB_URL = "https://github.com";
+const APP_NAME_MAX_LENGTH = 34;
+const APP_PERMISSIONS = {
+  contents: "read",
+  issues: "write",
+  members: "read",
+  metadata: "read",
+  organization_projects: "read",
+  pull_requests: "write",
+};
+const APP_EVENTS = ["repository"];
 
 export class GitHubUtils {
-  public static clientId = env.GITHUB_CLIENT_ID;
-
   static get url() {
     return integrationSettingsPath("github");
   }
@@ -50,14 +64,52 @@ export class GitHubUtils {
       : `${baseUrl}/api/github.callback`;
   }
 
-  static authUrl(state: OAuthState): string {
-    const baseUrl = `https://github.com/apps/${env.GITHUB_APP_NAME}/installations/new`;
+  static authUrl(state: OAuthState, app: GitHubAppIdentity): string {
+    const baseUrl = `${GITHUB_URL}/apps/${app.slug}/installations/new`;
     const params = {
-      client_id: this.clientId,
+      client_id: app.clientId,
       redirect_uri: this.callbackUrl(),
       state: JSON.stringify(state),
     };
     return `${baseUrl}?${queryString.stringify(params)}`;
+  }
+
+  /**
+   * Builds the GitHub App manifest that registers an app for this instance.
+   *
+   * @param appName the product name to put in the app name.
+   * @param baseUrl the URL of this instance.
+   * @returns the manifest to post to GitHub.
+   */
+  static manifest(appName: string, baseUrl: string = env.URL) {
+    return {
+      name: `${appName} ${new URL(baseUrl).hostname}`
+        .slice(0, APP_NAME_MAX_LENGTH)
+        .trim(),
+      url: baseUrl,
+      hook_attributes: { url: `${baseUrl}/api/github.webhooks` },
+      redirect_url: `${baseUrl}/api/github.manifest`,
+      callback_urls: [this.callbackUrl({ baseUrl })],
+      public: false,
+      request_oauth_on_install: true,
+      default_permissions: APP_PERMISSIONS,
+      default_events: APP_EVENTS,
+    };
+  }
+
+  /**
+   * @param state the OAuth state to return with the manifest code.
+   * @param organization the GitHub organization to own the app, or none for
+   * the user's own account.
+   * @returns the GitHub URL to post the app manifest to.
+   */
+  static manifestUrl(state: OAuthState, organization?: string): string {
+    const path = organization
+      ? `/organizations/${encodeURIComponent(organization)}/settings/apps/new`
+      : "/settings/apps/new";
+    return `${GITHUB_URL}${path}?${queryString.stringify({
+      state: JSON.stringify(state),
+    })}`;
   }
 
   static parseState(state: string): OAuthState | undefined {

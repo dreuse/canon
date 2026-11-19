@@ -14,16 +14,24 @@ import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import { NotFoundError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
-import { Integration } from "@server/models";
+import { GitHubApp, Integration } from "@server/models";
 import type {
   UnfurlIssueOrPR,
   UnfurlProject,
   UnfurlSignature,
   UnfurlURL,
 } from "@server/types";
-import type { CodePermalink } from "../shared/GitHubUtils";
+import type { CodePermalink, GitHubAppIdentity } from "../shared/GitHubUtils";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
+
+/** The credentials of the GitHub App this instance uses. */
+export interface GitHubAppConfig extends GitHubAppIdentity {
+  appId: number | string;
+  clientSecret: string;
+  privateKey: string;
+  webhookSecret?: string | null;
+}
 
 /** The access a user has to a GitHub app installation. */
 export enum InstallationAccess {
@@ -326,15 +334,10 @@ const CustomOctokit = Octokit.plugin(requestPlugin);
 type GitHubClient = InstanceType<typeof CustomOctokit>;
 
 export class GitHub {
-  private static appId = env.GITHUB_APP_ID;
-  private static appKey = env.GITHUB_APP_PRIVATE_KEY
-    ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
-    : undefined;
-
-  private static clientId = env.GITHUB_CLIENT_ID;
-  private static clientSecret = env.GITHUB_CLIENT_SECRET;
-
-  private static appOctokit: Octokit;
+  private static appOctokit?: {
+    appId: GitHubAppConfig["appId"];
+    octokit: GitHubClient;
+  };
 
   private static supportedResources = [
     UnfurlResourceType.Issue,
@@ -418,21 +421,93 @@ export class GitHub {
     return resource && "id" in resource ? resource : undefined;
   }
 
-  private static authenticateAsApp = () => {
-    if (!GitHub.appOctokit) {
-      GitHub.appOctokit = new CustomOctokit({
-        authStrategy: createAppAuth,
-        auth: {
-          appId: GitHub.appId,
-          privateKey: GitHub.appKey,
-          clientId: GitHub.clientId,
-          clientSecret: GitHub.clientSecret,
-        },
-      });
+  /**
+   * Resolves the GitHub App credentials. Environment variables win over an
+   * app created from Settings.
+   *
+   * @returns the app credentials, or undefined when no app is configured.
+   */
+  public static async config(): Promise<GitHubAppConfig | undefined> {
+    if (
+      env.GITHUB_APP_ID &&
+      env.GITHUB_APP_NAME &&
+      env.GITHUB_APP_PRIVATE_KEY &&
+      env.GITHUB_CLIENT_ID &&
+      env.GITHUB_CLIENT_SECRET
+    ) {
+      return {
+        appId: env.GITHUB_APP_ID,
+        slug: env.GITHUB_APP_NAME,
+        clientId: env.GITHUB_CLIENT_ID,
+        clientSecret: env.GITHUB_CLIENT_SECRET,
+        privateKey: Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString(
+          "ascii"
+        ),
+        webhookSecret: env.GITHUB_WEBHOOK_SECRET,
+      };
     }
 
-    return GitHub.appOctokit;
-  };
+    const app = await GitHubApp.findOne({ order: [["createdAt", "DESC"]] });
+    return app
+      ? {
+          appId: app.appId,
+          slug: app.slug,
+          clientId: app.clientId,
+          clientSecret: app.clientSecret,
+          privateKey: app.privateKey,
+          webhookSecret: app.webhookSecret,
+        }
+      : undefined;
+  }
+
+  /**
+   * Completes the GitHub App manifest flow and stores the new app.
+   *
+   * @param code the temporary code GitHub returned after creating the app.
+   * @returns the stored app.
+   * @throws {ValidationError} if GitHub returned no app slug.
+   */
+  public static async createAppFromManifest(code: string) {
+    const { data } = await new Octokit().rest.apps.createFromManifest({
+      code,
+    });
+    if (!data.slug) {
+      throw ValidationError("GitHub returned an app without a slug");
+    }
+
+    return GitHubApp.create({
+      appId: data.id,
+      slug: data.slug,
+      clientId: data.client_id,
+      clientSecret: data.client_secret,
+      webhookSecret: data.webhook_secret,
+      privateKey: data.pem,
+    });
+  }
+
+  private static async authenticateAsApp() {
+    const config = await GitHub.config();
+    if (!config) {
+      throw ValidationError("GitHub App is not configured");
+    }
+
+    if (GitHub.appOctokit?.appId !== config.appId) {
+      GitHub.appOctokit = {
+        appId: config.appId,
+        octokit: new CustomOctokit({
+          authStrategy: createAppAuth,
+          auth: {
+            appId: config.appId,
+            privateKey: config.privateKey,
+            clientId: config.clientId,
+            clientSecret: config.clientSecret,
+          },
+        }),
+      };
+    }
+
+    return GitHub.appOctokit.octokit;
+  }
 
   /**
    * [Authenticates as a GitHub user](https://github.com/octokit/auth-app.js/?tab=readme-ov-file#authenticate-as-installation)
@@ -446,7 +521,8 @@ export class GitHub {
     state?: string | null
   ): Promise<GitHubClient> => {
     // Exchange the code once, the oauth-user strategy repeats it per request.
-    const { token } = (await GitHub.authenticateAsApp().auth({
+    const app = await GitHub.authenticateAsApp();
+    const { token } = (await app.auth({
       type: "oauth-user",
       code,
       state,
@@ -461,7 +537,7 @@ export class GitHub {
    * @returns {Octokit} Installation-authenticated octokit instance
    */
   public static authenticateAsInstallation = async (installationId: number) =>
-    GitHub.authenticateAsApp().auth({
+    (await GitHub.authenticateAsApp()).auth({
       type: "installation",
       installationId,
       factory: (options: InstallationAuthOptions) =>
