@@ -56,12 +56,16 @@ export function verifyOAuthStateNonce(
   stateNonce: string | undefined
 ): void {
   const cookieNonce = ctx.cookies.get(cookieName);
-  ctx.cookies.set(cookieName, "", {
+  const expired = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     expires: subMinutes(new Date(), 1),
+  };
+  ctx.cookies.set(cookieName, "", {
+    ...expired,
     domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
   });
+  ctx.cookies.set(cookieName, "", expired);
 
   if (!cookieNonce) {
     throw OAuthStateMismatchError("OAuth state cookie was missing");

@@ -1,7 +1,9 @@
 import JWT from "jsonwebtoken";
+import Koa from "koa";
 import { http, HttpResponse } from "msw";
 import { server } from "@server/test/msw";
-import OAuthClient from "./oauth";
+import TestServer from "@server/test/TestServer";
+import OAuthClient, { verifyOAuthStateNonce } from "./oauth";
 
 class MinimalOAuthClient extends OAuthClient {
   endpoints = {
@@ -88,5 +90,44 @@ describe("userInfo", () => {
         "invalid_request"
       );
     }
+  });
+});
+
+describe("verifyOAuthStateNonce", () => {
+  const cookieName = "oauthState";
+  const nonce = "client-nonce";
+
+  async function verifyAndGetSetCookies() {
+    const app = new Koa();
+    app.use((ctx) => {
+      verifyOAuthStateNonce(ctx, cookieName, nonce);
+      ctx.body = "ok";
+    });
+
+    const testServer = new TestServer(app);
+    try {
+      const res = await testServer.get("/", {
+        headers: { Cookie: `${cookieName}=${nonce}` },
+      });
+      return res.headers.raw()["set-cookie"] ?? [];
+    } finally {
+      testServer.close();
+    }
+  }
+
+  it("should clear a nonce cookie the client set without a domain", async () => {
+    const cleared = (await verifyAndGetSetCookies()).filter((header) =>
+      header.startsWith(`${cookieName}=;`)
+    );
+
+    expect(cleared.some((header) => !/domain=/i.test(header))).toBe(true);
+  });
+
+  it("should clear a nonce cookie the server set with a domain", async () => {
+    const cleared = (await verifyAndGetSetCookies()).filter((header) =>
+      header.startsWith(`${cookieName}=;`)
+    );
+
+    expect(cleared.some((header) => /domain=/i.test(header))).toBe(true);
   });
 });
