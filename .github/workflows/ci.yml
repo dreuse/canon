@@ -30,8 +30,8 @@ jobs:
       app: ${{ steps.filter.outputs.app }}
       deps: ${{ steps.filter.outputs.deps }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # v2
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
@@ -66,7 +66,7 @@ jobs:
     if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/install
       - run: yarn lint --quiet
 
@@ -75,7 +75,7 @@ jobs:
     if: ${{ needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color
@@ -85,7 +85,7 @@ jobs:
     if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/install
       # No tsc build cache persists between runs, so skip writing one.
       - run: yarn tsc --incremental false
@@ -95,7 +95,7 @@ jobs:
     if: ${{ needs.changes.outputs.deps == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/install
       # Pass when the audit service is unreachable, but still fail on vulnerabilities.
       - run: |
@@ -116,7 +116,7 @@ jobs:
       matrix:
         test-group: [app, shared]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/install
       - run: yarn test:${{ matrix.test-group }}
 
@@ -129,7 +129,7 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # The runner image ships with PostgreSQL preinstalled, starting it is much
       # faster than pulling and initializing a service container.
       - name: Start PostgreSQL
@@ -172,7 +172,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/install
       - run: yarn sequelize db:migrate
       - run: yarn build
@@ -183,7 +183,7 @@ jobs:
         env:
           NODE_ENV: production
           PGSSLMODE: disable
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
