@@ -258,7 +258,7 @@ function DocumentRow({
       component={isEditing ? StaticLink : undefined}
       depth={depth}
       inlineDisclosure={inlineDisclosure}
-      rank={hasChildren ? "section" : "document"}
+      rank="document"
       to={to}
       expanded={hasChildren && !isDragging ? expanded : undefined}
       onDisclosureClick={onDisclosureClick}

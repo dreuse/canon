@@ -10,7 +10,7 @@ import SidebarContext, { groupSidebarContext } from "./SidebarContext";
 import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { childDepthFor } from "./SidebarLink";
 
 type Props = {
   /** The group to render */
@@ -61,7 +61,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
               <SharedWithMeLink
                 key={membership.id}
                 membership={membership}
-                depth={2}
+                depth={childDepthFor(0)}
               />
             ))}
           </Folder>

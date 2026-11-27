@@ -19,7 +19,7 @@ import useBoolean from "~/hooks/useBoolean";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { childDepthFor } from "./SidebarLink";
 import { StaticLink } from "./StaticLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
@@ -315,7 +315,7 @@ function CollectionRow({
         isAddingNewChild && onCreateChild ? (
           <SidebarLink
             isActive={() => true}
-            depth={newChildDepth ?? Math.max(depth + 1, 2)}
+            depth={newChildDepth ?? childDepthFor(depth)}
             ellipsis={false}
             label={
               <EditableTitle

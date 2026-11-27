@@ -23,6 +23,7 @@ import { useDraggedItemId, useSidebarScrollElement } from "./DragActiveContext";
 import { isActiveSidebarContext, useSidebarContext } from "./SidebarContext";
 import { useSidebarExpansion } from "./SidebarExpansionContext";
 import { useSidebarNavigation } from "./SidebarNavigation";
+import { childDepthFor } from "./SidebarLink";
 
 // Approximate rendered row height, rows are measured once mounted.
 const ROW_HEIGHT = 30;
@@ -297,7 +298,7 @@ function withChildDepth(
   }
 
   const adjust = (row: FlattenedTreeNode): FlattenedTreeNode =>
-    row.depth === 0 ? row : { ...row, depth: row.depth + 1 };
+    row.depth === 0 ? row : { ...row, depth: row.depth + childDepthFor(0) - 1 };
 
   return rows.map((row) => ({
     ...adjust(row),

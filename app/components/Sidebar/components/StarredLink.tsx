@@ -41,6 +41,7 @@ import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import { childDepthFor } from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import SidebarContext, { starredSidebarContext } from "./SidebarContext";
 import SidebarDisclosureContext, {
@@ -246,7 +247,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
               <Folder expanded={displayChildDocuments}>
                 <DocumentTree
                   nodes={childDocuments}
-                  depth={2}
+                  depth={childDepthFor(0)}
                   parentId={document.id}
                   collection={documentCollection}
                   prefetchDocument={documents.prefetchDocument}

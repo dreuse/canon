@@ -40,7 +40,7 @@ export function indentForDepth(depth: number): number {
  * @returns the nesting depth of the children.
  */
 export function childDepthFor(depth: number): number {
-  return depth === 0 ? 2 : depth + 1;
+  return depth === 0 ? FIRST_CHILD_DEPTH : depth + 1;
 }
 
 /**
@@ -97,17 +97,17 @@ type Props = Omit<NavLinkProps, "to"> & {
   contextAction?: ActionWithChildren | ActionFactory;
 };
 
-export type NavRank = "collection" | "section" | "document";
+export type NavRank = "collection" | "document";
 
 const rankWeight: Record<NavRank, number> = {
   collection: 600,
-  section: 500,
   document: 400,
 };
 
 const DEFAULT_WEIGHT = 475;
 
 const HIGHLIGHT_INSET = 8;
+const FIRST_CHILD_DEPTH = 4;
 const ROW_PADDING_INLINE_END = HIGHLIGHT_INSET * 2;
 
 const startsInteractive = () => isTouchDevice() || isMobile();

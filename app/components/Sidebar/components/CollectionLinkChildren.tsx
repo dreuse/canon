@@ -25,7 +25,7 @@ import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
 import { useSidebarDisclosure } from "./SidebarDisclosureContext";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { childDepthFor } from "./SidebarLink";
 
 type Props = {
   /** The collection to render the children of. */
@@ -52,7 +52,7 @@ function CollectionLinkChildren({
 }: Props) {
   // Documents sit one level below the collection, with a minimum that leaves
   // room for their own disclosure to the left of the label.
-  const childDepth = childDepthProp ?? Math.max(depth + 1, 2);
+  const childDepth = childDepthProp ?? childDepthFor(depth);
   const { documents } = useStores();
   const { t } = useTranslation();
   // Scoped to this collection so that other collections do not re-render when
