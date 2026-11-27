@@ -26,7 +26,6 @@ import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";
 
-import embeds from "@shared/editor/embeds";
 import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInList } from "@shared/editor/queries/isInList";
@@ -53,10 +52,9 @@ import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+import GitHubIcon from "../../../plugins/github/client/Icon";
 
 const GITHUB_HOST = "github.com";
-const GITHUB_EMBED_ID = "github-file";
-const githubIcon = embeds.find((embed) => embed.id === GITHUB_EMBED_ID)?.icon;
 
 const isGitHubUrl = (href: string) =>
   URL.canParse(href) && new URL(href).hostname === GITHUB_HOST;
@@ -499,7 +497,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       name: "embedLink",
       group: MenuItemGroup.inline,
       tooltip: t("Embed"),
-      icon: githubIcon,
+      icon: <GitHubIcon />,
       attrs: { href: githubHref ?? "" },
       visible: canFormat && !isEmpty && !!githubHref,
     },
