@@ -1,5 +1,6 @@
 import { vi } from "vitest";
-import { UserPreference } from "@shared/types";
+import { runInAction } from "mobx";
+import { TeamPreference, UserPreference } from "@shared/types";
 import User from "./User";
 import stores from "~/stores";
 import { client } from "~/utils/ApiClient";
@@ -345,6 +346,29 @@ describe("User model", () => {
         users
       );
       expect(user.searchSuppressed).toBe(true);
+    });
+  });
+
+  describe("separateEditMode", () => {
+    const TEAM_ID = "team-separate-edit";
+
+    function signInTo(preferences: Record<string, boolean>) {
+      stores.auth.add({ id: TEAM_ID, name: "Omni", preferences });
+      runInAction(() => {
+        stores.auth.currentTeamId = TEAM_ID;
+      });
+    }
+
+    it("is on when neither the team nor the user saved a preference", () => {
+      signInTo({});
+      const user = new User({ id: "se-1", name: "Ana" }, users);
+      expect(user.separateEditMode).toBe(true);
+    });
+
+    it("is off when the team saved seamless editing", () => {
+      signInTo({ [TeamPreference.SeamlessEdit]: true });
+      const user = new User({ id: "se-2", name: "Bia" }, users);
+      expect(user.separateEditMode).toBe(false);
     });
   });
 });

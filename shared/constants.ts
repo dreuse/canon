@@ -103,7 +103,7 @@ export const BatchableApiMethods = [
 ] as const;
 
 export const TeamPreferenceDefaults: TeamPreferences = {
-  [TeamPreference.SeamlessEdit]: true,
+  [TeamPreference.SeamlessEdit]: false,
   [TeamPreference.ViewersCanExport]: true,
   [TeamPreference.MembersCanInvite]: false,
   [TeamPreference.MembersCanCreateApiKey]: true,
