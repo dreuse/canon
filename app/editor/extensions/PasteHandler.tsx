@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { action, observable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import type { Node } from "prosemirror-model";
@@ -10,6 +11,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { addMark } from "@shared/editor/commands/addMark";
 import { pasteIntoListItem } from "@shared/editor/commands/pasteIntoListItem";
 import { codeLanguages } from "@shared/editor/lib/code";
+import { getMatchingEmbed } from "@shared/editor/lib/embeds";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -693,6 +695,21 @@ export default class PasteHandler extends Extension {
         () => {
           this.editor.commands.mention(attrs);
           this.editor.commands.embed({ href: attrs.href });
+          return true;
+        },
+      embedLink:
+        (attrs: Record<string, Primitive>): Command =>
+        () => {
+          const href = String(attrs.href);
+          const embed = getMatchingEmbed(this.editor.props.embeds, href)?.embed;
+          if (!embed || embed.disabled) {
+            this.editor.props.onNotice?.(
+              t("This link can’t be embedded"),
+              "warning"
+            );
+            return false;
+          }
+          this.editor.commands.embed({ href });
           return true;
         },
     };
