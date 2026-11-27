@@ -98,10 +98,10 @@ function InnerEmbed({
     );
   }
 
-  if ("component" in embed) {
+  if (embed.component) {
     return (
-      // @ts-expect-error Component type
       <embed.component
+        // @ts-expect-error Component type
         attrs={node.attrs}
         style={style}
         matches={matches}

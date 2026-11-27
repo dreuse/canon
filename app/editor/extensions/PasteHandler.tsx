@@ -2,7 +2,7 @@ import { action, observable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import type { Node } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
-import type { EditorState } from "prosemirror-state";
+import type { Command, EditorState } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
@@ -17,6 +17,7 @@ import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-trans
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isList } from "@shared/editor/queries/isList";
 import type { MenuItem } from "@shared/editor/types";
+import type { Primitive } from "utility-types";
 import { IconType, MentionType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import { determineIconType } from "@shared/utils/icon";
@@ -659,7 +660,8 @@ export default class PasteHandler extends Extension {
         this.insertEmbed();
         break;
       }
-      case "mention": {
+      case "mention":
+      case "cardAndEmbed": {
         this.hidePasteMenu();
         this.insertMention();
         break;
@@ -683,6 +685,18 @@ export default class PasteHandler extends Extension {
         break;
     }
   };
+
+  commands() {
+    return {
+      cardAndEmbed:
+        (attrs: Record<string, Primitive>): Command =>
+        () => {
+          this.editor.commands.mention(attrs);
+          this.editor.commands.embed({ href: attrs.href });
+          return true;
+        },
+    };
+  }
 
   keys() {
     return {

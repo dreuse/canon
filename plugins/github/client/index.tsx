@@ -5,7 +5,10 @@ import { client } from "~/utils/ApiClient";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
 import { GitHubUtils } from "../shared/GitHubUtils";
+import { GitHubFileEmbed } from "./components/GitHubFileEmbed";
 import Icon from "./Icon";
+
+const GITHUB_FILE_EMBED_ID = "github-file";
 
 PluginManager.add([
   {
@@ -42,6 +45,14 @@ PluginManager.add([
         }>("/github.snippet", { url });
         return res.data;
       },
+    },
+  },
+  {
+    ...config,
+    type: Hook.EmbedComponent,
+    value: {
+      id: GITHUB_FILE_EMBED_ID,
+      component: GitHubFileEmbed,
     },
   },
 ]);

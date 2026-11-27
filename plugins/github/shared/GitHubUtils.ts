@@ -24,6 +24,13 @@ export interface CodePermalink {
   endLine: number;
 }
 
+export interface FileLocation {
+  owner: string;
+  repo: string;
+  ref?: string;
+  path?: string;
+}
+
 const LINE_RANGE_REGEX = /^#L([1-9]\d*)(?:C\d+)?(?:-L([1-9]\d*)(?:C\d+)?)?$/;
 const GITHUB_URL = "https://github.com";
 const APP_NAME_MAX_LENGTH = 34;
@@ -34,8 +41,43 @@ const APP_PERMISSIONS = {
   metadata: "read",
   organization_projects: "read",
   pull_requests: "write",
+  actions: "read",
+  deployments: "read",
+};
+const NON_REPOSITORY_OWNERS = new Set([
+  "orgs",
+  "users",
+  "settings",
+  "marketplace",
+  "apps",
+  "topics",
+  "sponsors",
+]);
+const STATUS_COLORS = {
+  success: "#238636",
+  failure: "#f85149",
+  pending: "#d29922",
+  neutral: "#848d97",
+};
+const STATUS_OUTCOMES: Record<string, keyof typeof STATUS_COLORS> = {
+  success: "success",
+  active: "success",
+  completed: "success",
+  failure: "failure",
+  error: "failure",
+  timed_out: "failure",
+  startup_failure: "failure",
+  action_required: "failure",
+  in_progress: "pending",
+  queued: "pending",
+  waiting: "pending",
+  pending: "pending",
+  requested: "pending",
 };
 const APP_EVENTS = ["repository"];
+const MARKDOWN_LANGUAGE = "markdown";
+const MIN_FENCE_LENGTH = 3;
+const BACKTICK_RUNS = /`+/g;
 
 export class GitHubUtils {
   static get url() {
@@ -138,6 +180,10 @@ export class GitHubUtils {
 
     const type = url.pathname.split("/")[3];
 
+    if (GitHubUtils.isRepositoryRoot(url)) {
+      return MentionType.URL;
+    }
+
     return type === "pull"
       ? MentionType.PullRequest
       : type === "issues"
@@ -183,6 +229,96 @@ export class GitHubUtils {
     } catch {
       return undefined;
     }
+  }
+
+  /**
+   * Parses a GitHub link to a repository file, or to a repository root,
+   * which stands for its README.
+   *
+   * @param url the URL to parse.
+   * @returns the file location, without a path for a repository root, or
+   * undefined for any other link.
+   */
+  public static parseFileUrl(url: URL): FileLocation | undefined {
+    if (url.hostname !== "github.com") {
+      return undefined;
+    }
+
+    const [, owner, repo] = url.pathname.split("/");
+
+    if (GitHubUtils.isRepositoryRoot(url)) {
+      return { owner, repo };
+    }
+
+    const [, , , type, ref, ...segments] = url.pathname.split("/");
+
+    if (
+      NON_REPOSITORY_OWNERS.has(owner) ||
+      type !== "blob" ||
+      !ref ||
+      !segments.length
+    ) {
+      return undefined;
+    }
+
+    try {
+      const path = segments.map(decodeURIComponent).join("/");
+      return { owner, repo, ref, path };
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Builds the Markdown shown for a repository file. Markdown files are used
+   * as they are, and code is wrapped in a fence longer than any backtick run
+   * inside it.
+   *
+   * @param file the code language and text of the file.
+   * @param range the lines to keep, when only part of the file is shown.
+   * @returns the Markdown for the file.
+   */
+  public static fileMarkdown(
+    file: { language: string; content: string },
+    range?: Pick<CodePermalink, "startLine" | "endLine">
+  ) {
+    if (file.language === MARKDOWN_LANGUAGE && !range) {
+      return file.content;
+    }
+
+    const code = range
+      ? file.content
+          .split(/\r?\n/)
+          .slice(range.startLine - 1, range.endLine)
+          .join("\n")
+      : file.content;
+    const longestRun = Math.max(
+      0,
+      ...(code.match(BACKTICK_RUNS) ?? []).map((run) => run.length)
+    );
+    const fence = "`".repeat(Math.max(MIN_FENCE_LENGTH, longestRun + 1));
+    return `${fence}${file.language}\n${code}\n${fence}`;
+  }
+
+  /**
+   * Picks the color for the state of a workflow run or a deployment.
+   *
+   * @param state the state, status or conclusion reported by GitHub.
+   * @returns a color for success, failure, pending or anything else.
+   */
+  public static statusColor(state: string) {
+    return STATUS_COLORS[STATUS_OUTCOMES[state.toLowerCase()] ?? "neutral"];
+  }
+
+  private static isRepositoryRoot(url: URL) {
+    const [, owner, repo, rest] = url.pathname.split("/");
+    return (
+      url.hostname === "github.com" &&
+      !!owner &&
+      !!repo &&
+      !rest &&
+      !NON_REPOSITORY_OWNERS.has(owner)
+    );
   }
 
   public static getColorForStatus(status: string, isDraftPR: boolean = false) {

@@ -52,3 +52,11 @@ export const GitHubSnippetSchema = BaseSchema.extend({
 });
 
 export type GitHubSnippetReq = z.infer<typeof GitHubSnippetSchema>;
+
+export const GitHubContentSchema = BaseSchema.extend({
+  body: z.object({
+    url: z.url(),
+  }),
+});
+
+export type GitHubContentReq = z.infer<typeof GitHubContentSchema>;

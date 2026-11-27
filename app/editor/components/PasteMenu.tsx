@@ -129,6 +129,17 @@ function useItems({
         : MentionType.URL;
     }
 
+    const isCard = mentionType === MentionType.URL && !isInternal;
+    const cardAttrs = {
+      id: uuidv4(),
+      type: MentionType.URL,
+      label: pastedText,
+      href: pastedText,
+      modelId: uuidv4(),
+      actorId: user?.id,
+      display: MentionDisplay.Card,
+    };
+
     return [
       {
         name: "mention",
@@ -149,16 +160,8 @@ function useItems({
         name: "mention",
         title: t("Card"),
         icon: <AlignImageRightIcon />,
-        visible: mentionType === MentionType.URL && !isInternal,
-        attrs: {
-          id: uuidv4(),
-          type: MentionType.URL,
-          label: pastedText,
-          href: pastedText,
-          modelId: uuidv4(),
-          actorId: user?.id,
-          display: MentionDisplay.Card,
-        },
+        visible: isCard,
+        attrs: cardAttrs,
       },
       {
         name: "code",
@@ -181,6 +184,14 @@ function useItems({
         disabled: isInternal || embedCheck.loading || !embedCheck.embeddable,
         icon: embed?.icon,
         keywords: embed?.keywords,
+      },
+      {
+        name: "cardAndEmbed",
+        title: t("Card and embed"),
+        icon: embed?.icon,
+        visible: isCard && !!embed?.withCard,
+        disabled: embedCheck.loading || !embedCheck.embeddable,
+        attrs: cardAttrs,
       },
     ];
   }

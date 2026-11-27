@@ -347,6 +347,108 @@ describe("#github.snippet", () => {
   });
 });
 
+describe("#github.content", () => {
+  const README_URL = "https://github.com/acme/app";
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  async function buildConnectedUser(build = buildUser) {
+    const user = await build();
+    await buildIntegration({
+      userId: user.id,
+      teamId: user.teamId,
+      service: IntegrationService.GitHub,
+      type: IntegrationType.Embed,
+      settings: {
+        url: "https://github.com/acme",
+        github: {
+          installation: {
+            id: 1,
+            account: { id: 2, name: "acme", avatarUrl: "" },
+          },
+        },
+      },
+    });
+    return user;
+  }
+
+  function stubReadme() {
+    const requestReadme = vi.fn(async () => ({
+      data: {
+        type: "file",
+        encoding: "base64",
+        path: "README.md",
+        html_url: "https://github.com/acme/app/blob/main/README.md",
+        content: Buffer.from("# App").toString("base64"),
+      },
+    }));
+    vi.spyOn(GitHub, "authenticateAsInstallation").mockResolvedValue({
+      requestReadme,
+    } as unknown as Awaited<
+      ReturnType<typeof GitHub.authenticateAsInstallation>
+    >);
+    return requestReadme;
+  }
+
+  it("should return the README of a repository", async () => {
+    const user = await buildConnectedUser();
+    stubReadme();
+
+    const res = await server.post("/api/github.content", user, {
+      body: { url: README_URL },
+    });
+
+    expect(res.status).toEqual(200);
+    expect((await res.json()).data).toEqual({
+      path: "README.md",
+      language: "markdown",
+      content: "# App",
+      url: "https://github.com/acme/app/blob/main/README.md",
+    });
+  });
+
+  it("should serve repeated requests from the cache", async () => {
+    const user = await buildConnectedUser();
+    const requestReadme = stubReadme();
+    const url = `${README_URL}#cache-${user.teamId}`;
+
+    await server.post("/api/github.content", user, { body: { url } });
+    await server.post("/api/github.content", user, { body: { url } });
+
+    expect(requestReadme).toHaveBeenCalledTimes(1);
+  });
+
+  it("should reject a link that is not a repository file", async () => {
+    const user = await buildConnectedUser();
+
+    const res = await server.post("/api/github.content", user, {
+      body: { url: "https://github.com/acme/app/issues/1" },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject guests", async () => {
+    const user = await buildConnectedUser(buildGuestUser);
+
+    const res = await server.post("/api/github.content", user, {
+      body: { url: README_URL },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/github.content", {
+      body: { url: README_URL },
+    });
+
+    expect(res.status).toEqual(401);
+  });
+});
+
 const ENV_KEYS = [
   "GITHUB_APP_ID",
   "GITHUB_APP_NAME",

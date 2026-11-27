@@ -1,4 +1,4 @@
-import { isMatch } from "es-toolkit/compat";
+import { isMatch, omit } from "es-toolkit/compat";
 import { sanitizeUrl } from "../../utils/urls";
 import type Token from "markdown-it/lib/token.mjs";
 import type {
@@ -616,7 +616,7 @@ export default class Mention extends Node {
             : undefined;
 
       const overrides: Record<string, unknown> = label ? { label } : {};
-      overrides.unfurl = unfurl;
+      overrides.unfurl = omit(unfurl, "statuses");
 
       // The resource an external link points at is only known once it has been
       // unfurled, so narrow a generic URL mention to the type it turned out to

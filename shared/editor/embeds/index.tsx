@@ -81,6 +81,8 @@ export class EmbedDescriptor {
   transformMatch?: (matches: RegExpMatchArray) => string;
   /** The node attributes */
   attrs?: Record<string, Primitive>;
+  /** Whether the paste menu offers a link card together with the embed */
+  withCard?: boolean;
   /** Whether the embed should be visible in menus, always true */
   visible?: boolean;
   /**
@@ -112,6 +114,7 @@ export class EmbedDescriptor {
     this.attrs = options.attrs;
     this.visible = options.visible;
     this.component = options.component;
+    this.withCard = options.withCard;
   }
 
   matcher(url: string): false | RegExpMatchArray {
@@ -314,6 +317,20 @@ const embeds: EmbedDescriptor[] = [
     ],
     icon: <Img src="/images/github-gist.png" alt="GitHub" $invertable />,
     component: Gist,
+  }),
+  new EmbedDescriptor({
+    id: "github-file",
+    name: IntegrationService.GitHub,
+    title: "GitHub file",
+    keywords: "code readme markdown repository",
+    matchOnInput: false,
+    withCard: true,
+    regexMatch: [
+      new RegExp(
+        "^https://github\\.com/(?!orgs/|users/)[\\w.-]+/[\\w.-]+(?:/blob/[^/#?]+/[^#?]+)?/?(?:#.*)?$"
+      ),
+    ],
+    icon: <Img src="/images/github-gist.png" alt="GitHub" $invertable />,
   }),
   new EmbedDescriptor({
     id: "gitlab-snippet",

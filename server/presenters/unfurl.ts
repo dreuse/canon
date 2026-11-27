@@ -51,6 +51,7 @@ const presentURL = (
   color: data.color,
   thumbnailUrl: data.thumbnailUrl,
   faviconUrl: data.faviconUrl,
+  statuses: data.statuses,
 });
 
 const presentMention = async (

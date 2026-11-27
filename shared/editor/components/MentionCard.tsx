@@ -1,3 +1,4 @@
+import { formatDistanceToNowStrict } from "date-fns";
 import * as React from "react";
 import styled from "styled-components";
 import { Backticks } from "../../components/Backticks";
@@ -41,6 +42,26 @@ export const LinkCard = ({
     <MentionCard
       title={unfurl.title || (url ? toDisplayUrl(url) : "")}
       description={unfurl.description}
+      details={
+        unfurl.statuses?.length ? (
+          <Statuses>
+            {unfurl.statuses.map((status) => (
+              <StatusRow key={status.label} align="center" gap={6}>
+                <StatusDot $color={status.color} />
+                <StatusLabel>{status.label}</StatusLabel>
+                <StatusValue>{status.value}</StatusValue>
+                {status.timestamp ? (
+                  <StatusTime>
+                    {formatDistanceToNowStrict(new Date(status.timestamp), {
+                      addSuffix: true,
+                    })}
+                  </StatusTime>
+                ) : null}
+              </StatusRow>
+            ))}
+          </Statuses>
+        ) : null
+      }
       thumbnailUrl={unfurl.thumbnailUrl}
       source={
         <>
@@ -63,6 +84,8 @@ interface MentionCardProps {
   titleSuffix?: React.ReactNode;
   /** A short plain text description. */
   description?: string;
+  /** Content shown below the description, before the source. */
+  details?: React.ReactNode;
   /** Content shown below the description, such as the source of the link. */
   source?: React.ReactNode;
   /** An image shown at the side of the card. */
@@ -81,6 +104,7 @@ export const MentionCard = ({
   title,
   titleSuffix,
   description,
+  details,
   source,
   thumbnailUrl,
 }: MentionCardProps) => {
@@ -102,6 +126,7 @@ export const MentionCard = ({
           </TitleText>
         </Title>
         {description ? <Description>{description}</Description> : null}
+        {details}
         {source ? (
           <Source align="center" gap={6}>
             {source}
@@ -179,6 +204,43 @@ const Description = styled.span`
   -webkit-box-orient: vertical;
   overflow: hidden;
   white-space: normal;
+`;
+
+const Statuses = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: normal;
+`;
+
+const StatusRow = styled(Flex)`
+  min-width: 0;
+  white-space: nowrap;
+`;
+
+const StatusDot = styled.span<{ $color?: string }>`
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${(props) => props.$color ?? props.theme.divider};
+`;
+
+const StatusLabel = styled.span`
+  color: ${(props) => props.theme.textSecondary};
+`;
+
+const StatusValue = styled.span`
+  color: ${(props) => props.theme.text};
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const StatusTime = styled.span`
+  flex-shrink: 0;
+  color: ${(props) => props.theme.textTertiary};
 `;
 
 const Source = styled(Flex)`

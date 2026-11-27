@@ -47,6 +47,19 @@ export type UnfurlResponse = {
     thumbnailUrl: string;
     /** A URL to a favicon representing the resource */
     faviconUrl: string;
+    /** Status rows shown on the card, such as builds and deployments */
+    statuses?: {
+      /** What the row reports on */
+      label: string;
+      /** The current value */
+      value: string;
+      /** A color representing the value */
+      color?: string;
+      /** A URL with details */
+      url?: string;
+      /** When the value last changed, as an ISO 8601 string */
+      timestamp?: string;
+    }[];
   };
   [UnfurlResourceType.Mention]: {
     /** The resource type */

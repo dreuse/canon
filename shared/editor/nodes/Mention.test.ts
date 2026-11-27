@@ -1,6 +1,6 @@
 import type { EditorState } from "prosemirror-state";
 import { NodeSelection } from "prosemirror-state";
-import { MentionDisplay, MentionType } from "../../types";
+import { MentionDisplay, MentionType, UnfurlResourceType } from "../../types";
 import {
   createEditorState,
   parser,
@@ -602,5 +602,45 @@ describe("Mention markdown round trip", () => {
 
     expect(mention).toBeDefined();
     expect(JSON.stringify(mention?.toJSON())).not.toContain('"display"');
+  });
+});
+
+describe("Mention unfurl storage", () => {
+  it("does not store card statuses in the document", () => {
+    const href = "https://github.com/acme/app";
+    let state = createEditorState(
+      docWithMention({
+        id,
+        modelId,
+        type: MentionType.URL,
+        display: MentionDisplay.Card,
+        label: "acme/app",
+        href,
+      })
+    );
+    const view = {
+      get state() {
+        return state;
+      },
+      dispatch: (tr: EditorState["tr"]) => {
+        state = state.apply(tr);
+      },
+    };
+    const mention = Object.assign(new Mention(), { editor: { view } });
+    const unfurl = {
+      type: UnfurlResourceType.URL as const,
+      url: href,
+      title: "acme/app",
+      description: "The app",
+      thumbnailUrl: "",
+      faviconUrl: "",
+    };
+
+    mention.handleChangeUnfurl({
+      node: state.doc.nodeAt(1)!,
+      getPos: () => 1,
+    })({ ...unfurl, statuses: [{ label: "CI", value: "success" }] });
+
+    expect(state.doc.nodeAt(1)?.attrs.unfurl).toEqual(unfurl);
   });
 });

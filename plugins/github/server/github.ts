@@ -21,7 +21,11 @@ import type {
   UnfurlSignature,
   UnfurlURL,
 } from "@server/types";
-import type { CodePermalink, GitHubAppIdentity } from "../shared/GitHubUtils";
+import type {
+  CodePermalink,
+  FileLocation,
+  GitHubAppIdentity,
+} from "../shared/GitHubUtils";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -73,11 +77,92 @@ type ParsedCommit = {
   url: string;
 };
 
-type GitHubResource = ParsedIssueOrPR | ParsedProject | ParsedCommit;
+type ParsedRepo = {
+  owner: string;
+  repo: string;
+  type: typeof REPO_RESOURCE;
+  url: string;
+};
+
+type GitHubResource =
+  | ParsedIssueOrPR
+  | ParsedProject
+  | ParsedCommit
+  | ParsedRepo;
+
+type RepoLocation = Pick<ParsedRepo, "owner" | "repo">;
+
+type FileData =
+  | Endpoints["GET /repos/{owner}/{repo}/contents/{path}"]["response"]["data"]
+  | Endpoints["GET /repos/{owner}/{repo}/readme"]["response"]["data"];
+
+type RepoOverview = {
+  nameWithOwner: string;
+  description: string | null;
+  url: string;
+  owner: { avatarUrl: string };
+  defaultBranchRef: {
+    name: string;
+    target: {
+      messageHeadline?: string;
+      committedDate?: string;
+      url?: string;
+    } | null;
+  } | null;
+  pullRequests: { totalCount: number };
+  latestRelease: {
+    tagName: string;
+    publishedAt: string | null;
+    url: string;
+  } | null;
+};
+
+type RepoDeployment = {
+  environment: string | null;
+  createdAt: string;
+  ref: { name: string } | null;
+  latestStatus: { state: string } | null;
+};
+
+type WorkflowRun =
+  Endpoints["GET /repos/{owner}/{repo}/actions/runs"]["response"]["data"]["workflow_runs"][number];
+
+type RepoStatus = NonNullable<UnfurlURL["statuses"]>[number];
 
 export const MAX_SNIPPET_LINES = 200;
+export const MAX_WORKFLOW_ROWS = 4;
+export const MAX_ENVIRONMENT_ROWS = 4;
 
 const COMMIT_RESOURCE = "commit";
+const REPO_RESOURCE = "repo";
+const WORKFLOW_RUNS_PAGE = 50;
+const DEPLOYMENTS_PAGE = 30;
+const REPO_OVERVIEW_QUERY = `query($owner: String!, $repo: String!) {
+  repository(owner: $owner, name: $repo) {
+    nameWithOwner
+    description
+    url
+    owner { avatarUrl }
+    defaultBranchRef {
+      name
+      target { ... on Commit { messageHeadline committedDate url } }
+    }
+    pullRequests(states: OPEN) { totalCount }
+    latestRelease { tagName publishedAt url }
+  }
+}`;
+const DEPLOYMENTS_QUERY = `query($owner: String!, $repo: String!, $first: Int!) {
+  repository(owner: $owner, name: $repo) {
+    deployments(first: $first, orderBy: { field: CREATED_AT, direction: DESC }) {
+      nodes {
+        environment
+        createdAt
+        ref { name }
+        latestStatus { state }
+      }
+    }
+  }
+}`;
 const NOT_FOUND = 404;
 const BASE64_ENCODING = "base64";
 const COMMENTS_PER_PAGE = 100;
@@ -140,6 +225,47 @@ const requestPlugin = (octokit: Octokit) => ({
       },
     }),
 
+  requestReadme: async (params: RepoLocation) =>
+    octokit.request(`GET /repos/{owner}/{repo}/readme`, {
+      owner: params.owner,
+      repo: params.repo,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  requestRepoOverview: async (params: RepoLocation) =>
+    (
+      await octokit.graphql<{ repository: RepoOverview | null }>(
+        REPO_OVERVIEW_QUERY,
+        { owner: params.owner, repo: params.repo }
+      )
+    ).repository,
+
+  requestDeployments: async (params: RepoLocation) =>
+    (
+      await octokit.graphql<{
+        repository: { deployments: { nodes: RepoDeployment[] } } | null;
+      }>(DEPLOYMENTS_QUERY, {
+        owner: params.owner,
+        repo: params.repo,
+        first: DEPLOYMENTS_PAGE,
+      })
+    ).repository?.deployments.nodes ?? [],
+
+  requestWorkflowRuns: async (params: RepoLocation & { branch: string }) =>
+    octokit.request(`GET /repos/{owner}/{repo}/actions/runs`, {
+      owner: params.owner,
+      repo: params.repo,
+      branch: params.branch,
+      per_page: WORKFLOW_RUNS_PAGE,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
   requestIssue: async (params: ParsedIssueOrPR) =>
     octokit.request(`GET /repos/{owner}/{repo}/issues/{issue_number}`, {
       owner: params.owner,
@@ -151,7 +277,7 @@ const requestPlugin = (octokit: Octokit) => ({
       },
     }),
 
-  requestRepo: async (params: ParsedIssueOrPR) =>
+  requestRepo: async (params: RepoLocation) =>
     octokit.request(`GET /repos/{owner}/{repo}`, {
       owner: params.owner,
       repo: params.repo,
@@ -383,6 +509,10 @@ export class GitHub {
 
       const owner = parts[1];
       const repo = parts[2];
+
+      if (owner && repo && !parts[3]) {
+        return { owner, repo, type: REPO_RESOURCE, url };
+      }
 
       if (parts[3] === COMMIT_RESOURCE && parts[4]) {
         return { owner, repo, type: COMMIT_RESOURCE, sha: parts[4], url };
@@ -628,6 +758,10 @@ export class GitHub {
         return GitHub.unfurlProject(client, resource);
       }
 
+      if (resource.type === REPO_RESOURCE) {
+        return await GitHub.unfurlRepo(client, resource);
+      }
+
       if (resource.type === COMMIT_RESOURCE) {
         const { data: commit } = await client.requestCommit(resource);
         return {
@@ -698,38 +832,9 @@ export class GitHub {
    * outside it.
    */
   public static async snippet(teamId: string, permalink: CodePermalink) {
-    const integration = await GitHub.integrationForOwner(
-      teamId,
-      permalink.owner
-    );
-
-    if (!integration) {
-      throw NotFoundError("GitHub integration not found");
-    }
-
-    const client = await GitHub.authenticateAsInstallation(
-      integration.settings.github!.installation.id
-    );
-    const { data: file } = await client
-      .requestContent(permalink)
-      .catch((err: unknown) => {
-        if (err instanceof RequestError && err.status === NOT_FOUND) {
-          throw NotFoundError("File not found on GitHub");
-        }
-        throw err;
-      });
-
-    if (
-      Array.isArray(file) ||
-      file.type !== "file" ||
-      file.encoding !== BASE64_ENCODING
-    ) {
-      throw ValidationError("File is too large to read from GitHub");
-    }
-
-    const lines = Buffer.from(file.content, BASE64_ENCODING)
-      .toString("utf8")
-      .split(/\r?\n/);
+    const client = await GitHub.installationClient(teamId, permalink.owner);
+    const { text } = await GitHub.readFile(client.requestContent(permalink));
+    const lines = text.split(/\r?\n/);
 
     if (permalink.startLine > lines.length) {
       throw ValidationError("Line range is outside the file");
@@ -739,6 +844,180 @@ export class GitHub {
       language: getLanguageForFilename(permalink.path),
       code: lines.slice(permalink.startLine - 1, permalink.endLine).join("\n"),
     };
+  }
+
+  /**
+   * Fetches a repository file, or the README when no path is given.
+   *
+   * @param teamId the team whose GitHub installation is used.
+   * @param location the repository, and the ref and path of the file.
+   * @returns the file path, code language, text and GitHub URL.
+   * @throws {NotFoundError} when the team has no integration or GitHub cannot
+   * see the file.
+   * @throws {ValidationError} when the file is too large.
+   */
+  public static async content(teamId: string, location: FileLocation) {
+    const client = await GitHub.installationClient(teamId, location.owner);
+    const { file, text } = await GitHub.readFile(
+      location.path
+        ? client.requestContent({
+            owner: location.owner,
+            repo: location.repo,
+            path: location.path,
+            ref: location.ref ?? "",
+          } as CodePermalink)
+        : client.requestReadme(location)
+    );
+
+    return {
+      path: file.path,
+      language: getLanguageForFilename(file.path),
+      content: text,
+      url: file.html_url ?? "",
+    };
+  }
+
+  private static async installationClient(teamId: string, owner: string) {
+    const integration = await GitHub.integrationForOwner(teamId, owner);
+
+    if (!integration) {
+      throw NotFoundError("GitHub integration not found");
+    }
+
+    return GitHub.authenticateAsInstallation(
+      integration.settings.github!.installation.id
+    );
+  }
+
+  private static async readFile(request: Promise<{ data: FileData }>) {
+    const { data: file } = await request.catch((err: unknown) => {
+      if (err instanceof RequestError && err.status === NOT_FOUND) {
+        throw NotFoundError("File not found on GitHub");
+      }
+      throw err;
+    });
+
+    if (
+      Array.isArray(file) ||
+      file.type !== "file" ||
+      !("encoding" in file) ||
+      file.encoding !== BASE64_ENCODING
+    ) {
+      throw ValidationError("File is too large to read from GitHub");
+    }
+
+    return {
+      file,
+      text: Buffer.from(file.content, BASE64_ENCODING).toString("utf8"),
+    };
+  }
+
+  private static async unfurlRepo(client: GitHubClient, resource: ParsedRepo) {
+    const repo = await client.requestRepoOverview(resource);
+    if (!repo) {
+      return { error: "Resource not found" };
+    }
+
+    const branch = repo.defaultBranchRef?.name;
+    const [runs, deployments] = await Promise.allSettled([
+      branch
+        ? client.requestWorkflowRuns({ ...resource, branch })
+        : Promise.resolve(undefined),
+      client.requestDeployments(resource),
+    ]);
+
+    return {
+      type: UnfurlResourceType.URL,
+      url: repo.url,
+      title: repo.nameWithOwner,
+      description: repo.description ?? "",
+      thumbnailUrl: repo.owner.avatarUrl,
+      faviconUrl: GITHUB_FAVICON_URL,
+      statuses: [
+        ...(runs.status === "fulfilled" && runs.value
+          ? GitHub.workflowStatuses(runs.value.data.workflow_runs)
+          : []),
+        ...(deployments.status === "fulfilled"
+          ? GitHub.deploymentStatuses(deployments.value)
+          : []),
+        ...GitHub.repoStatuses(repo),
+      ],
+    } satisfies UnfurlURL;
+  }
+
+  private static workflowStatuses(runs: WorkflowRun[]): RepoStatus[] {
+    const newest = new Map<number, WorkflowRun>();
+    for (const run of runs) {
+      if (!newest.has(run.workflow_id)) {
+        newest.set(run.workflow_id, run);
+      }
+    }
+
+    return [...newest.values()].slice(0, MAX_WORKFLOW_ROWS).map((run) => {
+      const state = run.conclusion ?? run.status ?? "";
+      return {
+        label: run.name ?? "",
+        value: state,
+        color: GitHubUtils.statusColor(state),
+        url: run.html_url,
+        timestamp: run.updated_at,
+      };
+    });
+  }
+
+  private static deploymentStatuses(
+    deployments: RepoDeployment[]
+  ): RepoStatus[] {
+    const newest = new Map<string, RepoDeployment>();
+    for (const deployment of deployments) {
+      if (deployment.environment && !newest.has(deployment.environment)) {
+        newest.set(deployment.environment, deployment);
+      }
+    }
+
+    return [...newest.entries()]
+      .slice(0, MAX_ENVIRONMENT_ROWS)
+      .map(([environment, deployment]) => {
+        const state = deployment.latestStatus?.state.toLowerCase() ?? "";
+        return {
+          label: environment,
+          value: [state, deployment.ref?.name].filter(Boolean).join(" · "),
+          color: GitHubUtils.statusColor(state),
+          timestamp: deployment.createdAt,
+        };
+      });
+  }
+
+  private static repoStatuses(repo: RepoOverview): RepoStatus[] {
+    const commit = repo.defaultBranchRef?.target;
+
+    return [
+      ...(repo.latestRelease
+        ? [
+            {
+              label: "Release",
+              value: repo.latestRelease.tagName,
+              url: repo.latestRelease.url,
+              timestamp: repo.latestRelease.publishedAt ?? undefined,
+            },
+          ]
+        : []),
+      {
+        label: "Open pull requests",
+        value: String(repo.pullRequests.totalCount),
+        url: `${repo.url}/pulls`,
+      },
+      ...(commit?.messageHeadline
+        ? [
+            {
+              label: "Last commit",
+              value: commit.messageHeadline,
+              url: commit.url,
+              timestamp: commit.committedDate,
+            },
+          ]
+        : []),
+    ];
   }
 
   private static async unfurlProject(

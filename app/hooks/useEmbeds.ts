@@ -54,6 +54,13 @@ export default function useEmbeds(loadIfMissing = false) {
             ?.value.url(integration.settings);
         }
 
+        const component = PluginManager.getHooks(Hook.EmbedComponent).find(
+          (hook) => hook.value.id === e.id
+        )?.value.component;
+        if (component) {
+          e.component = component;
+        }
+
         e.disabled = disabledEmbeds.includes(e.id);
 
         return e;

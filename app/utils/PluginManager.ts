@@ -1,6 +1,8 @@
 import { isArray, sortBy } from "es-toolkit/compat";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import type { IObservableArray } from "mobx";
+import type { FunctionComponent } from "react";
+import type { EmbedProps } from "@shared/editor/embeds";
 import type {
   IntegrationService,
   IntegrationSettings,
@@ -25,6 +27,7 @@ export enum Hook {
   MentionProvider = "mentionProvider",
   InstanceUrl = "instanceUrl",
   CodeSnippetProvider = "codeSnippetProvider",
+  EmbedComponent = "embedComponent",
 }
 
 /**
@@ -82,6 +85,12 @@ type PluginValueMap = {
     matches: (url: URL) => boolean;
     /** Fetches the lines of code the URL points at. */
     fetch: (url: string) => Promise<{ language: string; code: string }>;
+  };
+  [Hook.EmbedComponent]: {
+    /** The id of the embed descriptor that this component renders. */
+    id: string;
+    /** The component that renders the embed. */
+    component: FunctionComponent<EmbedProps>;
   };
 };
 

@@ -1,6 +1,7 @@
 import Router from "@koa/router";
 import { find } from "es-toolkit/compat";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { Minute } from "@shared/utils/time";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import { AuthorizationError, ValidationError } from "@server/errors";
@@ -18,11 +19,14 @@ import {
   verifyOAuthStateNonce,
 } from "@server/utils/oauth";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { RequestHelper } from "@server/utils/RequestHelper";
 import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
 import { GitHub, InstallationAccess, MAX_SNIPPET_LINES } from "../github";
 import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import * as T from "./schema";
+
+const CONTENT_CACHE_PREFIX = "github:content";
 
 const router = new Router();
 
@@ -206,6 +210,34 @@ router.post(
     }
 
     ctx.body = { data: await GitHub.snippet(user.teamId, permalink) };
+  }
+);
+
+router.post(
+  "github.content",
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
+  auth(),
+  validate(T.GitHubContentSchema),
+  async (ctx: APIContext<T.GitHubContentReq>) => {
+    const { user } = ctx.state.auth;
+    const { url } = ctx.input.body;
+
+    if (user.isGuest) {
+      throw AuthorizationError();
+    }
+
+    const location = GitHubUtils.parseFileUrl(new URL(url));
+    if (!location) {
+      throw ValidationError("Not a GitHub link to a repository file");
+    }
+
+    ctx.body = {
+      data: await CacheHelper.getDataOrSet(
+        `${CONTENT_CACHE_PREFIX}:${user.teamId}:${url}`,
+        () => GitHub.content(user.teamId, location),
+        Minute.seconds
+      ),
+    };
   }
 );
 

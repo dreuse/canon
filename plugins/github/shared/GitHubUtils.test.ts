@@ -16,6 +16,21 @@ describe("GitHubUtils.mentionType", () => {
     ).toBe(MentionType.Issue);
   });
 
+  it("should map a repository root to a URL mention", () => {
+    expect(
+      GitHubUtils.mentionType(new URL("https://github.com/acme/app"))
+    ).toBe(MentionType.URL);
+    expect(
+      GitHubUtils.mentionType(new URL("https://github.com/acme/app/"))
+    ).toBe(MentionType.URL);
+  });
+
+  it("should not map account pages to a repository", () => {
+    expect(
+      GitHubUtils.mentionType(new URL("https://github.com/orgs/acme"))
+    ).toBeUndefined();
+  });
+
   it("should ignore other repository pages", () => {
     expect(
       GitHubUtils.mentionType(new URL("https://github.com/acme/app/tree/main"))
@@ -71,6 +86,70 @@ describe("GitHubUtils.parseCodePermalink", () => {
   });
 });
 
+describe("GitHubUtils.parseFileUrl", () => {
+  it("should parse a file on a ref", () => {
+    expect(
+      GitHubUtils.parseFileUrl(
+        new URL("https://github.com/acme/app/blob/main/docs/my%20guide.md#L3")
+      )
+    ).toEqual({
+      owner: "acme",
+      repo: "app",
+      ref: "main",
+      path: "docs/my guide.md",
+    });
+  });
+
+  it("should parse a repository root as its README", () => {
+    for (const url of [
+      "https://github.com/acme/app",
+      "https://github.com/acme/app/",
+      "https://github.com/acme/app#readme",
+    ]) {
+      expect(GitHubUtils.parseFileUrl(new URL(url))).toEqual({
+        owner: "acme",
+        repo: "app",
+      });
+    }
+  });
+
+  it("should reject other links", () => {
+    const invalid = [
+      "https://github.com/acme",
+      "https://github.com/acme/app/issues/1",
+      "https://github.com/acme/app/tree/main/docs",
+      "https://github.com/acme/app/blob/main",
+      "https://github.com/acme/app/blob/main/%zz.md",
+      "https://github.com/orgs/acme",
+      "https://gitlab.com/acme/app",
+    ];
+
+    for (const url of invalid) {
+      expect(GitHubUtils.parseFileUrl(new URL(url))).toBeUndefined();
+    }
+  });
+});
+
+describe("GitHubUtils.statusColor", () => {
+  it("should color states by outcome", () => {
+    expect(GitHubUtils.statusColor("success")).toBe(
+      GitHubUtils.statusColor("active")
+    );
+    expect(GitHubUtils.statusColor("failure")).toBe(
+      GitHubUtils.statusColor("error")
+    );
+    expect(GitHubUtils.statusColor("in_progress")).toBe(
+      GitHubUtils.statusColor("pending")
+    );
+    expect(GitHubUtils.statusColor("success")).not.toBe(
+      GitHubUtils.statusColor("failure")
+    );
+    expect(GitHubUtils.statusColor("skipped")).toBe(
+      GitHubUtils.statusColor("unknown")
+    );
+  });
+});
+
 describe("GitHubUtils.manifest", () => {
   const baseUrl = "https://docs.example.com";
   const manifest = GitHubUtils.manifest("Canon", baseUrl);
@@ -106,6 +185,8 @@ describe("GitHubUtils.manifest", () => {
       metadata: "read",
       organization_projects: "read",
       pull_requests: "write",
+      actions: "read",
+      deployments: "read",
     });
     expect(manifest.default_events).toEqual(["repository"]);
   });
@@ -138,5 +219,40 @@ describe("GitHubUtils.authUrl", () => {
     );
     expect(url.pathname).toBe("/apps/canon-acme/installations/new");
     expect(url.searchParams.get("client_id")).toBe("Iv1.abc");
+  });
+});
+
+describe("GitHubUtils.fileMarkdown", () => {
+  it("should return markdown files unchanged", () => {
+    expect(
+      GitHubUtils.fileMarkdown({ language: "markdown", content: "# App" })
+    ).toEqual("# App");
+  });
+
+  it("should fence code with its language", () => {
+    expect(
+      GitHubUtils.fileMarkdown({ language: "typescript", content: "a()" })
+    ).toEqual("```typescript\na()\n```");
+  });
+
+  it("should use a fence longer than any backtick run in the code", () => {
+    expect(
+      GitHubUtils.fileMarkdown(
+        { language: "markdown", content: "````\nx" },
+        {
+          startLine: 1,
+          endLine: 2,
+        }
+      )
+    ).toEqual("`````markdown\n````\nx\n`````");
+  });
+
+  it("should keep only the lines in the range", () => {
+    expect(
+      GitHubUtils.fileMarkdown(
+        { language: "typescript", content: "one\ntwo\nthree" },
+        { startLine: 2, endLine: 3 }
+      )
+    ).toEqual("```typescript\ntwo\nthree\n```");
   });
 });
