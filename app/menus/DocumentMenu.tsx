@@ -46,6 +46,8 @@ type Props = {
   onSelectTemplate?: (template: Template) => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
+  /** Invoked when the "Edit…" menu item is clicked */
+  onEdit?: () => void;
   /** Invoked when menu is opened */
   onOpen?: () => void;
   /** Invoked when menu is closed */
@@ -61,6 +63,7 @@ function DocumentMenu({
   showDisplayOptions,
   onSelectTemplate,
   onRename,
+  onEdit,
   onOpen,
   onClose,
   onFindAndReplace,
@@ -134,6 +137,7 @@ function DocumentMenu({
     isViewing: showDisplayOptions,
     onFindAndReplace,
     onRename,
+    onEdit,
     onSelectTemplate,
   });
 

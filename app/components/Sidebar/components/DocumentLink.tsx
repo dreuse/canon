@@ -21,6 +21,8 @@ import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import { DocumentEdit } from "~/components/DocumentEdit";
+import { DialogTitle } from "~/components/DialogTitle";
 import { preloadEditor } from "~/routes/scenes";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { DocumentIcon } from "~/components/Icons/DocumentIcon";
@@ -72,7 +74,7 @@ const DocumentLink = observer(function DocumentLink({
   hasChildren,
   trailingAncestors,
 }: Props) {
-  const { documents } = useStores();
+  const { documents, dialogs } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
   const can = usePolicy(node.id);
@@ -133,6 +135,18 @@ const DocumentLink = observer(function DocumentLink({
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);
   }, []);
+
+  const handleEdit = React.useCallback(() => {
+    if (!document) {
+      return;
+    }
+    dialogs.openModal({
+      title: <DialogTitle title={t("Edit document")} model={document} />,
+      content: (
+        <DocumentEdit document={document} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [dialogs, document, t]);
 
   const toPath = React.useMemo(
     () => ({
@@ -276,12 +290,14 @@ const DocumentLink = observer(function DocumentLink({
   const contextMenuAction = useDocumentMenuAction({
     documentId: node.id,
     onRename: handleRename,
+    onEdit: handleEdit,
   });
 
   const menu = document ? (
     <DocumentMenu
       document={document}
       onRename={handleRename}
+      onEdit={handleEdit}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
     />

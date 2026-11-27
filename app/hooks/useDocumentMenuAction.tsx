@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { SearchIcon } from "outline-icons";
+import { EditIcon, SearchIcon } from "outline-icons";
 import { ActionSeparator, createAction, createRootMenuAction } from "~/actions";
 import {
   restoreDocument,
@@ -51,6 +51,8 @@ type Props = {
   onFindAndReplace?: () => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
+  /** Invoked when the "Edit…" menu item is clicked, replacing document editing */
+  onEdit?: () => void;
   /** Callback when a template is selected to apply its content to the document */
   onSelectTemplate?: (template: Template) => void;
 };
@@ -60,6 +62,7 @@ export function useDocumentMenuAction({
   isViewing = false,
   onFindAndReplace,
   onRename,
+  onEdit,
   onSelectTemplate,
 }: Props) {
   const { t } = useTranslation();
@@ -87,7 +90,17 @@ export function useDocumentMenuAction({
           perform: () => onFindAndReplace?.(),
         }),
         ActionSeparator,
-        editDocument,
+        onEdit
+          ? createAction({
+              name: `${t("Edit")}…`,
+              analyticsName: "Edit document entry",
+              section: ActiveDocumentSection,
+              icon: <EditIcon />,
+              visible: ({ stores }) =>
+                !!stores.policies.abilities(documentId).update,
+              perform: () => onEdit(),
+            })
+          : editDocument,
         renameActionFactory({
           section: ActiveDocumentSection,
           modelId: documentId,
@@ -129,6 +142,7 @@ export function useDocumentMenuAction({
       documentId,
       onFindAndReplace,
       onRename,
+      onEdit,
     ]
   );
 }
