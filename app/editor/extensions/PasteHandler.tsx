@@ -12,7 +12,7 @@ import { addMark } from "@shared/editor/commands/addMark";
 import { replaceLink } from "@shared/editor/commands/link";
 import { pasteIntoListItem } from "@shared/editor/commands/pasteIntoListItem";
 import { codeLanguages } from "@shared/editor/lib/code";
-import { getMatchingEmbed, getSpecificEmbed } from "@shared/editor/lib/embeds";
+import { getSpecificEmbed } from "@shared/editor/lib/embeds";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
