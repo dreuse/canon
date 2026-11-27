@@ -111,6 +111,8 @@ function DocumentHeader({
   const isMobile = isMobileMedia || (size.width > 0 && size.width < 700);
   const isPhone = isMobileMedia;
   const { collection } = document;
+  const opensPublishPicker =
+    !document.collectionId || (!!collection?.isPersonal && !document.isDraft);
   const backPath = collection
     ? collection.path
     : document.isDraft
@@ -343,18 +345,16 @@ function DocumentHeader({
               </Action>
             </>
           )}
-          {can.publish && (
-            <Action>
-              <Button
-                action={publishDocument}
-                disabled={publishingIsDisabled}
-                hideOnActionDisabled
-                hideIcon
-              >
-                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
-              </Button>
-            </Action>
-          )}
+          <Action>
+            <Button
+              action={publishDocument}
+              disabled={publishingIsDisabled}
+              hideOnActionDisabled
+              hideIcon
+            >
+              {opensPublishPicker ? `${t("Publish")}…` : t("Publish")}
+            </Button>
+          </Action>
           <Action>
             <DocumentMenu
               document={document}

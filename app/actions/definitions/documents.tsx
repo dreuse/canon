@@ -537,9 +537,11 @@ export const publishDocument = createAction({
       return false;
     }
     const document = stores.documents.get(activeDocumentId);
-    return (
-      !!document?.isDraft && stores.policies.abilities(activeDocumentId).publish
-    );
+    const abilities = stores.policies.abilities(activeDocumentId);
+    if (document?.isDraft) {
+      return !!abilities.publish;
+    }
+    return !!document?.collection?.isPersonal && !!abilities.move;
   },
   perform: async ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
@@ -547,6 +549,13 @@ export const publishDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
+    if (document?.collection?.isPersonal && !document.isDraft) {
+      stores.dialogs.openModal({
+        title: <DialogTitle title={t("Publish document")} model={document} />,
+        content: <DocumentMove documents={[document]} />,
+      });
+      return;
+    }
     if (document?.publishedAt) {
       return;
     }
