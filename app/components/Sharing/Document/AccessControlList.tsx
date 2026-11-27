@@ -139,8 +139,8 @@ export const AccessControlList = observer(
                         <UserIcon color={theme.accentText} size={16} />
                       </Squircle>
                     }
-                    title={t("All members")}
-                    subtitle={t("Everyone in the workspace")}
+                    title={team.name}
+                    subtitle={t("All members")}
                     actions={
                       <AccessTooltip>
                         {collection?.permission ===

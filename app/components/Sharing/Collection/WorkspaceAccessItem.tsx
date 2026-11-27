@@ -7,6 +7,7 @@ import type { CollectionPermission } from "@shared/types";
 import type Collection from "~/models/Collection";
 import { AvatarSize } from "~/components/Avatar";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import { EmptySelectValue } from "~/types";
 import { ListItem } from "../components/ListItem";
@@ -27,6 +28,7 @@ export const WorkspaceAccessItem = observer(function WorkspaceAccessItem({
 }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const team = useCurrentTeam();
   const can = usePolicy(collection);
 
   const handleChange = (
@@ -44,8 +46,8 @@ export const WorkspaceAccessItem = observer(function WorkspaceAccessItem({
           <UserIcon color={theme.accentText} size={16} />
         </Squircle>
       }
-      title={t("All members")}
-      subtitle={t("Everyone in the workspace")}
+      title={team.name}
+      subtitle={t("All members")}
       actions={
         <div style={{ marginRight: -8 }}>
           <InputSelectPermission

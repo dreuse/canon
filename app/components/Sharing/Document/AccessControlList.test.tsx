@@ -15,7 +15,8 @@ const USER_ID = "user-1";
 const TEAM_ID = "team-1";
 const DOCUMENT_ID = "document-1";
 const COLLECTION_ID = "collection-1";
-const WORKSPACE_ROW = "Everyone in the workspace";
+const WORKSPACE_ROW = "All members";
+const TEAM_NAME = "Omni";
 const PERMISSION_SELECT = "Permission";
 
 class ObserverStub {
@@ -26,7 +27,7 @@ class ObserverStub {
 
 function seed(collectionAbilities: Record<string, boolean>) {
   stores.users.add({ id: USER_ID, name: "Ana", role: UserRole.Admin });
-  stores.auth.add({ id: TEAM_ID, name: "Omni" });
+  stores.auth.add({ id: TEAM_ID, name: TEAM_NAME });
   stores.collections.add({ id: COLLECTION_ID, name: "Onboarding" });
   stores.documents.add({
     id: DOCUMENT_ID,
@@ -91,6 +92,7 @@ describe("Document access list", () => {
     seed({ manageUsers: true });
     renderList();
 
+    expect(screen.getByText(TEAM_NAME)).toBeTruthy();
     expect(screen.getByText(WORKSPACE_ROW)).toBeTruthy();
     expect(
       screen.getByRole("combobox", { name: PERMISSION_SELECT })
