@@ -56,6 +56,8 @@ import SharedHeader from "./SharedHeader";
 
 const PROSE_MEASURE = "70ch";
 
+const WIDE_DOCUMENT_WIDTH = "72em";
+
 const EDITOR_PADDING = 44;
 
 const BLOCK_GUTTER = 32;
@@ -596,7 +598,7 @@ const Main = styled.div<MainProps>`
   `};
 
   ${breakpoint("desktopLarge")`
-    grid-template-columns: ${columns(EditorStyleHelper.documentWidth)};
+    grid-template-columns: ${columns(WIDE_DOCUMENT_WIDTH)};
   `};
 
   ${({ fullWidth, isTextShifted }: MainProps) =>
@@ -690,6 +692,17 @@ const EditorContainer = styled(m.div)<EditorContainerProps>`
     breakpoint("tablet")`
       padding: 0 0 0 ${CONTENT_EDGE}px;
       grid-column: 1;
+    `}
+
+  ${({ $docFullWidth }: EditorContainerProps) =>
+    !$docFullWidth &&
+    breakpoint("desktopLarge")`
+      .ProseMirror > p,
+      .ProseMirror > ul,
+      .ProseMirror > ol,
+      .ProseMirror > blockquote {
+        max-width: ${EditorStyleHelper.documentWidth};
+      }
     `}
 
   ${({ $docFullWidth }: EditorContainerProps) =>
