@@ -1,6 +1,12 @@
 import { http, HttpResponse } from "msw";
 import { server } from "@server/test/msw";
-import { checkEmbeddability, convertBareUrlsToEmbedMarkdown } from "./embeds";
+import { CacheHelper } from "./CacheHelper";
+import { RedisPrefixHelper } from "./RedisPrefixHelper";
+import {
+  checkEmbeddability,
+  checkEmbeddabilityCached,
+  convertBareUrlsToEmbedMarkdown,
+} from "./embeds";
 
 const embedUrl = "https://www.example.com/embed";
 
@@ -343,5 +349,29 @@ https://example.com/not-an-embed
       const input = "Video: https://www.youtube.com/watch?v=dQw4w9WgXcQ";
       expect(convertBareUrlsToEmbedMarkdown(input)).toBe(input);
     });
+  });
+});
+
+describe("checkEmbeddabilityCached", () => {
+  it("ignores a cached verdict for a known embed type", async () => {
+    const url = "https://github.com/owner/repo";
+    await CacheHelper.setData(
+      RedisPrefixHelper.getEmbedCheckKey(url),
+      { embeddable: false, reason: "http-error" },
+      60
+    );
+
+    const result = await checkEmbeddabilityCached(url);
+    expect(result).toEqual({ embeddable: true });
+  });
+
+  it("caches the header check of a generic embed", async () => {
+    const url = "https://www.example.com/cached-embed";
+    mockEmbedResponse(url);
+    await checkEmbeddabilityCached(url);
+    mockEmbedResponse(url, { headers: { "X-Frame-Options": "DENY" } });
+
+    const result = await checkEmbeddabilityCached(url);
+    expect(result).toEqual({ embeddable: true });
   });
 });

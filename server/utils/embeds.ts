@@ -2,7 +2,11 @@ import type { EmbedDescriptor } from "@shared/editor/embeds";
 import { getMatchingEmbed } from "@shared/editor/lib/embeds";
 import embeds from "@shared/editor/embeds";
 import fetch, { chromeUserAgent } from "./fetch";
-import { Second } from "@shared/utils/time";
+import { Day, Second } from "@shared/utils/time";
+import { CacheHelper } from "./CacheHelper";
+import { RedisPrefixHelper } from "./RedisPrefixHelper";
+
+const GENERIC_EMBED_TITLE = "Embed";
 
 /**
  * Result of an embed check operation.
@@ -128,7 +132,7 @@ export async function checkEmbeddability(
     return { embeddable: false, reason: "no-match" };
   }
 
-  if (match.embed.title !== "Embed") {
+  if (match.embed.title !== GENERIC_EMBED_TITLE) {
     // Known safe embed type
     return { embeddable: true };
   }
@@ -181,6 +185,28 @@ export async function checkEmbeddability(
     // On timeout or network error, be optimistic and allow embedding
     return { embeddable: true, reason: "timeout" };
   }
+}
+
+/**
+ * Checks if a URL can be embedded, caching only the header check of generic
+ * embeds so that known embed types always use the current descriptors.
+ *
+ * @param url The URL to check for embeddability.
+ * @returns a promise resolving to the embed check result.
+ */
+export async function checkEmbeddabilityCached(
+  url: string
+): Promise<EmbedCheckResult> {
+  if (getMatchingEmbed(embeds, url)?.embed.title !== GENERIC_EMBED_TITLE) {
+    return checkEmbeddability(url);
+  }
+
+  const result = await CacheHelper.getDataOrSet<EmbedCheckResult>(
+    RedisPrefixHelper.getEmbedCheckKey(url),
+    () => checkEmbeddability(url),
+    Day.seconds
+  );
+  return result ?? { embeddable: false, reason: "error" };
 }
 
 /**

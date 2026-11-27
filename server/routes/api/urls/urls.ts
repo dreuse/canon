@@ -24,14 +24,11 @@ import { CacheHelper, type CacheResult } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import {
-  checkEmbeddability,
-  type EmbedCheckResult,
-} from "@server/utils/embeds";
+import { checkEmbeddabilityCached } from "@server/utils/embeds";
 import { getTeamFromContext } from "@server/utils/passport";
 import * as T from "./schema";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { Day, Minute } from "@shared/utils/time";
+import { Minute } from "@shared/utils/time";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -262,15 +259,8 @@ router.post(
   async (ctx: APIContext<T.UrlsCheckEmbedReq>) => {
     const { url } = ctx.input.body;
 
-    const result = await CacheHelper.getDataOrSet<EmbedCheckResult>(
-      RedisPrefixHelper.getEmbedCheckKey(url),
-      () => checkEmbeddability(url),
-      Day.seconds
-    );
-
-    ctx.body = result
-      ? { embeddable: result.embeddable, reason: result.reason }
-      : { embeddable: false, reason: "error" };
+    const { embeddable, reason } = await checkEmbeddabilityCached(url);
+    ctx.body = { embeddable, reason };
   }
 );
 
