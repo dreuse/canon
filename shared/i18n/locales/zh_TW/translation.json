@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "閱讀時間 {{ minutes }} 分鐘",
   "Archived": "已封存",
   "All members": "所有成員",
-  "Everyone in the workspace": "工作區裡的所有人",
   "{{ count }} member": "{{ count }} 位成員",
   "{{ count }} member_plural": "{{ count }} 位成員",
   "Only lowercase letters, digits and dashes allowed": "僅允許小寫字母、數字和連字號",

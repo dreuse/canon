@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }}m gelesen",
   "Archived": "Archiviert",
   "All members": "Alle Mitglieder",
-  "Everyone in the workspace": "Alle im Arbeitsbereich",
   "{{ count }} member": "{{ count }} Mitglied",
   "{{ count }} member_plural": "{{ count }} Mitglieder",
   "Only lowercase letters, digits and dashes allowed": "Nur Kleinbuchstaben, Ziffern und Bindestriche zulässig",

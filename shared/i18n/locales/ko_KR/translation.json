@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }}분 전에 읽음",
   "Archived": "보관됨",
   "All members": "모든 구성원",
-  "Everyone in the workspace": "워크스페이스의 모든 구성원",
   "{{ count }} member": "{{ count }}명",
   "{{ count }} member_plural": "{{ count }}명",
   "Only lowercase letters, digits and dashes allowed": "소문자, 숫자, 대시만 허용됩니다.",

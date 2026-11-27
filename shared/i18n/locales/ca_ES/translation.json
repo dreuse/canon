@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }}m llegits",
   "Archived": "Arxivats",
   "All members": "Tots els membres",
-  "Everyone in the workspace": "Tothom a l'espai de treball",
   "{{ count }} member": "{{ count }} membre",
   "{{ count }} member_plural": "{{ count }} membres",
   "Only lowercase letters, digits and dashes allowed": "Només es permeten lletres en minúscula, dígits i guions",

@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }}d okuma",
   "Archived": "Arşivlendi",
   "All members": "Tüm üyeler",
-  "Everyone in the workspace": "Çalışma alanındaki herkes",
   "{{ count }} member": "{{ count }} üye",
   "{{ count }} member_plural": "{{ count }} üye",
   "Only lowercase letters, digits and dashes allowed": "Yalnızca küçük harfler, rakamlar ve kısa çizgiler izin verilir",

@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} דקות קריאה",
   "Archived": "בארכיון",
   "All members": "כל החברים",
-  "Everyone in the workspace": "כולם בסביבת העבודה",
   "{{ count }} member": "חבר {{ count }}",
   "{{ count }} member_plural": "{{ count }} חברים",
   "Only lowercase letters, digits and dashes allowed": "מותרים רק אותיות קטנות, ספרות ומקפים",

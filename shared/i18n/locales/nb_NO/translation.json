@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} min. lesetid",
   "Archived": "Arkivert",
   "All members": "Alle medlemmer",
-  "Everyone in the workspace": "Alle i arbeidsområdet",
   "{{ count }} member": "{{ count }} medlem",
   "{{ count }} member_plural": "{{ count }} medlemmer",
   "Only lowercase letters, digits and dashes allowed": "Kun små bokstaver, sifre og bindestreker tillatt",

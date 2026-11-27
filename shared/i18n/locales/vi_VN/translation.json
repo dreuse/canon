@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} phút đọc ",
   "Archived": "Đã lưu trữ",
   "All members": "Tất cả thành viên",
-  "Everyone in the workspace": "Người tham gia không gian làm việc",
   "{{ count }} member": "{{ count }} Thành viên",
   "{{ count }} member_plural": "{{ count }} Thành viên",
   "Only lowercase letters, digits and dashes allowed": "Chỉ cho phép chữ thường, chữ số và dấu gạch ngang",

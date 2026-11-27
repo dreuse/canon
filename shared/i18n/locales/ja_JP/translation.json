@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} ",
   "Archived": "アーカイブ",
   "All members": "全員",
-  "Everyone in the workspace": "ワークスペースにいる全ての人",
   "{{ count }} member": "{{ count }} 人のメンバー",
   "{{ count }} member_plural": "{{ count }} 人のメンバー",
   "Only lowercase letters, digits and dashes allowed": "小文字、数字、ダッシュのみ使用できます",

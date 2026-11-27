@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }}λ ανάγνωση",
   "Archived": "Αρχειοθετημένο",
   "All members": "Όλα τα μέλη",
-  "Everyone in the workspace": "Όλοι στον χώρο εργασίας",
   "{{ count }} member": "{{ count }} μέλος",
   "{{ count }} member_plural": "{{ count }} μέλη",
   "Only lowercase letters, digits and dashes allowed": "Επιτρέπονται μόνο πεζά γράμματα, ψηφία και παύλες",

@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "Doba čtení: {{ minutes }} min",
   "Archived": "Archivováno",
   "All members": "Všichni členové",
-  "Everyone in the workspace": "Všichni v pracovním prostoru",
   "{{ count }} member": "{{ count }} člen",
   "{{ count }} member_plural": "Členové: {{ count }}",
   "Only lowercase letters, digits and dashes allowed": "Jsou povolena pouze malá písmena, číslice a pomlčky",

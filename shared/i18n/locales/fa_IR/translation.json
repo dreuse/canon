@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} دقیقه مطالعه",
   "Archived": "بایگانی شده",
   "All members": "همه اعضا",
-  "Everyone in the workspace": "همه اعضای فضای کار",
   "{{ count }} member": "{{ count }} عضو",
   "{{ count }} member_plural": "{{ count }} عضو",
   "Only lowercase letters, digits and dashes allowed": "فقط حروف کوچک، اعداد و خط تیره مجاز است",

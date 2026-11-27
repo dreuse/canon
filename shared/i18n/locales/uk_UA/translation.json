@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} хв читання",
   "Archived": "Заархівовано",
   "All members": "Усі учасники",
-  "Everyone in the workspace": "Усі у робочому середовищі",
   "{{ count }} member": "{{ count }} учасник",
   "{{ count }} member_plural": "{{ count }} учасників",
   "Only lowercase letters, digits and dashes allowed": "Допускаються тільки маленькі літери, цифри і дефіси",

@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }} perccel ezelőtt olvasta",
   "Archived": "Archiválva",
   "All members": "Összes tag",
-  "Everyone in the workspace": "Mindenki a munkaterületen",
   "{{ count }} member": "{{ count }} tag",
   "{{ count }} member_plural": "{{ count }} tag",
   "Only lowercase letters, digits and dashes allowed": "Csak kisbetűk, számok és kötőjelek használhatók",

@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "{{ minutes }}m gelezen",
   "Archived": "Gearchiveerd",
   "All members": "Alle leden",
-  "Everyone in the workspace": "Iedereen in de werkruimte",
   "{{ count }} member": "{{ count }} lid",
   "{{ count }} member_plural": "{{ count }} leden",
   "Only lowercase letters, digits and dashes allowed": "Alleen kleine letters, cijfers en streepjes zijn toegestaan",

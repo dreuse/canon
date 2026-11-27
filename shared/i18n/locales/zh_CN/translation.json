@@ -616,7 +616,6 @@
   "{{ minutes }}m read": "阅读了{{ minutes }}分钟",
   "Archived": "已归档",
   "All members": "所有成员",
-  "Everyone in the workspace": "工作区中的所有人",
   "{{ count }} member": "{{ count }} 位成员",
   "{{ count }} member_plural": "{{ count }} 位成员",
   "Only lowercase letters, digits and dashes allowed": "只允许使用小写字母、数字和破折号",
