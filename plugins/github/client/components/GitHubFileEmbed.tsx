@@ -9,8 +9,6 @@ import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
 import { GitHubUtils } from "../../shared/GitHubUtils";
 
-const MAX_EMBED_HEIGHT = 480;
-
 interface GitHubFile {
   path: string;
   language: string;
@@ -25,7 +23,7 @@ interface GitHubFile {
  * @param props the embed props.
  * @returns the rendered file.
  */
-export function GitHubFileEmbed({ attrs }: EmbedProps) {
+export function GitHubFileEmbed({ attrs, style }: EmbedProps) {
   const { href } = attrs;
   const fetchFile = useCallback(
     async () =>
@@ -48,7 +46,7 @@ export function GitHubFileEmbed({ attrs }: EmbedProps) {
   );
 
   return (
-    <Container>
+    <Container style={style}>
       <Header>
         <a href={file?.url ?? href} target="_blank" rel="noopener noreferrer">
           {file?.path ?? href}
@@ -78,9 +76,12 @@ const Container = styled.div`
   white-space: normal;
   user-select: text;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Header = styled.div`
+  flex-shrink: 0;
   display: flex;
   gap: 8px;
   padding: 8px 12px;
@@ -93,8 +94,27 @@ const ErrorText = styled.span`
   color: ${s("danger")};
 `;
 
+const SCROLLBAR_SIZE = 6;
+
 const Body = styled.div`
-  max-height: ${MAX_EMBED_HEIGHT}px;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
   padding: 0 12px;
+  scrollbar-width: thin;
+  scrollbar-color: ${s("scrollbarThumb")} transparent;
+
+  &::-webkit-scrollbar {
+    width: ${SCROLLBAR_SIZE}px;
+    height: ${SCROLLBAR_SIZE}px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${s("scrollbarThumb")};
+    border-radius: ${SCROLLBAR_SIZE}px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 `;

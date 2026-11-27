@@ -30,6 +30,7 @@ export type EmbedProps = {
   attrs: {
     href: string;
   };
+  style?: React.CSSProperties;
 };
 
 const Img = styled(Image)<{ $invertable?: boolean }>`
