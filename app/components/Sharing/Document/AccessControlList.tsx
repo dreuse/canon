@@ -28,6 +28,7 @@ import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import DocumentMemberList from "./DocumentMemberList";
 import PublicAccess from "./PublicAccess";
+import { WorkspaceAccessItem } from "../Collection/WorkspaceAccessItem";
 
 type Props = {
   /** The document being shared. */
@@ -66,6 +67,8 @@ export const AccessControlList = observer(
     const team = useCurrentTeam();
     const can = usePolicy(document);
     const canCollection = usePolicy(collection);
+    const canManageWorkspaceAccess =
+      !!collection && !collection.isPersonal && !!canCollection.manageUsers;
     const documentId = document.id;
     const ownerId = document.ownerId;
     const owner = ownerId ? users.get(ownerId) : undefined;
@@ -125,23 +128,29 @@ export const AccessControlList = observer(
             </>
           ) : collection && canCollection.readDocument ? (
             <>
+              {canManageWorkspaceAccess && (
+                <WorkspaceAccessItem collection={collection} />
+              )}
               {collection.permission ? (
-                <ListItem
-                  image={
-                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                      <UserIcon color={theme.accentText} size={16} />
-                    </Squircle>
-                  }
-                  title={t("All members")}
-                  subtitle={t("Everyone in the workspace")}
-                  actions={
-                    <AccessTooltip>
-                      {collection?.permission === CollectionPermission.ReadWrite
-                        ? t("Can edit")
-                        : t("Can view")}
-                    </AccessTooltip>
-                  }
-                />
+                canManageWorkspaceAccess ? null : (
+                  <ListItem
+                    image={
+                      <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                        <UserIcon color={theme.accentText} size={16} />
+                      </Squircle>
+                    }
+                    title={t("All members")}
+                    subtitle={t("Everyone in the workspace")}
+                    actions={
+                      <AccessTooltip>
+                        {collection?.permission ===
+                        CollectionPermission.ReadWrite
+                          ? t("Can edit")
+                          : t("Can view")}
+                      </AccessTooltip>
+                    }
+                  />
+                )
               ) : usersInCollection ? (
                 <ListItem
                   image={<CollectionSquircle collection={collection} />}

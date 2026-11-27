@@ -1,16 +1,13 @@
 import { observer } from "mobx-react";
-import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
-import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Share from "~/models/Share";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import { InputSelectPermission } from "~/components/InputSelectPermission";
 import Scrollable from "~/components/Scrollable";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMaxHeight from "~/hooks/useMaxHeight";
@@ -22,6 +19,7 @@ import { Separator, GroupMembersPopover } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import { PublicAccess } from "./PublicAccess";
+import { WorkspaceAccessItem } from "./WorkspaceAccessItem";
 import Flex from "@shared/components/Flex";
 import ButtonLink from "~/components/ButtonLink";
 import { showErrorToast } from "../components/toasts";
@@ -105,33 +103,7 @@ export const AccessControlList = observer(
           }}
         >
           <>
-            <ListItem
-              image={
-                <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                  <UserIcon color={theme.accentText} size={16} />
-                </Squircle>
-              }
-              title={t("All members")}
-              subtitle={t("Everyone in the workspace")}
-              actions={
-                <div style={{ marginRight: -8 }}>
-                  <InputSelectPermission
-                    onChange={(
-                      value: CollectionPermission | typeof EmptySelectValue
-                    ) => {
-                      void collection.save({
-                        permission: value === EmptySelectValue ? null : value,
-                      });
-                    }}
-                    disabled={!can.manageUsers}
-                    value={collection?.permission}
-                    labelHidden
-                    nude
-                    shrink
-                  />
-                </div>
-              }
-            />
+            <WorkspaceAccessItem collection={collection} />
             {showLoading ? (
               <Placeholder />
             ) : (
