@@ -816,6 +816,7 @@
   "Card": "Cartão",
   "Embed": "Incorporar",
   "Not supported": "Não Suportado",
+  "Card and embed": "Cartão e incorporação",
   "Sorry, that link won’t work for this embed type": "Desculpe, esse link não funcionará para este tipo de incorporação",
   "Upload file": "Enviar arquivo",
   "Paste a link from {{service}}…": "Cole um link de {{service}}…",
