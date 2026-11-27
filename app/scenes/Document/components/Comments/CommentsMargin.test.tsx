@@ -38,6 +38,7 @@ const CENTRED_MARGIN_TOTAL_WIDTH = 340;
 const SPRING_BOUNCE = 0.2;
 const MARGIN_WIDTH_PROPERTY = "--comments-margin-width";
 const LIVE_SLOT_WIDTH = 123;
+const SCROLLED_DISTANCE = 2000;
 const CARD_SCROLL_MARGIN_RULE = `scroll-margin-top:${CARDS_MIN_TOP}px;`;
 
 type ObserverCallback = () => void;
@@ -367,6 +368,23 @@ describe("CommentsMargin placement", () => {
     expect(topOf(form as HTMLElement)).toBeGreaterThanOrEqual(
       topOf(getCard(THREAD_IDS[2])) + CARD_HEIGHT
     );
+  });
+
+  it("places the new comment form in view when the reader has scrolled down", async () => {
+    const original = Element.prototype.getBoundingClientRect;
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: Element) {
+        return this.tagName === "ASIDE"
+          ? ({ top: -SCROLLED_DISTANCE } as DOMRect)
+          : original.call(this);
+      }
+    );
+    await renderMargin();
+
+    const form = document.querySelector<HTMLElement>(FORM_SELECTOR);
+
+    expect(topOf(form as HTMLElement)).toBe(SCROLLED_DISTANCE + CARDS_MIN_TOP);
+    expect(visibleCardsOverlap()).toBe(false);
   });
 
   it("R35 does not touch a card removed before the next observer report", async () => {

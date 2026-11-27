@@ -160,6 +160,7 @@ export const CommentsMargin = observer(function CommentsMargin({
   const [viewingResolved, setViewingResolved] = useState(false);
   const measuredIds = useRef(new Set<string>());
   const appliedOffset = useRef(0);
+  const formAnchorTop = useRef<number | null | undefined>(undefined);
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-new`,
     undefined
@@ -273,6 +274,9 @@ export const CommentsMargin = observer(function CommentsMargin({
     }
 
     const columnTop = column.getBoundingClientRect().top;
+    if (formAnchorTop.current === undefined) {
+      formAnchorTop.current = columnTop < 0 ? CARDS_MIN_TOP - columnTop : null;
+    }
     const cards: MeasuredCard[] = [...cardRefs.current].map(([id, card]) => {
       const anchor = findAnchorElement(id);
       const top =
@@ -288,7 +292,7 @@ export const CommentsMargin = observer(function CommentsMargin({
       cards.push({
         id: FORM_ID,
         element: formRef.current,
-        anchorTop: null,
+        anchorTop: formAnchorTop.current,
         height: formRef.current.offsetHeight,
       });
     }
