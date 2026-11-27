@@ -16,6 +16,25 @@ export function getMatchingEmbed(
   return undefined;
 }
 
+const GENERIC_EMBED_ID = "embed";
+
+/**
+ * Finds an enabled embed made for the link, ignoring the generic iframe embed.
+ *
+ * @param embeds the available embeds.
+ * @param href the link to embed.
+ * @returns the matching embed, or undefined when only the generic one matches.
+ */
+export function getSpecificEmbed(
+  embeds: EmbedDescriptor[],
+  href: string
+): EmbedDescriptor | undefined {
+  const embed = getMatchingEmbed(embeds, href)?.embed;
+  return embed && !embed.disabled && embed.id !== GENERIC_EMBED_ID
+    ? embed
+    : undefined;
+}
+
 export function transformListToEmbeds(listNode: Node, schema: Schema): Node[] {
   const nodes: Node[] = [];
 

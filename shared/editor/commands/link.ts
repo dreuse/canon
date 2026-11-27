@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import { chainCommands, toggleMark } from "prosemirror-commands";
-import type { Attrs } from "prosemirror-model";
+import type { Attrs, Node } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
 import { NodeSelection, Selection, TextSelection } from "prosemirror-state";
 import type * as React from "react";
@@ -273,3 +273,22 @@ export const updateLink = (attrs: Attrs): Command =>
 
 export const removeLink = (): Command =>
   chainCommands(removeLinkTextSelection(), removeLinkNodeSelection());
+
+/**
+ * Replaces the whole link around the cursor with a node.
+ *
+ * @param node the node that takes the place of the link.
+ * @returns a command that is not applicable when the cursor is not on a link.
+ */
+export const replaceLink =
+  (node: Node): Command =>
+  (state, dispatch) => {
+    const range = getMarkRange(state.selection.$from, state.schema.marks.link);
+    if (!range) {
+      return false;
+    }
+    dispatch?.(
+      state.tr.replaceRangeWith(range.from, range.to, node).scrollIntoView()
+    );
+    return true;
+  };

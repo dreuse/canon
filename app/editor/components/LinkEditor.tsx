@@ -28,9 +28,15 @@ import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { useEditor } from "./EditorContext";
+import GitHubIcon from "../../../plugins/github/client/Icon";
 
 /** The time in milliseconds the query must stay the same before it is sent. */
 const RequestDelay = 100;
+
+const GITHUB_HOST = "github.com";
+
+const isGitHubUrl = (href: string) =>
+  URL.canParse(href) && new URL(href).hostname === GITHUB_HOST;
 
 type Props = {
   mark?: Mark;
@@ -127,6 +133,11 @@ const LinkEditor: React.FC<Props> = ({
     commands["openLink"]();
   }, [commands]);
 
+  const embedLink = React.useCallback(() => {
+    commands["embedLink"]({ href: initialValue });
+    onLinkUpdate();
+  }, [commands, initialValue, onLinkUpdate]);
+
   const removeLink = React.useCallback(() => {
     commands["removeLink"]();
     onLinkRemove();
@@ -214,6 +225,13 @@ const LinkEditor: React.FC<Props> = ({
       visible: true,
       disabled: !query,
       handler: openLink,
+    },
+    {
+      tooltip: t("Embed"),
+      icon: <GitHubIcon />,
+      visible: view.editable && isGitHubUrl(initialValue),
+      disabled: false,
+      handler: embedLink,
     },
     {
       tooltip: t("Remove link"),

@@ -52,12 +52,6 @@ import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
-import GitHubIcon from "../../../plugins/github/client/Icon";
-
-const GITHUB_HOST = "github.com";
-
-const isGitHubUrl = (href: string) =>
-  URL.canParse(href) && new URL(href).hostname === GITHUB_HOST;
 
 /**
  * Returns menu items for the default formatting selection toolbar.
@@ -94,16 +88,6 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
         "background"
       )
     : false;
-
-  const linkHref: unknown = getMarksBetween(
-    state.selection.from,
-    state.selection.to,
-    state
-  ).find(({ mark }) => mark.type === schema.marks.link)?.mark.attrs.href;
-  const githubHref =
-    typeof linkHref === "string" && isGitHubUrl(linkHref)
-      ? linkHref
-      : undefined;
 
   const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
   const canFormat = !isInCodeBlock;
@@ -492,14 +476,6 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       active: isMarkActive(schema.marks.link, undefined, { exact: true }),
       // A link cannot be made without text to attach it to.
       visible: canFormat && !isEmpty,
-    },
-    {
-      name: "embedLink",
-      group: MenuItemGroup.inline,
-      tooltip: t("Embed"),
-      icon: <GitHubIcon />,
-      attrs: { href: githubHref ?? "" },
-      visible: canFormat && !isEmpty && !!githubHref,
     },
     {
       name: "comment",

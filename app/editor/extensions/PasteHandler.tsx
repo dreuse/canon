@@ -9,9 +9,10 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
 import { addMark } from "@shared/editor/commands/addMark";
+import { replaceLink } from "@shared/editor/commands/link";
 import { pasteIntoListItem } from "@shared/editor/commands/pasteIntoListItem";
 import { codeLanguages } from "@shared/editor/lib/code";
-import { getMatchingEmbed } from "@shared/editor/lib/embeds";
+import { getMatchingEmbed, getSpecificEmbed } from "@shared/editor/lib/embeds";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -699,18 +700,19 @@ export default class PasteHandler extends Extension {
         },
       embedLink:
         (attrs: Record<string, Primitive>): Command =>
-        () => {
+        (state, dispatch) => {
           const href = String(attrs.href);
-          const embed = getMatchingEmbed(this.editor.props.embeds, href)?.embed;
-          if (!embed || embed.disabled) {
+          if (!getSpecificEmbed(this.editor.props.embeds, href)) {
             this.editor.props.onNotice?.(
               t("This link can’t be embedded"),
               "warning"
             );
             return false;
           }
-          this.editor.commands.embed({ href });
-          return true;
+          return replaceLink(state.schema.nodes.embed.create({ href }))(
+            state,
+            dispatch
+          );
         },
     };
   }
